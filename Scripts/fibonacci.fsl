@@ -1,0 +1,11 @@
+func main
+  local a = 0
+  local b = 1
+  local c = 1
+  for i in 1 1000
+    local c = <@a + @b>
+    local a = @b
+    local b = @c
+  end
+  print @c
+end
