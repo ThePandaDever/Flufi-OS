@@ -3,9 +3,9 @@ func main
   local b = 1
   local c = 1
   for i in 1 1000
-    local c = <@a + @b>
-    local a = @b
-    local b = @c
+    c = <@a + @b>
+    a = @b
+    b = @c
   end
   print @c
 end
