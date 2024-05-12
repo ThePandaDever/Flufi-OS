@@ -81,6 +81,9 @@
               this.jsCode += beautify(this.indentLevel) + 'for (var ' + tokens[1] + ' = ' + tokens[3] + '; ' + tokens[1] + ' <= ' + tokens[4] + '; ' + tokens[1] + '++) {\n';
               this.indentLevel++;
               break;
+            case 'js':
+              this.jsCode += beautify(this.indentLevel) + tokens.slice(1,tokens.length).join(" ")
+              break;
             case 'end':
               this.indentLevel--;
               this.jsCode += beautify(this.indentLevel) + '}\n';
