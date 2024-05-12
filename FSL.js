@@ -104,7 +104,7 @@
               break;
           }
         });
-        return this.jsCode;
+        return this.jsCode + "main()";
       }
     }
       Scratch.extensions.register(new PSL());
