@@ -71,10 +71,16 @@ function sametype(a,b){return a == b || a == "any" || b == "any"}
 
 function eval(v,type){
     if (!sametype("any",type)){
-        if (!sametype(type,eval(v,"any")["type"])){
-            console.log(``)
+      	etype = eval(v,"any")["type"]
+        if (!sametype(type,etype)){
+            console.log(`wanted ${type}, got ${etype}`)
         }
     }
+  	if (v.split('"').length - 1 == 2){
+    	return {"type":"string","value":v.replace(/^"(.*)"$/, '$1')}
+    }
+  	console.error(`couldnt eval ${v}`)
+  	return {"type":"null","value":"null"}
 }
 
 function run(code,func,environment){
@@ -119,7 +125,7 @@ function run(code,func,environment){
 
 function command(cmd,env){
     if (cmd[0] == "print"){
-        print(eval(cmd[1],"string"))
+        print(eval(cmd[1],"string")["value"])
     }
 }
 
