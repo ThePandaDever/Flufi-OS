@@ -6,12 +6,25 @@
 
     Object.clone=function(e){if(null===e)return null;if("object"==typeof e){if(Array.isArray(e))return e.map((e=>Object.clone(e)));if(e instanceof RegExp)return new RegExp(e);{let n={};for(let r in e)e.hasOwnProperty(r)&&(n[r]=Object.clone(e[r]));return n}}return e};
 
+    function getClipping(panels) {
+        let current = [-9999,-9999,9999,9999];
+        for (let i = 0; i < panels.length; i++) {
+            const p = panels[i];
+            if (p[0] > current[0]) { current[0] = p[0] }
+            if (p[1] > current[1]) { current[1] = p[1] }
+            if (p[2] < current[2]) { current[2] = p[2] }
+            if (p[3] < current[3]) { current[3] = p[3] }
+        }
+        return current;
+    }
+
 	class PanelMaker {
         constructor() {
             this.currentPanel = [];
             this.clipping = [-9999,-9999,9999,9999];
             this.color = "#ffffff";
             this.direction = 90;
+            this.clippingPanels = [];
         }
 		getInfo() {
 			return {
@@ -29,6 +42,18 @@
                             x: { type: ArgumentType.NUMBER, defaultValue: 0 },
                             y: { type: ArgumentType.NUMBER, defaultValue: 0 },
                             size: { type: ArgumentType.NUMBER, defaultValue: 1 }
+                        }
+					},
+					{
+						opcode: "clippingPanel",
+						text: ["Clipping from [x1] [y1] [x2] [y2]"],
+						blockType: Scratch.BlockType.CONDITIONAL,
+						branchCount: 1,
+                        arguments: {
+                            x1: { type: ArgumentType.NUMBER, defaultValue: -10 },
+                            y1: { type: ArgumentType.NUMBER, defaultValue: -10 },
+                            x2: { type: ArgumentType.NUMBER, defaultValue: 10 },
+                            y2: { type: ArgumentType.NUMBER, defaultValue: 10 }
                         }
 					},
                     {
@@ -149,6 +174,11 @@
                             y2: { type: ArgumentType.NUMBER, defaultValue: 10 }
                         }
                     },
+                    {
+                        opcode: "elem_clippingExit",
+                        blockType: BlockType.COMMAND,
+                        text: "Exit clipping panel"
+                    },
                     { blockType: Scratch.BlockType.LABEL, text: "Management" },
                     {
                         opcode: "getPanel",
@@ -197,6 +227,23 @@
             util.stackFrame.blockRanOnce = true;
 			util.stackFrame.oldPanel = oldPanel;
 		}
+		clippingPanel(args,util) {
+            if (util.stackFrame.blockRanOnce) {
+				this.clippingPanels.pop();
+				const c = getClipping(this.clippingPanels);
+				this.clipping = c;
+				this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
+				return;
+            }
+			
+			this.clippingPanels.push([args.x1,args.y1,args.x2,args.y2]);
+			const c = getClipping(this.clippingPanels);
+			this.clipping = c;
+			this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
+			
+            util.startBranch(1, true);
+            util.stackFrame.blockRanOnce = true;
+		}
         element(args) {
             let obj = args.data;
             if (typeof obj == "string") { obj = JSON.parse(obj) }
@@ -216,6 +263,7 @@
         set_clipping({ x1, y1, x2, y2 }) {
             this.currentPanel.push({"id":"clipping","x1":x1,"y1":y1,"x2":x2,"y2":y2});
             this.clipping = [x1,y1,x2,y2];
+            this.clippingPanels = [[x1,y1,x2,y2]];
         }
 
         get_color() {
@@ -243,11 +291,18 @@
             this.currentPanel.push({"id":"panel","panel":panel,"pos":[x,y],"size":size});
         }
         elem_clipping({ x1, y1, x2, y2 }) {
-            if (x1 > this.clipping[0]) { this.clipping[0] = x1; }
-            if (y1 > this.clipping[1]) { this.clipping[1] = y1; }
-            if (x2 < this.clipping[2]) { this.clipping[2] = x2; }
-            if (y2 < this.clipping[3]) { this.clipping[3] = y2; }
-            this.currentPanel.push({"id":"clipping","x1":this.clipping[0],"y1":this.clipping[1],"x2":this.clipping[2],"y2":this.clipping[3]});
+            this.clippingPanels.push([x1,y1,x2,y2]);
+			
+            const c = getClipping(this.clippingPanels);
+            this.clipping = c;
+            this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
+        }
+        elem_clippingExit() {
+            this.clippingPanels.pop();
+			
+            const c = getClipping(this.clippingPanels);
+            this.clipping = c;
+            this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
         }
 
         getPanel({ representation }) {
@@ -263,6 +318,10 @@
         }
         clear() {
             this.currentPanel = [];
+            this.clipping = [-9999,-9999,9999,9999];
+            this.color = "#ffffff";
+            this.direction = 90;
+            this.clippingPanels = [];
         }
 	}
 
