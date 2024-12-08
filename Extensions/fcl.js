@@ -281,7 +281,7 @@
             return {
                 id: "fcl",
                 name: "FCL Language",
-                color1: "#eb346b",
+                color1: "#b0196c",
                 blocks: [{
                         opcode: "runCompiledBlock",
                         blockType: BlockType.COMMAND,
