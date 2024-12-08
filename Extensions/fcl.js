@@ -412,27 +412,27 @@
         runCompiledReporter({ code, out, representation }) {
             let data = runCompiled(code);
             if (out == "output") {
-                return data["outval"]
+                return data["outval"];
             }
             if (representation == "json") {
-                data = JSON.stringify(data)
+                data = JSON.stringify(data);
             };
             return data;
         }
         runCompiledReporterEnv({ code, out, representation, env }) {
             let data = runCompiled(code, env);
             if (out == "output") {
-                return data["outval"]
+                return data["outval"];
             }
             if (representation == "json") {
-                data = JSON.stringify(data)
+                data = JSON.stringify(data);
             }
             return data;
         }
         get_memory({ representation }) {
             let data = memory;
             if (representation == "json") {
-                data = JSON.stringify(data)
+                data = JSON.stringify(data);
             }
             return data;
         }
@@ -441,7 +441,7 @@
         }
         set_memory({ object }) {
             if (typeof object == "string") {
-                object = JSON.parse(object)
+                object = JSON.parse(object);
             }
             memory = object;
         }
