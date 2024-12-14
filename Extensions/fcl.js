@@ -92,6 +92,7 @@
         }
         env["param_stack"] = [];
         const id = env["id"];
+        memory[id] = [];
 
         let current_event = "";
         for (let i = 0; i < code.length; i++) {
@@ -270,19 +271,13 @@
     }
 
     class FCL {
-        constructor() {
-            this.currentPanel = [];
-            this.clipping = [-9999, -9999, 9999, 9999];
-            this.color = "#ffffff";
-            this.direction = 90;
-            this.clippingPanels = [];
-        }
         getInfo() {
             return {
                 id: "fcl",
                 name: "FCL Language",
                 color1: "#b0196c",
-                blocks: [{
+                blocks: [
+                    {
                         opcode: "runCompiledBlock",
                         blockType: BlockType.COMMAND,
                         text: "Run Compiled [code]",
