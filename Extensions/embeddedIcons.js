@@ -35,6 +35,22 @@
         return out;
     }
 
+    function decodeCommand(cmd, representation) {
+        if (typeof cmd != "string") {
+            cmd = String(cmd)
+        }
+        let chars = cmd.split("");
+        let data = {"cmd":encChars.indexOf(chars.shift()),"data":""};
+        const len = encChars.indexOf(chars.shift()) + 1;
+        for (let i = 0; i < chars.length; i++) {
+            const c = chars[i];
+            data["data"] = String(encChars.indexOf(chars.shift()));
+        }
+        data["data"] = Number(data["data"]);
+        if (representation == "json") { data = JSON.stringify(data) }
+        return data;
+    }
+
 	class EmbeddedIcons {
         constructor() {}
 		getInfo() {
@@ -107,15 +123,7 @@
         }
 
         decode({ cmd, representation }) {
-            let data = {};
-            let chars = cmd.split("");
-            data["cmd"] = encChars.indexOf(chars.shift()) + 1;
-            for (let i = 0; i < chars.length; i++) {
-                const c = chars[i];
-                
-            }
-            if (representation == "json") { data = JSON.stringify(data) }
-            return data;
+            return decodeCommand(cmd, representation);
         }
 	}
     const chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];

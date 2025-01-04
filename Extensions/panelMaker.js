@@ -6,6 +6,39 @@
 
     Object.clone=function(e){if(null===e)return null;if("object"==typeof e){if(Array.isArray(e))return e.map((e=>Object.clone(e)));if(e instanceof RegExp)return new RegExp(e);{let n={};for(let r in e)e.hasOwnProperty(r)&&(n[r]=Object.clone(e[r]));return n}}return e};
 
+	function capCol(v) {
+		if (v > 1) {
+			v = 1;
+		}
+		if (v < 0) {
+			v = 0;
+		}
+		return v;
+	}
+	
+    const multColor = (c1,c2) => {
+        return [
+            capCol(c1[0] * c2[0]),
+            capCol(c1[1] * c2[1]),
+            capCol(c1[2] * c2[2])
+        ]
+    }
+    
+    function hexToFloats(hex) {
+        hex = hex.replace(/^#/, "");
+		if (hex.length === 3) {
+	        hex = hex.split("").map(char => char + char).join("");
+	    }
+		const hexR = parseInt(hex.substring(0, 2), 16);
+        const hexG = parseInt(hex.substring(2, 4), 16);
+        const hexB = parseInt(hex.substring(4, 6), 16);
+        return {
+            r: hexR / 255,
+            g: hexG / 255,
+            b: hexB / 255
+        };
+    }
+
     function getClipping(panels) {
         let current = [-9999,-9999,9999,9999];
         for (let i = 0; i < panels.length; i++) {
@@ -17,14 +50,20 @@
         }
         return current;
     }
+    function getTintColor(layers) {
+        let current = [1,1,1];
+        for (let i = 0; i < layers.length; i++) {
+            const p = layers[i];
+            current[0] *= p.r;
+            current[1] *= p.g;
+            current[2] *= p.b;
+        }
+        return current;
+    }
 
 	class PanelMaker {
         constructor() {
-            this.currentPanel = [];
-            this.clipping = [-9999,-9999,9999,9999];
-            this.color = "#ffffff";
-            this.direction = 90;
-            this.clippingPanels = [];
+            this.clear();
         }
 		getInfo() {
 			return {
@@ -42,6 +81,26 @@
                             x: { type: ArgumentType.NUMBER, defaultValue: 0 },
                             y: { type: ArgumentType.NUMBER, defaultValue: 0 },
                             size: { type: ArgumentType.NUMBER, defaultValue: 1 }
+                        }
+					},
+					{
+						opcode: "tintLayerRGB",
+						text: ["Tint Layer [r] [g] [b]"],
+						blockType: Scratch.BlockType.CONDITIONAL,
+						branchCount: 1,
+                        arguments: {
+                            r: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            g: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            b: { type: ArgumentType.NUMBER, defaultValue: 1 }
+                        }
+					},
+					{
+						opcode: "tintLayerHEX",
+						text: ["Tint Layer [hex]"],
+						blockType: Scratch.BlockType.CONDITIONAL,
+						branchCount: 1,
+                        arguments: {
+                            hex: { type: ArgumentType.COLOR, defaultValue: "#ff0000" }
                         }
 					},
 					{
@@ -95,6 +154,24 @@
                             y2: { type: ArgumentType.NUMBER, defaultValue: 10 }
                         }
                     },
+                    {
+                        opcode: "set_tint",
+                        blockType: BlockType.COMMAND,
+                        text: "Set Tint to [r] [g] [b]",
+                        arguments: {
+                            r: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            g: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            b: { type: ArgumentType.NUMBER, defaultValue: 1 }
+                        }
+                    },
+                    {
+                        opcode: "set_tintHEX",
+                        blockType: BlockType.COMMAND,
+                        text: "Set Tint to [hex]",
+                        arguments: {
+                            hex: { type: ArgumentType.COLOR, defaultValue: "#ff0000" }
+                        }
+                    },
                     "---",
                     {
                         opcode: "get_color",
@@ -115,6 +192,21 @@
                         arguments: {
                             representation: { type: ArgumentType.STRING, defaultValue: "json", menu: "obj_representation" }
                         },
+                        disableMonitor:  true
+                    },
+                    {
+                        opcode: "get_tint",
+                        blockType: BlockType.REPORTER,
+                        text: "Get Tint as [representation]",
+                        arguments: {
+                            representation: { type: ArgumentType.STRING, defaultValue: "json", menu: "obj_representation" }
+                        },
+                        disableMonitor:  true
+                    },
+                    {
+                        opcode: "get_tintDepth",
+                        blockType: BlockType.REPORTER,
+                        text: "Get Tint Depth",
                         disableMonitor:  true
                     },
                     "---",
@@ -179,6 +271,40 @@
                         blockType: BlockType.COMMAND,
                         text: "Exit clipping panel"
                     },
+                    {
+                        opcode: "elem_tintLayerRGB",
+                        blockType: BlockType.COMMAND,
+                        text: "Tint Layer [r] [g] [b]",
+                        arguments: {
+                            r: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            g: { type: ArgumentType.NUMBER, defaultValue: 1 },
+                            b: { type: ArgumentType.NUMBER, defaultValue: 1 }
+                        }
+                    },
+                    {
+                        opcode: "elem_tintLayerHEX",
+                        blockType: BlockType.COMMAND,
+                        text: "Tint Layer [hex]",
+                        arguments: {
+                            hex: { type: ArgumentType.COLOR, defaultValue: "#ff0000" }
+                        }
+                    },
+                    {
+                        opcode: "elem_tintLayerExit",
+                        blockType: BlockType.COMMAND,
+                        text: "Exit Tint Layer"
+                    },
+                    {
+                        opcode: "elem_showBox",
+                        blockType: BlockType.COMMAND,
+                        text: "Show box from [x1] [y1] to [x2] [y2]",
+                        arguments: {
+                            x1: { type: ArgumentType.NUMBER, defaultValue: -10 },
+                            y1: { type: ArgumentType.NUMBER, defaultValue: -10 },
+                            x2: { type: ArgumentType.NUMBER, defaultValue: 10 },
+                            y2: { type: ArgumentType.NUMBER, defaultValue: 10 }
+                        }
+                    },
                     { blockType: Scratch.BlockType.LABEL, text: "Management" },
                     {
                         opcode: "getPanel",
@@ -201,6 +327,24 @@
                         blockType: BlockType.COMMAND,
                         text: "Clear Panel"
                     },
+                    "---",
+                    {
+                        opcode: "multColor",
+                        blockType: BlockType.REPORTER,
+                        text: "Multiply [hex] with [rgb]",
+                        arguments: {
+                            hex: { type: ArgumentType.COLOR, defaultValue: "#ff0000" },
+                            rgb: { type: ArgumentType.STRING, defaultValue: "[1,1,1]" },
+                        }
+                    },
+                    {
+                        opcode: "colorToHex",
+                        blockType: BlockType.REPORTER,
+                        text: "Convert [color] to Hex",
+                        arguments: {
+                            color: { type: ArgumentType.STRING, defaultValue: "[1,1,1]" },
+                        }
+                    }
 				],
                 menus: {
                     obj_representation: {
@@ -227,6 +371,39 @@
             util.stackFrame.blockRanOnce = true;
 			util.stackFrame.oldPanel = oldPanel;
 		}
+        tintLayerRGB(args,util) {
+            if (util.stackFrame.blockRanOnce) {
+                this.tintLayers.pop();
+                const c2 = getTintColor(this.tintLayers);
+                this.currentPanel.push({"id":"tint","r":c2[0],"g":c2[1],"b":c2[2]});
+                return;
+            }
+
+            this.tintLayers.push({r:args["r"],g:args["g"],b:args["b"]});
+			
+			const c = getTintColor(this.tintLayers);
+			this.currentPanel.push({"id":"tint","r":c[0],"g":c[1],"b":c[2]});
+
+            util.startBranch(1, true);
+            util.stackFrame.blockRanOnce = true;
+        }
+        tintLayerHEX(args,util) {
+            if (util.stackFrame.blockRanOnce) {
+                this.tintLayers.pop();
+                const c = getTintColor(this.tintLayers);
+                this.currentPanel.push({"id":"tint","r":c[0],"g":c[1],"b":c[2]});
+                return;
+            }
+
+            const c = hexToFloats(args.hex);
+            this.tintLayers.push(c);
+			
+			const c2 = getTintColor(this.tintLayers);
+			this.currentPanel.push({"id":"tint","r":c2[0],"g":c2[1],"b":c2[2]});
+
+            util.startBranch(1, true);
+            util.stackFrame.blockRanOnce = true;
+        }
 		clippingPanel(args,util) {
             if (util.stackFrame.blockRanOnce) {
 				this.clippingPanels.pop();
@@ -265,6 +442,15 @@
             this.clipping = [x1,y1,x2,y2];
             this.clippingPanels = [[x1,y1,x2,y2]];
         }
+        set_tint({ r, g, b }) {
+            this.currentPanel.push({"id":"tint","r":r,"g":g,"b":b});
+            this.tintLayers = [{r:r,g:g,b:b}];
+        }
+        set_tintHEX({ hex }) {
+            const c = hexToFloats(hex);
+            this.currentPanel.push({"id":"tint","r":c["r"],"g":c["g"],"b":c["b"]});
+            this.tintLayers = [c];
+        }
 
         get_color() {
             return this.color;
@@ -275,6 +461,13 @@
         get_clipping({ representation }) {
             if (representation == "json") { return JSON.stringify(this.clipping) }
             return this.clipping;
+        }
+        get_tint({ representation}) {
+            if (representation == "json") { return JSON.stringify(getTintColor(this.tintLayers)) }
+            return getTintColor(this.tintLayers);
+        }
+        get_tintDepth() {
+            return this.tintLayers.length;
         }
 
         elem_rect({ x, y, w, h, border }) {
@@ -292,17 +485,43 @@
         }
         elem_clipping({ x1, y1, x2, y2 }) {
             this.clippingPanels.push([x1,y1,x2,y2]);
-			
+            
             const c = getClipping(this.clippingPanels);
             this.clipping = c;
             this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
         }
         elem_clippingExit() {
             this.clippingPanels.pop();
-			
+            
             const c = getClipping(this.clippingPanels);
             this.clipping = c;
             this.currentPanel.push({"id":"clipping","x1":c[0],"y1":c[1],"x2":c[2],"y2":c[3]});
+        }
+        elem_tintLayerRGB({ r, g, b }) {
+            this.tintLayers.push({r:r,g:g,b:b});
+            const c = getTintColor(this.tintLayers);
+            this.currentPanel.push({"id":"tint","r":c[0],"g":c[1],"b":c[2]});
+        }
+        elem_tintLayerHEX({ hex }) {
+            const c = hexToFloats(hex);
+            this.tintLayers.push(c);
+            const c2 = getTintColor(this.tintLayers);
+            this.currentPanel.push({"id":"tint","r":c2[0],"g":c2[1],"b":c2[2]});
+        }
+        elem_tintLayerExit() {
+            this.tintLayers.pop();
+            const c = getTintColor(this.tintLayers);
+            this.currentPanel.push({"id":"tint","r":c[0],"g":c[1],"b":c[2]});
+        }
+        elem_showBox({ x1, y1, x2, y2 }) {
+			const verts = [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]];
+			let data = [1];
+			for (let i = 0; i < verts.length; i++) {
+				data.push(verts[i][0]);
+				data.push(verts[i][1]);
+			}
+			this.currentPanel.push("#ffffff")
+            this.currentPanel.push(data);
         }
 
         getPanel({ representation }) {
@@ -311,9 +530,13 @@
             return temp;
         }
         getPanelAndClear({ representation }) {
-            let temp = Object.clone(this.currentPanel);
-            this.currentPanel = [];
-            if (representation == "json") { return JSON.stringify(temp) }
+            let temp = this.currentPanel;
+            if (representation == "json") { 
+                this.clear();
+                return JSON.stringify(temp);
+            }
+            temp = Object.clone(temp);
+            this.clear();
             return temp;
         }
         clear() {
@@ -322,6 +545,19 @@
             this.color = "#ffffff";
             this.direction = 90;
             this.clippingPanels = [];
+            this.tintLayers = [];
+        }
+        multColor({ hex, rgb }) {
+            const c1 = hexToFloats(hex);
+            if (typeof rgb == "string") rgb = JSON.parse(rgb);
+            return multColor([c1.r,c1.g,c1.b],rgb);
+        }
+        colorToHex({ color }) {
+            if (typeof color == "string") color = JSON.parse(color);
+            color[0] = Math.round(color[0] * 255);
+            color[1] = Math.round(color[1] * 255);
+            color[2] = Math.round(color[2] * 255);
+            return "#" + color[0].toString(16).padStart(2, '0') + color[1].toString(16).padStart(2, '0') + color[2].toString(16).padStart(2, '0');
         }
 	}
 

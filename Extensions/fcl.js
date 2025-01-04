@@ -273,7 +273,7 @@
     class FCL {
         getInfo() {
             return {
-                id: "fcl",
+                id: "flfFcl",
                 name: "FCL Language",
                 color1: "#b0196c",
                 blocks: [
