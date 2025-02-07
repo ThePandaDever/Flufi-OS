@@ -26,29 +26,11 @@
     encChars = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","F"];
 
     function encodeCommand(cmd,num) {
-        const stringified = String(num);
-        let out = "" + encChars[cmd] + encChars[stringified.length];
-        for (let index = 0; index < stringified.length; index++) {
-            const c = stringified[index];
-            out += encChars[Number(c)];
-        }
-        return out;
+		return "";
     }
 
     function decodeCommand(cmd, representation) {
-        if (typeof cmd != "string") {
-            cmd = String(cmd)
-        }
-        let chars = cmd.split("");
-        let data = {"cmd":encChars.indexOf(chars.shift()),"data":""};
-        const len = encChars.indexOf(chars.shift()) + 1;
-        for (let i = 0; i < chars.length; i++) {
-            const c = chars[i];
-            data["data"] = String(encChars.indexOf(chars.shift()));
-        }
-        data["data"] = Number(data["data"]);
-        if (representation == "json") { data = JSON.stringify(data) }
-        return data;
+		return "";
     }
 
 	class EmbeddedIcons {
@@ -126,12 +108,12 @@
             return decodeCommand(cmd, representation);
         }
 	}
-    const chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+    const chars = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0","a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
 
     for (let i = 0; i < textBlockAmt; i++) {
         const args = chars.slice(0, i + 1);
         const methodName = `createtext${i}`;
-        const func = new Function("args", `return ${args.map(item => `args.${item}`).join(" + ")};`);
+        const func = new Function("args", `return ${args.map(item => `args[${item}]`).join(" + ")};`);
         EmbeddedIcons.prototype[methodName] = func;
     }
 	Scratch.extensions.register(new EmbeddedIcons());
