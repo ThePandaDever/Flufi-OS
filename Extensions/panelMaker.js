@@ -127,6 +127,25 @@
                         }
                     },
                     "---",
+					{
+						opcode: "lineSegment",
+						text: ["Line Segment width: [w]"],
+						blockType: Scratch.BlockType.CONDITIONAL,
+						branchCount: 1,
+                        arguments: {
+                            w: { type: ArgumentType.NUMBER, defaultValue: 10 },
+                        }
+					},
+					{
+						opcode: "lineSegmentPoint",
+						text: "Line Point at [x] [y]",
+						blockType: Scratch.BlockType.COMMAND,
+                        arguments: {
+                            x: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                            y: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                        }
+					},
+                    "---",
                     {
                         opcode: "set_color",
                         blockType: BlockType.COMMAND,
@@ -428,6 +447,21 @@
             obj["pos"] = [args.x,args.y];
             this.currentPanel.push(obj);
         }
+        
+		lineSegment(args,util) {
+            if (util.stackFrame.blockRanOnce) {
+			    this.currentPanel.push([args.w,...this.lineSegmentPoints]);
+				return;
+            }
+			
+            this.lineSegmentPoints = [];
+			
+            util.startBranch(1, true);
+            util.stackFrame.blockRanOnce = true;
+		}
+        lineSegmentPoint({ x, y }) {
+            this.lineSegmentPoints.push(...[x,y]);
+        }
 
         set_color({ color }) {
             this.currentPanel.push(color);
@@ -546,6 +580,7 @@
             this.direction = 90;
             this.clippingPanels = [];
             this.tintLayers = [];
+            this.lineSegmentPoints = [];
         }
         multColor({ hex, rgb }) {
             const c1 = hexToFloats(hex);
