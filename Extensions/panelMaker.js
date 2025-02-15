@@ -145,6 +145,19 @@
                             y: { type: ArgumentType.NUMBER, defaultValue: 0 },
                         }
 					},
+					{
+						opcode: "lineSegmentStart",
+						text: "Start Line Segment width: [w]",
+						blockType: Scratch.BlockType.COMMAND,
+                        arguments: {
+                            w: { type: ArgumentType.NUMBER, defaultValue: 10 },
+                        }
+					},
+					{
+						opcode: "lineSegmentEnd",
+						text: "End Line Segment",
+						blockType: Scratch.BlockType.COMMAND
+					},
                     "---",
                     {
                         opcode: "set_color",
@@ -461,6 +474,13 @@
 		}
         lineSegmentPoint({ x, y }) {
             this.lineSegmentPoints.push(...[x,y]);
+        }
+        lineSegmentStart(args) {
+            this.lineSegmentPoints = [];
+            this.lineW = Number(args.w);
+        }
+        lineSegmentEnd() {
+            this.currentPanel.push([this.lineW,...this.lineSegmentPoints]);
         }
 
         set_color({ color }) {
