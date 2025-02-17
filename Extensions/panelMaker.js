@@ -359,6 +359,14 @@
                         blockType: BlockType.COMMAND,
                         text: "Clear Panel"
                     },
+                    {
+                        opcode: "setPanel",
+                        blockType: BlockType.COMMAND,
+                        text: "Set Panel [data]",
+                        arguments: {
+                            data: { type: ArgumentType.STRING, defaultValue: "[]" }
+                        }
+                    },
                     "---",
                     {
                         opcode: "multColor",
@@ -602,6 +610,11 @@
             this.tintLayers = [];
             this.lineSegmentPoints = [];
         }
+        setPanel({ data }) {
+            if (typeof data == "string") { data = JSON.parse(data) }
+            this.currentPanel = data;
+        }
+
         multColor({ hex, rgb }) {
             const c1 = hexToFloats(hex);
             if (typeof rgb == "string") rgb = JSON.parse(rgb);

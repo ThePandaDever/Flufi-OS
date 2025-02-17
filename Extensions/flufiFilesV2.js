@@ -2,78 +2,6 @@
     "use strict";
     const { BlockType, ArgumentType } = Scratch;
 
-    function _navigatePath(path, system, createDirs = false) {
-        const parts = path.split('/');
-        if (parts.length == 1 && parts[0] == "") { return system }
-        let current = system;
-        for (const part of parts) {
-            if (!current[part]) {
-                if (createDirs) {
-                    current[part] = [{}, "[filetype]", {}];
-                } else {
-                    return null;
-                }
-            }
-            current = current[part][0]; // Access the content part of the folder
-        }
-        return current;
-    }
-    function isDir(path, system) {
-        let dir = getFile(path, system)
-        return dir.split(".").pop() === "folder"
-    }
-    function getFileRaw(path, system) {
-        return _navigatePath(path, system, false);
-    }
-    function setFileRaw(path, data, system) {
-        const dir = _navigatePath(path, system, true);
-        if (path.split(".").pop() === "folder") {
-            const parts = path.split('/');
-            const fileName = parts.pop();
-            dir[0][fileName] = data;
-        }
-    }
-
-    function delFile(path, system) {
-        const parts = path.split('/');
-        const fileName = parts.pop();
-        const dir = _navigatePath(parts.join('/'), system, false);
-        if (dir && dir[fileName]) {
-            delete dir[fileName];
-        }
-    }
-
-    function getFile(path, system) {
-        return getFileRaw(path, system);
-    }
-
-    function setFile(path, data, part, type, system) {
-        let file = getFile(path, system);
-        if (!file) {
-            file = ["", "[filetype]", {}];
-        }
-        switch (part) {
-            case "content":
-                file[0] = data;
-                break;
-            case "icon":
-                file[1] = data;
-                break;
-            case "other":
-                if (type === "object") {
-                    file[2] = data;
-                } else if (type === "json") {
-                    file[2] = JSON.parse(data);
-                }
-                break;
-        }
-        setFileRaw(path, file, system);
-    }
-
-    function hasFile(path, system) {
-        return getFile(path, system) !== null;
-    }
-
     class FlufiFiles {
         constructor() {
             this.system = {
@@ -204,25 +132,6 @@
         }
 
         getFileContent({ path, part, type }) {
-            let data = getFile(path, this.system);
-            if (data) {
-                switch(part) {
-                    case "content":
-                        data = data[0];
-                        break;
-                    case "icon":
-                        data = data[1];
-                        break;
-                    case "other":
-                        if (type === "object") {
-                            data = data[2];
-                        } else if (type === "json") {
-                            data = JSON.stringify(data[2]);
-                        }
-                        break;
-                }
-            }
-            return data;
         }
     }
     Scratch.extensions.register(new FlufiFiles());
