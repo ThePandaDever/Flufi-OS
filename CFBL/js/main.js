@@ -19,15 +19,8 @@ function escapeRegExp(r){return r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
 
 const code = `
 fn main
-    winRef = win.create()
-    process.store("winRef",winRef)
-
-    forever
-        panel.clear()
-        win.panel.base(winRef)
-        win.resetTimeout(winRef)
-
-        win.panel.update(winRef)
+    while i < len
+        i += 1
     end
 end
 `;
@@ -187,7 +180,7 @@ function compileFunction(tokens, name, args, argKeys) {
             break;
         case "process.get":
             if (args.length == 1)
-                return `${compileValue(args[0], argKeys[0])}proc get ${argKeys[0]} ${name}\n`;
+                return `${compileValue("\"var_\" + (" + args[0] + ")", argKeys[0])}proc get ${argKeys[0]} ${name}\n`;
             break;
         case "process.launch":
             if (args.length == 1)
@@ -195,6 +188,15 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}proc launch ${argKeys[0]} ${argKeys[1]}\n`;
             break;
+        
+        case "fs.get":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fs get ${name} ${argKeys[0]}\n`;
+            break
+        case "fs.list":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fs list ${name} ${argKeys[0]}\n`;
+            break
     }
 }
 
@@ -214,7 +216,7 @@ function compileScript(code) {
                 if (objKeys.length == 2 && isSquareBrackets(objKeys[1])) {
                     const key = removeSquareBrackets(objKeys[1]);
                     const keyKey = randomStr();
-                    const value = line[2];
+                    const value = line.slice(2).join(" ");
                     const valueKey = randomStr();
                     newScript += `${compileValue(key,keyKey)}${compileValue(value,valueKey)}obj set var_${objKeys[0]} ${keyKey} ${valueKey}\n`;
                 } else {
@@ -247,14 +249,13 @@ function compileScript(code) {
                             case "while":
                                 if (depthStackItem[2].length >= 0) {
                                     const condKey = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n`;
+                                    newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
                                 }
                                 break;
                             case "until":
                                 if (depthStackItem[2].length >= 0) {
                                     const condKey = randomStr();
-                                    const condKey2 = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}inv ${condKey2} ${condKey}\njn ${depthStackItem[1]} ${condKey2}\n`;
+                                    newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
                                 }
                                 break;
                             case "panel.clip":
