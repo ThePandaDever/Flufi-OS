@@ -19,76 +19,102 @@ function escapeRegExp(r){return r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
 
 const code = `
 fn main
-    winRef = win.create()
-    process.store("winRef",winRef)
+    WinRef = Win.create()
+    Process.store("WinRef",WinRef)
 
     forever
-        panel.clear()
-        win.panel.base(winRef)
-        win.resetTimeout(winRef)
+        Panel.clear()
+        Win.panel.base(WinRef)
+        Win.resetTimeout(WinRef)
 
-        win.panel.update(winRef)
+        Win.panel.update(WinRef)
     end
 end
 `;
 
 /*
-function list:
-    win:
-        win.create() ->
-            returns a new window id (that corresponds to a window)
-        win.get(id) ->
-            returns an object of the window's id
-        win.set(id, data)
-            sets an window's data to that object
-        win.getKey(id, key) ->
-            returns the key on the specified window
-        win.setKey(id, key, data)
-            sets the key on a window to some data
-        win.resetTimeout(id)
-            resets the window's timeout
+list:
+    Win:
+        Win.create() ->
+            returns a new Window id (that corresponds to a Window)
+        Win.get(id) ->
+            returns an object of the Window's id
+        Win.set(id, data)
+            sets an Window's data to that object
+        Win.getKey(id, key) ->
+            returns the key on the specified Window
+        Win.setKey(id, key, data)
+            sets the key on a Window to some data
+        Win.resetTimeout(id)
+            resets the Window's timeout
 
-        win.panel.update()
-            updates the window panel with the current panel
-        win.panel.base()
-            draws the window base
+        Win.panel.update()
+            updates the Window panel with the current panel
+        Win.panel.base()
+            draws the Window base
+        
+        Win.getMouseX(id)
+            gets the local mouse x
+        Win.getMouseY(id)
+            gets the local mouse y
+
+        Win.focused
+            returns the id of the focused window
+        Win.hovered
+            returns the id of the hovered window
     panel:
-        panel.clear()
+        Panel.clear()
             clears the current panel
-        panel.rect(x,y,w,h,b)
+        Panel.rect(x,y,w,h,b)
             draws a rectangle at x,y with size w,h, with a border of b
-        panel.icon(icon,x,y,size)
+        Panel.icon(icon,x,y,size)
             draws an icon at x,y with size
-        panel.text(text,x,y,size)
+        Panel.text(text,x,y,size)
             draws text at x,y with size
-        panel.panel(panelData,x,y,size)
+        Panel.panel(panelData,x,y,size)
             adds an embedded panel at x,y with size
-        panel.clip(x1,y1,x2,y2)
+        Panel.clip(x1,y1,x2,y2)
             creates a clipping layer from x1,y1 to x2,y2
-        panel.clipExit()
+        Panel.clipExit()
             exits out a clipping layer
-        panel.color(c)
+        Panel.color(c)
             sets the current color
-        panel.direction(d)
+        Panel.direction(d)
             sets the current direction
-        panel.get() ->
+        Panel.get() ->
             gets the current panel
-        panel.startLine(w)
+        Panel.startLine(w)
             starts a line segment
-        panel.linePoint(x,y)
+        Panel.linePoint(x,y)
             adds a point onto the line segment
-        panel.endLine()
+        Panel.endLine()
             ends and draws the line segment
-        panel.file(path,x,y,size)
+        Panel.file(path,x,y,size)
             draws a file at x,y
     
     process:
-        process.store(key, value)
+        Process.store(key, value)
             stores a key in the process
-        process.get(key)
+        Process.get(key)
             returns the value of the key
-        process.launch(path, ?data)
+        Process.launch(path, ?data)
             launches a process
+
+    input:
+        Input.mouseX
+            gets the x of the mouse
+        Input.mouseY
+            gets the y of the mouse
+        Input.mouseLeftDown
+            checks if the left mouse button is down
+        Input.mouseLeftClick
+            checks if the left mouse buttons has been clicked that frame
+    
+    fs:
+        fs.get(path)
+            returns the file's content
+        fs.list(dirPath)
+            returns an array of file names in that directory (with file types)
 
 other commands:
     exit
@@ -101,95 +127,103 @@ other commands:
 
 function compileFunction(tokens, name, args, argKeys) {
     switch (tokens[0]) {
-        case "win.create":
+        case "Win.create":
             return `win create ${name}\n`;
-        case "win.get":
+        case "Win.get":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}win getData ${argKeys[0]} ${name}\n`;
             break;
-        case "win.set":
+        case "Win.set":
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win setData ${argKeys[0]} ${argKeys[1]}\n`;
             break;
-        case "win.getKey":
+        case "Win.getKey":
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win getKey ${argKeys[0]} ${argKeys[1]} ${name}\n`;
             break;
-        case "win.setKey":
+        case "Win.setKey":
             if (args.length == 3)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}win setKey ${argKeys[0]} ${argKeys[1]} ${argKeys[2]}\n`;
             break;
-        case "win.resetTimeout":
+        case "Win.resetTimeout":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}win timeout ${argKeys[0]}\n`;
             break;
-        case "win.panel.update":
+        case "Win.panel.update":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}win panel update ${argKeys[0]}\n`;
             break;
-        case "win.panel.base":
+        case "Win.panel.base":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}win panel base ${argKeys[0]}\n`;
             break;
+        case "Win.getMouseX":
+            if (args.length == 1)
+                return compileValue(`Input.mouseX - Win.getKey(${args[0]},"position")[0]`, name);
+            break;
+        case "Win.getMouseY":
+            if (args.length == 1)
+                return compileValue(`Input.mouseY - Win.getKey(${args[0]},"position")[1]`, name);
+            break;
 
-        case "panel.clear":
+        case "Panel.clear":
             return `panel clear\n`;
-        case "panel.rect":
+        case "Panel.rect":
             if (args.length == 5)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}${compileValue(args[4], argKeys[4])}panel rect ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[4]}\n`;
             break;
-        case "panel.icon":
+        case "Panel.icon":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel icon ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
-        case "panel.text":
+        case "Panel.text":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel text ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
-        case "panel.panel":
+        case "Panel.panel":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel panel ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
-        case "panel.clip":
+        case "Panel.clip":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel clip ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]}\n`;
             break;
-        case "panel.clipExit":
+        case "Panel.clipExit":
             return `panel clipexit\n`;
-        case "panel.color":
+        case "Panel.color":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}panel color ${argKeys[0]}\n`;
             break;
-        case "panel.direction":
+        case "Panel.direction":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}panel direction ${argKeys[0]}\n`;
             break;
-        case "panel.get":
+        case "Panel.get":
             return `panel get ${name}`;
-        case "panel.startLine":
+        case "Panel.startLine":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}panel linestart ${argKeys[0]}\n`;
             break;
-        case "panel.linePoint":
+        case "Panel.linePoint":
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}panel linepoint ${argKeys[0]} ${argKeys[1]}\n`;
             break;
-        case "panel.endLine":
+        case "Panel.endLine":
             return `panel lineend\n`;
-        case "panel.file":
+        case "Panel.file":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel file ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]}\n`;
             break;
 
-        case "process.store":
+        case "Process.store":
             if (args.length == 2)
                 return `${compileValue("\"var_\" + (" + args[0] + ")", argKeys[0])}${compileValue(args[1], argKeys[1])}proc store ${argKeys[0]} ${argKeys[1]}\n`;
             break;
-        case "process.get":
+        case "Process.get":
             if (args.length == 1)
                 return `${compileValue("\"var_\" + (" + args[0] + ")", argKeys[0])}proc get ${argKeys[0]} ${name}\n`;
             break;
-        case "process.launch":
+        case "Process.launch":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}proc launch ${argKeys[0]}\n`;
             if (args.length == 2)
@@ -265,7 +299,7 @@ function compileScript(code) {
                                     newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
                                 }
                                 break;
-                            case "panel.clip":
+                            case "Panel.clip":
                                 newScript += `panel clipexit\n`;
                                 break;
                             case "forever":
@@ -284,7 +318,7 @@ function compileScript(code) {
                 const condKey = randomStr();
                 const cond = line.slice(1).join(" ");
                 depthStack.push(["if",lbl]);
-                newScript += `${compileValue(cond, condKey)}jn ${lbl} ${cond}\n`;
+                newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
             } else if (line[0] === "while") {
                 depth ++;
                 const lbl = randomStr();
@@ -306,9 +340,9 @@ function compileScript(code) {
                 const data = line.slice(1).join(" ");
                 const dataKey = randomStr();
                 newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
-            } else if (line[0] === "panel.clip") {
+            } else if (line[0] === "Panel.clip") {
                 depth ++;
-                depthStack.push(["panel.clip"]);
+                depthStack.push(["Panel.clip"]);
                 const x1Key = randomStr();
                 const y1Key = randomStr();
                 const x2Key = randomStr();
@@ -434,6 +468,18 @@ function compileValue(code, name) {
             return `const screenwidth ${name}\n`;
         case "Screen.height":
             return `const screenheight ${name}\n`;
+        case "Input.mouseX":
+            return `const mousex ${name}\n`;
+        case "Input.mouseY":
+            return `const mousey ${name}\n`;
+        case "Input.mouseLeftDown":
+            return `const mouseld ${name}\n`;
+        case "Input.mouseLeftClick":
+            return `const mouselc ${name}\n`;
+        case "Win.selected":
+            return `const winselected ${name}\n`;
+        case "Win.focused":
+            return `const winfocused ${name}\n`;
     }
     if (isValidVariable(code)) {
         return `dupe ${name} var_${code}\n`;
