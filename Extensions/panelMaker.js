@@ -277,6 +277,17 @@
                         }
                     },
                     {
+                        opcode: "elem_centext",
+                        blockType: BlockType.COMMAND,
+                        text: "Create centered text [text] at [x] [y] size [size]",
+                        arguments: {
+                            text: { type: ArgumentType.STRING, defaultValue: "hello world!" },
+                            x: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                            y: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                            size: { type: ArgumentType.NUMBER, defaultValue: 25 }
+                        }
+                    },
+                    {
                         opcode: "elem_panel",
                         blockType: BlockType.COMMAND,
                         text: "Create panel [panel] at [x] [y] size [size]",
@@ -540,6 +551,9 @@
         }
         elem_text({ text, x, y, size }) {
             this.currentPanel.push({"id":"text","text":text,"pos":[x,y],"size":size});
+        }
+        elem_centext({ text, x, y, size }) {
+            this.currentPanel.push({"id":"text","text":text,"pos":[x - (text.length * .5 * size),y],"size":size});
         }
         elem_panel({ panel, x, y, size }) {
             if (typeof panel == "string") { panel = JSON.parse(panel) }

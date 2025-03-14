@@ -229,6 +229,8 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}proc launch ${argKeys[0]} ${argKeys[1]}\n`;
             break;
+        case "Process.getData":
+            return `${compileValue(args[0], argKeys[0])}proc getData ${argKeys[0]} ${name}\n`;
         
         case "fs.get":
             if (args.length == 1)
@@ -480,6 +482,8 @@ function compileValue(code, name) {
             return `const winselected ${name}\n`;
         case "Win.focused":
             return `const winfocused ${name}\n`;
+        case "Process.list":
+            return `proc list ${name}\n`;
     }
     if (isValidVariable(code)) {
         return `dupe ${name} var_${code}\n`;
