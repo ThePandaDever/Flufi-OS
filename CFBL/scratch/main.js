@@ -154,7 +154,7 @@ function compileFunction(tokens, name, args, argKeys) {
                 return `${compileValue(args[0], argKeys[0])}win panel update ${argKeys[0]}\n`;
             break;
         case "Win.panel.base":
-            if (args.length == 1)
+            if (args.length == 1 || args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}win panel base ${argKeys[0]}\n`;
             break;
         case "Win.getMouseX":
@@ -164,6 +164,14 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Win.getMouseY":
             if (args.length == 1)
                 return compileValue(`Input.mouseY - Win.getKey(${args[0]},"position")[1]`, name);
+            break;
+        case "Win.buttons":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win buttons ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Win.topbar":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win topbar ${argKeys[0]} ${argKeys[1]}\n`;
             break;
 
         case "Panel.clear":
@@ -179,6 +187,10 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Panel.text":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel text ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
+            break;
+        case "Panel.centext":
+            if (args.length == 4)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel centext ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
         case "Panel.panel":
             if (args.length == 4)
@@ -231,6 +243,8 @@ function compileFunction(tokens, name, args, argKeys) {
             break;
         case "Process.getData":
             return `${compileValue(args[0], argKeys[0])}proc getData ${argKeys[0]} ${name}\n`;
+        case "Process.kill":
+            return `${compileValue(args[0], argKeys[0])}proc kill ${argKeys[0]}\n`;
         
         case "fs.get":
             if (args.length == 1)
@@ -482,8 +496,12 @@ function compileValue(code, name) {
             return `const winselected ${name}\n`;
         case "Win.focused":
             return `const winfocused ${name}\n`;
+        case "Win.buttons.default":
+            return `const winbuttonsdefault ${name}\n`;
         case "Process.list":
             return `proc list ${name}\n`;
+        case "Process.this":
+            return `proc this ${name}\n`;
     }
     if (isValidVariable(code)) {
         return `dupe ${name} var_${code}\n`;
