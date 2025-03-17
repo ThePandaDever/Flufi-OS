@@ -71,6 +71,8 @@ list:
             draws an icon at x,y with size
         Panel.text(text,x,y,size)
             draws text at x,y with size
+        Panel.cenText(text,x,y,size)
+            draws centered text at x,y with size
         Panel.panel(panelData,x,y,size)
             adds an embedded panel at x,y with size
         Panel.clip(x1,y1,x2,y2)
@@ -173,6 +175,46 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win topbar ${argKeys[0]} ${argKeys[1]}\n`;
             break;
+        case "Win.setPosition":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"position",${args[1]})`, name);
+            break;
+        case "Win.setSize":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"size",${args[1]})`, name);
+            break;
+        case "Win.setTitle":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"title",${args[1]})`, name);
+            break;
+        case "Win.setGrabbable":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"grabbable",${args[1]})`, name);
+            break;
+        case "Win.setResizable":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"resizable",${args[1]})`, name);
+            break;
+        case "Win.getPosition":
+            if (args.length == 2)
+                return compileValue(`Win.getKey(${args[0]},"position",${args[1]})`, name);
+            break;
+        case "Win.getSize":
+            if (args.length == 2)
+                return compileValue(`Win.getKey(${args[0]},"size",${args[1]})`, name);
+            break;
+        case "Win.getTitle":
+            if (args.length == 2)
+                return compileValue(`Win.getKey(${args[0]},"title",${args[1]})`, name);
+            break;
+        case "Win.getGrabbable":
+            if (args.length == 2)
+                return compileValue(`Win.getKey(${args[0]},"grabbable",${args[1]})`, name);
+            break;
+        case "Win.getResizable":
+            if (args.length == 2)
+                return compileValue(`Win.getKey(${args[0]},"resizable",${args[1]})`, name);
+            break;
 
         case "Panel.clear":
             return `panel clear\n`;
@@ -188,7 +230,7 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel text ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
-        case "Panel.centext":
+        case "Panel.cenText":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel centext ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
