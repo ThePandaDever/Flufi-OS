@@ -1,2 +1,2 @@
 # Flufi-OS
-a simple os built on FSL (Flufi Scripting Language), a language i developed from the ground up, on turbowarp.
+a goofy little turbowarp os running 2 languages, FBL (flufi basic language, the primary one) and CFBL (compiled flufi basic language) :P
