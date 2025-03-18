@@ -348,6 +348,19 @@
                             y2: { type: ArgumentType.NUMBER, defaultValue: 10 }
                         }
                     },
+                    {
+                        opcode: "elem_image",
+                        blockType: BlockType.COMMAND,
+                        text: "Create image [url] at [x] [y] size [size] stretch [stretchx] [stretchy]",
+                        arguments: {
+                            url: { type: ArgumentType.STRING, defaultValue: "https://example.com/image.png" },
+                            x: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                            y: { type: ArgumentType.NUMBER, defaultValue: 0 },
+                            size: { type: ArgumentType.NUMBER, defaultValue: 100 },
+                            stretchx: { type: ArgumentType.NUMBER, defaultValue: 100 },
+                            stretchy: { type: ArgumentType.NUMBER, defaultValue: 100 }
+                        }
+                    },
                     { blockType: Scratch.BlockType.LABEL, text: "Management" },
                     {
                         opcode: "getPanel",
@@ -598,6 +611,16 @@
 			}
 			this.currentPanel.push("#ffffff")
             this.currentPanel.push(data);
+        }
+        elem_image({ url, x, y, size, stretchx, stretchy }) {
+            this.currentPanel.push({
+                id: "image",
+                url: url,
+                pos: [x, y],
+                size: size,
+                stretchx: stretchx,
+                stretchy: stretchy
+            });
         }
 
         getPanel({ representation }) {

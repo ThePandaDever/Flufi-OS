@@ -34,7 +34,7 @@ end
 
 /*
 list:
-    Win:
+    win:
         Win.create() ->
             returns a new Window id (that corresponds to a Window)
         Win.get(id) ->
@@ -101,7 +101,6 @@ list:
             returns the value of the key
         Process.launch(path, ?data)
             launches a process
-
     input:
         Input.mouseX
             gets the x of the mouse
@@ -111,12 +110,19 @@ list:
             checks if the left mouse button is down
         Input.mouseLeftClick
             checks if the left mouse buttons has been clicked that frame
-    
     fs:
         fs.get(path)
             returns the file's content
         fs.list(dirPath)
             returns an array of file names in that directory (with file types)
+    json:
+        json.parse(string) ->
+            returns the parsed json object
+        json.stringify(obj) ->
+            returns the stringified json object
+    network:
+        fetch(url) ->
+            returns the fetched url
 
 other commands:
     exit
@@ -196,24 +202,24 @@ function compileFunction(tokens, name, args, argKeys) {
                 return compileValue(`Win.setKey(${args[0]},"resizable",${args[1]})`, name);
             break;
         case "Win.getPosition":
-            if (args.length == 2)
-                return compileValue(`Win.getKey(${args[0]},"position",${args[1]})`, name);
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"position")`, name);
             break;
         case "Win.getSize":
-            if (args.length == 2)
-                return compileValue(`Win.getKey(${args[0]},"size",${args[1]})`, name);
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"size")`, name);
             break;
         case "Win.getTitle":
-            if (args.length == 2)
-                return compileValue(`Win.getKey(${args[0]},"title",${args[1]})`, name);
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"title")`, name);
             break;
         case "Win.getGrabbable":
-            if (args.length == 2)
-                return compileValue(`Win.getKey(${args[0]},"grabbable",${args[1]})`, name);
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"grabbable")`, name);
             break;
         case "Win.getResizable":
-            if (args.length == 2)
-                return compileValue(`Win.getKey(${args[0]},"resizable",${args[1]})`, name);
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"resizable")`, name);
             break;
 
         case "Panel.clear":
@@ -253,7 +259,7 @@ function compileFunction(tokens, name, args, argKeys) {
                 return `${compileValue(args[0], argKeys[0])}panel direction ${argKeys[0]}\n`;
             break;
         case "Panel.get":
-            return `panel get ${name}`;
+            return `panel get ${name}\n`;
         case "Panel.startLine":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}panel linestart ${argKeys[0]}\n`;
@@ -267,6 +273,10 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Panel.file":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel file ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]}\n`;
+            break;
+        case "Panel.image":
+            if (args.length == 6)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}${compileValue(args[4], argKeys[4])}${compileValue(args[5], argKeys[5])}panel image ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[4]} ${argKeys[5]}\n`;
             break;
 
         case "Process.store":
@@ -291,11 +301,24 @@ function compileFunction(tokens, name, args, argKeys) {
         case "fs.get":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs get ${name} ${argKeys[0]}\n`;
-            break
+            break;
         case "fs.list":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs list ${name} ${argKeys[0]}\n`;
-            break
+            break;
+        case "json.parse":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}json parse ${name} ${argKeys[0]}\n`;
+            break;
+        case "json.stringify":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}json stringify ${name} ${argKeys[0]}\n`;
+            break;
+
+        case "fetch":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fetch ${name} ${argKeys[0]}\n`;
+            break;
     }
 }
 
@@ -431,6 +454,14 @@ function compileScript(code) {
 }
 
 function compileValue(code, name) {
+    const pipe = splitCharedCommand(code, " ");
+    if (pipe.length > 2 && pipe[pipe.length-2] == "|>") {
+        const op = pipe.pop();
+        pipe.pop();
+        const a = pipe.join(" ");
+        const aKey = randomStr();
+        return `${compileValue(a, aKey)}${op} ${name} ${aKey}\n`;
+    }
     const logic = splitLogic(code);
     if (logic.length > 2) {
         const b = logic.pop();
@@ -439,14 +470,6 @@ function compileValue(code, name) {
         const aKey = randomStr();
         const bKey = randomStr();
         return `${compileValue(a, aKey)}${compileValue(b, bKey)}${{"||":"or","&&":"and"}[log]} ${name} ${aKey} ${bKey}\n`;
-    }
-    const pipe = splitCharedCommand(code, " ");
-    if (pipe.length > 2 && pipe[pipe.length-2] == "|>") {
-        const op = pipe.pop();
-        pipe.pop();
-        const a = pipe.join("");
-        const aKey = randomStr();
-        return `${compileValue(a, aKey)}${op} ${name} ${aKey}\n`;
     }
     const comp = splitComparison(code,["==","!=",">","<",">=","<="]);
     if (comp.length == 3) {
