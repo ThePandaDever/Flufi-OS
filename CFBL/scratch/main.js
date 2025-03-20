@@ -93,6 +93,8 @@ list:
             ends and draws the line segment
         Panel.file(path,x,y,size)
             draws a file at x,y
+        Panel.image(url, x, y, size, stretch_x, stretch_y)
+            draws an image (stretch_x and y's default is 100)
     
     process:
         Process.store(key, value)
