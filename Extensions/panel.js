@@ -76,6 +76,21 @@
 		line(util, points, 1);
 	}
 
+	function quad(util, a, b, c, d, width) {
+		tri(util, a[0], a[1], b[0], b[1], c[0], c[1], width);
+		tri(util, b[0], b[1], c[0], c[1], d[0], d[1], width);
+	}
+
+	function rect(util, pos, size, width) {
+		size = size.map(v => v / 2)
+		quad(util,
+			[pos[0] - size[0], pos[1] - size[0]],
+			[pos[0] - size[0], pos[1] + size[0]],
+			[pos[0] + size[0], pos[1] - size[0]],
+			[pos[0] + size[0], pos[1] + size[0]],
+		width);
+	}
+
 	class Panel {
         constructor() {
         }
@@ -94,7 +109,7 @@
             }
         }
         funny(args, util) {
-            tri(util, -100, -100, -100, 100, 100, -100, 10);
+            rect(util, [100,0],[100,100], 1);
         }
     }
 	Scratch.extensions.register(new Panel());

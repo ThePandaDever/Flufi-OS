@@ -321,6 +321,29 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fetch ${name} ${argKeys[0]}\n`;
             break;
+        
+        case "Terminal.create":
+            return `terminal create ${name}\n`;
+        case "Terminal.getText":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal getText ${argKeys[0]} ${name}\n`;
+            break;
+        case "Terminal.run":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal run ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Terminal.write":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal write ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Terminal.delete":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal delete ${argKeys[0]}\n`;
+            break;
+        case "Terminal.running":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal running ${argKeys[0]} ${name}\n`;
+            break;
     }
 }
 
@@ -355,99 +378,113 @@ function compileScript(code) {
                 continue;
             }
 
-            if (line[0] === "fn") {
-                newScript += `~ ${line[1]}\n${line.slice(2).map((v,i) => `dupe var_${v} arg${i}`).join("\n")}${line.slice(2).length > 0 ? "\n" : ""}`
-                depth ++;
-            } else if (line[0] === "end") {
-                depth --;
-                if (depth == 0) {
-                    newScript += "~\n";
-                }
-                if (depth > 0) {
-                    const depthStackItem = depthStack.pop();
-                    if (depthStackItem) {
-                        switch (depthStackItem[0]) {
-                            case "if":
-                                newScript += `: ${depthStackItem[1]}\n`;
-                                break;
-                            case "while":
-                                if (depthStackItem[2].length >= 0) {
-                                    const condKey = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
-                                }
-                                break;
-                            case "until":
-                                if (depthStackItem[2].length >= 0) {
-                                    const condKey = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
-                                }
-                                break;
-                            case "Panel.clip":
-                                newScript += `panel clipexit\n`;
-                                break;
-                            case "forever":
-                                newScript += `quitTo ${depthStackItem[1]}\n`;
-                                break;
+            switch (line[0]) {
+                case "fn":
+                    newScript += `~ ${line[1]}\n${line.slice(2).map((v,i) => `dupe var_${v} arg${i}`).join("\n")}${line.slice(2).length > 0 ? "\n" : ""}`
+                    depth ++;
+                    break;
+                case "end":
+                    depth --;
+                    if (depth == 0) {
+                        newScript += "~\n";
+                    }
+                    if (depth > 0) {
+                        const depthStackItem = depthStack.pop();
+                        if (depthStackItem) {
+                            switch (depthStackItem[0]) {
+                                case "if":
+                                    newScript += `: ${depthStackItem[1]}\n`;
+                                    break;
+                                case "while":
+                                    if (depthStackItem[2].length >= 0) {
+                                        const condKey = randomStr();
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
+                                    }
+                                    break;
+                                case "until":
+                                    if (depthStackItem[2].length >= 0) {
+                                        const condKey = randomStr();
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
+                                    }
+                                    break;
+                                case "Panel.clip":
+                                    newScript += `panel clipexit\n`;
+                                    break;
+                                case "forever":
+                                    newScript += `quitTo ${depthStackItem[1]}\n`;
+                                    break;
+                            }
                         }
                     }
-                }
-            } else if (line[0] === "print") {
-                const name = randomStr();
-                newScript += compileValue(line[1], name);
-                newScript += `print ${name}\n`;
-            } else if (line[0] === "if") {
-                depth ++;
-                const lbl = randomStr();
-                const condKey = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["if",lbl]);
-                newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
-            } else if (line[0] === "while") {
-                depth ++;
-                const lbl = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["while",lbl,cond]);
-                newScript += `: ${lbl}\n`;
-            } else if (line[0] === "until") {
-                depth ++;
-                const lbl = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["until",lbl,cond]);
-                newScript += `: ${lbl}\n`;
-            } else if (line[0] === "forever") {
-                depth ++;
-                const lbl = randomStr();
-                depthStack.push(["forever",lbl]);
-                newScript += `quitTo ${lbl}\n: ${lbl}\n`;
-            } else if (line[0] === "return") {
-                const data = line.slice(1).join(" ");
-                const dataKey = randomStr();
-                newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
-            } else if (line[0] === "Panel.clip") {
-                depth ++;
-                depthStack.push(["Panel.clip"]);
-                const x1Key = randomStr();
-                const y1Key = randomStr();
-                const x2Key = randomStr();
-                const y2Key = randomStr();
-                newScript += `${compileValue(line[1], x1Key)}${compileValue(line[2], y1Key)}${compileValue(line[3], x2Key)}${compileValue(line[4], y2Key)}panel clip ${x1Key} ${y1Key} ${x2Key} ${y2Key}\n`;
-            } else if (line[0] === "exit") {
-                if (line.length == 1) {
-                    newScript += "quit";
-                } else if (line.length == 2) {
-                    newScript += `quitTo ${line[1]}`;
-                }
-            } else if (line[0] === "label") {
-                newScript += `: ${line[1]}`;
-            } else if (line[0]) {
-                const commandTokens = splitCommand(line.join(" ").trim());
-                if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
-                    const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
-                    const argKeys = args.map(v => randomStr());
-                    const builtin = compileFunction(commandTokens, randomStr(), args, argKeys);
-                    newScript += builtin ? builtin :
-                        `${args.map((v,i) => compileValue(v, argKeys[i])).join("")}call ${commandTokens[0]} ${argKeys.join(" ")}\n`
-                }
+                    break;
+                case "print":
+                    const name = randomStr();
+                    newScript += compileValue(line[1], name);
+                    newScript += `print ${name}\n`;
+                    break;
+                case "if":
+                    depth ++;
+                    const lbl = randomStr();
+                    const condKey = randomStr();
+                    const cond = line.slice(1).join(" ");
+                    depthStack.push(["if",lbl]);
+                    newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
+                    break;
+                case "while":
+                    depth ++;
+                    const whileLbl = randomStr();
+                    const whileCond = line.slice(1).join(" ");
+                    depthStack.push(["while",whileLbl,whileCond]);
+                    newScript += `: ${whileLbl}\n`;
+                    break;
+                case "until":
+                    depth ++;
+                    const untilLbl = randomStr();
+                    const untilCond = line.slice(1).join(" ");
+                    depthStack.push(["until",untilLbl,untilCond]);
+                    newScript += `: ${untilLbl}\n`;
+                    break;
+                case "forever":
+                    depth ++;
+                    const foreverLbl = randomStr();
+                    depthStack.push(["forever",foreverLbl]);
+                    newScript += `quitTo ${foreverLbl}\n: ${foreverLbl}\n`;
+                    break;
+                case "return":
+                    const data = line.slice(1).join(" ");
+                    const dataKey = randomStr();
+                    newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
+                    break;
+                case "Panel.clip":
+                    depth ++;
+                    depthStack.push(["Panel.clip"]);
+                    const x1Key = randomStr();
+                    const y1Key = randomStr();
+                    const x2Key = randomStr();
+                    const y2Key = randomStr();
+                    newScript += `${compileValue(line[1], x1Key)}${compileValue(line[2], y1Key)}${compileValue(line[3], x2Key)}${compileValue(line[4], y2Key)}panel clip ${x1Key} ${y1Key} ${x2Key} ${y2Key}\n`;
+                    break;
+                case "exit":
+                    if (line.length == 1) {
+                        newScript += "quit\n";
+                    } else if (line.length == 2) {
+                        newScript += `quitTo ${line[1]}\n`;
+                    }
+                    break;
+                case "label":
+                    newScript += `: ${line[1]}`;
+                    break;
+                default:
+                    if (line[0]) {
+                        const commandTokens = splitCommand(line.join(" ").trim());
+                        if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
+                            const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
+                            const argKeys = args.map(v => randomStr());
+                            const builtin = compileFunction(commandTokens, randomStr(), args, argKeys);
+                            newScript += builtin ? builtin :
+                                `${args.map((v,i) => compileValue(v, argKeys[i])).join("")}call ${commandTokens[0]} ${argKeys.join(" ")}\n`
+                        }
+                    }
             }
         }
     }
@@ -543,6 +580,8 @@ function compileValue(code, name) {
             return `set bool ${name} true\n`;
         case "false":
             return `set bool ${name} false\n`;
+        case "newline":
+            return `dupe ${name} newline\n`;
         case "Time.deltaTime":
             return `const dt ${name}\n`;
         case "Time.fps":

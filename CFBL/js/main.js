@@ -1,4 +1,3 @@
-
 function randomStr(r=10){let e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n="";for(let t=0;t<r;t++)n+=e.charAt(Math.floor(Math.random()*e.length));return n}
 function removeStr(e){if(!('"'==e[0]&&'"'==e[e.length-1]||"'"==e[0]&&"'"==e[e.length-1]))return e;let l=e.replaceAll("\\n","");return(l=(l=l.replaceAll('\\"',"")).replaceAll("\\'","")).replace(/\uE000/g,"\n").replace(/\uE001/g,'"').replace(/\uE002/g,"'").slice(1,-1)}
 function splitCharedCommand(t,e){const i=[];let r="",s=!1,n=!1,u=0,c=0,o=0,l=!1;for(let p=0;p<t.length;p++){const m=t[p];if(l)r+=m,l=!1;else if("\\"!==m)if('"'!==m||n||0!==u||0!==c||0!==o)if("'"!==m||s||0!==u||0!==c||0!==o){if(!s&&!n){if("("===m){u++,r+=m;continue}if("{"===m){c++,r+=m;continue}if("["===m){o++,r+=m;continue}if(")"===m&&u>0){u--,r+=m;continue}if("}"===m&&c>0){c--,r+=m;continue}if("]"===m&&o>0){o--,r+=m;continue}}m!==e||s||n||0!==u||0!==c||0!==o?r+=m:r.length>0&&(i.push(r.trim()),r="")}else n=!n,r+=m;else s=!s,r+=m;else l=!0,r+=m}return r.length>0&&i.push(r.trim()),i}
@@ -17,24 +16,9 @@ const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
 const isValidVariable = (t) => /^[A-Za-z0-9_]+$/.test(t)
 function escapeRegExp(r){return r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
 
-const code = `
-fn main
-    WinRef = Win.create()
-    Process.store("WinRef",WinRef)
-
-    forever
-        Panel.clear()
-        Win.panel.base(WinRef)
-        Win.resetTimeout(WinRef)
-
-        Win.panel.update(WinRef)
-    end
-end
-`;
-
 /*
 list:
-    Win:
+    win:
         Win.create() ->
             returns a new Window id (that corresponds to a Window)
         Win.get(id) ->
@@ -71,6 +55,8 @@ list:
             draws an icon at x,y with size
         Panel.text(text,x,y,size)
             draws text at x,y with size
+        Panel.cenText(text,x,y,size)
+            draws centered text at x,y with size
         Panel.panel(panelData,x,y,size)
             adds an embedded panel at x,y with size
         Panel.clip(x1,y1,x2,y2)
@@ -91,6 +77,8 @@ list:
             ends and draws the line segment
         Panel.file(path,x,y,size)
             draws a file at x,y
+        Panel.image(url, x, y, size, stretch_x, stretch_y)
+            draws an image (stretch_x and y's default is 100)
     
     process:
         Process.store(key, value)
@@ -99,7 +87,6 @@ list:
             returns the value of the key
         Process.launch(path, ?data)
             launches a process
-
     input:
         Input.mouseX
             gets the x of the mouse
@@ -109,12 +96,19 @@ list:
             checks if the left mouse button is down
         Input.mouseLeftClick
             checks if the left mouse buttons has been clicked that frame
-    
     fs:
         fs.get(path)
             returns the file's content
         fs.list(dirPath)
             returns an array of file names in that directory (with file types)
+    json:
+        json.parse(string) ->
+            returns the parsed json object
+        json.stringify(obj) ->
+            returns the stringified json object
+    network:
+        fetch(url) ->
+            returns the fetched url
 
 other commands:
     exit
@@ -154,7 +148,7 @@ function compileFunction(tokens, name, args, argKeys) {
                 return `${compileValue(args[0], argKeys[0])}win panel update ${argKeys[0]}\n`;
             break;
         case "Win.panel.base":
-            if (args.length == 1)
+            if (args.length == 1 || args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}win panel base ${argKeys[0]}\n`;
             break;
         case "Win.getMouseX":
@@ -164,6 +158,54 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Win.getMouseY":
             if (args.length == 1)
                 return compileValue(`Input.mouseY - Win.getKey(${args[0]},"position")[1]`, name);
+            break;
+        case "Win.buttons":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win buttons ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Win.topbar":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}win topbar ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Win.setPosition":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"position",${args[1]})`, name);
+            break;
+        case "Win.setSize":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"size",${args[1]})`, name);
+            break;
+        case "Win.setTitle":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"title",${args[1]})`, name);
+            break;
+        case "Win.setGrabbable":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"grabbable",${args[1]})`, name);
+            break;
+        case "Win.setResizable":
+            if (args.length == 2)
+                return compileValue(`Win.setKey(${args[0]},"resizable",${args[1]})`, name);
+            break;
+        case "Win.getPosition":
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"position")`, name);
+            break;
+        case "Win.getSize":
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"size")`, name);
+            break;
+        case "Win.getTitle":
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"title")`, name);
+            break;
+        case "Win.getGrabbable":
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"grabbable")`, name);
+            break;
+        case "Win.getResizable":
+            if (args.length == 1)
+                return compileValue(`Win.getKey(${args[0]},"resizable")`, name);
             break;
 
         case "Panel.clear":
@@ -179,6 +221,10 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Panel.text":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel text ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
+            break;
+        case "Panel.cenText":
+            if (args.length == 4)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel centext ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[0]}\n`;
             break;
         case "Panel.panel":
             if (args.length == 4)
@@ -199,7 +245,7 @@ function compileFunction(tokens, name, args, argKeys) {
                 return `${compileValue(args[0], argKeys[0])}panel direction ${argKeys[0]}\n`;
             break;
         case "Panel.get":
-            return `panel get ${name}`;
+            return `panel get ${name}\n`;
         case "Panel.startLine":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}panel linestart ${argKeys[0]}\n`;
@@ -213,6 +259,10 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Panel.file":
             if (args.length == 4)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}panel file ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]}\n`;
+            break;
+        case "Panel.image":
+            if (args.length == 6)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}${compileValue(args[4], argKeys[4])}${compileValue(args[5], argKeys[5])}panel image ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[4]} ${argKeys[5]}\n`;
             break;
 
         case "Process.store":
@@ -229,15 +279,55 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}proc launch ${argKeys[0]} ${argKeys[1]}\n`;
             break;
+        case "Process.getData":
+            return `${compileValue(args[0], argKeys[0])}proc getData ${argKeys[0]} ${name}\n`;
+        case "Process.kill":
+            return `${compileValue(args[0], argKeys[0])}proc kill ${argKeys[0]}\n`;
         
         case "fs.get":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs get ${name} ${argKeys[0]}\n`;
-            break
+            break;
         case "fs.list":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs list ${name} ${argKeys[0]}\n`;
-            break
+            break;
+        case "json.parse":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}json parse ${name} ${argKeys[0]}\n`;
+            break;
+        case "json.stringify":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}json stringify ${name} ${argKeys[0]}\n`;
+            break;
+
+        case "fetch":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fetch ${name} ${argKeys[0]}\n`;
+            break;
+        
+        case "Terminal.create":
+            return `terminal create ${name}\n`;
+        case "Terminal.getText":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal getText ${argKeys[0]} ${name}\n`;
+            break;
+        case "Terminal.run":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal run ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Terminal.write":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal write ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Terminal.delete":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal delete ${argKeys[0]}\n`;
+            break;
+        case "Terminal.running":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal running ${argKeys[0]} ${name}\n`;
+            break;
     }
 }
 
@@ -272,99 +362,153 @@ function compileScript(code) {
                 continue;
             }
 
-            if (line[0] === "fn") {
-                newScript += `~ ${line[1]}\n${line.slice(2).map((v,i) => `dupe var_${v} arg${i}`).join("\n")}${line.slice(2).length > 0 ? "\n" : ""}`
-                depth ++;
-            } else if (line[0] === "end") {
-                depth --;
-                if (depth == 0) {
-                    newScript += "~\n";
-                }
-                if (depth > 0) {
-                    const depthStackItem = depthStack.pop();
-                    if (depthStackItem) {
-                        switch (depthStackItem[0]) {
-                            case "if":
-                                newScript += `: ${depthStackItem[1]}\n`;
-                                break;
-                            case "while":
-                                if (depthStackItem[2].length >= 0) {
-                                    const condKey = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
-                                }
-                                break;
-                            case "until":
-                                if (depthStackItem[2].length >= 0) {
-                                    const condKey = randomStr();
-                                    newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
-                                }
-                                break;
-                            case "Panel.clip":
-                                newScript += `panel clipexit\n`;
-                                break;
-                            case "forever":
-                                newScript += `quitTo ${depthStackItem[1]}\n`;
-                                break;
+            switch (line[0]) {
+                case "fn":
+                    newScript += `~ ${line[1]}\n${line.slice(2).map((v,i) => `dupe var_${v} arg${i}`).join("\n")}${line.slice(2).length > 0 ? "\n" : ""}`
+                    depth ++;
+                    break;
+                case "end":
+                    depth --;
+                    if (depth > 0 || depthStack.length > 0) {
+                        const depthStackItem = depthStack.pop();
+                        if (depthStackItem) {
+                            switch (depthStackItem[0]) {
+                                case "if":
+                                    newScript += `: ${depthStackItem[1]}\n`;
+                                    break;
+                                case "while":
+                                    if (depthStackItem[2].length >= 0) {
+                                        const condKey = randomStr();
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
+                                    }
+                                    break;
+                                case "until":
+                                    if (depthStackItem[2].length >= 0) {
+                                        const condKey = randomStr();
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
+                                    }
+                                    break;
+                                case "Panel.clip":
+                                    newScript += `panel clipexit\n`;
+                                    break;
+                                case "forever":
+                                    newScript += `quitTo ${depthStackItem[1]}\n`;
+                                    break;
+                                case "switch":
+                                    newScript += `: ${depthStackItem[1]}\n`;
+                                    break;
+                                case "case":
+                                    newScript += `jp ${depthStackItem[3]}\n`;
+                                    newScript += `: ${depthStackItem[1]}\n`;
+                                    break;
+                            }
+                        }
+                    } else {
+                        newScript += "~\n";
+                    }
+                    break;
+                case "print":
+                    const name = randomStr();
+                    newScript += compileValue(line[1], name);
+                    newScript += `print ${name}\n`;
+                    break;
+                case "if":
+                    depth ++;
+                    const lbl = randomStr();
+                    const condKey = randomStr();
+                    const cond = line.slice(1).join(" ");
+                    depthStack.push(["if",lbl]);
+                    newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
+                    break;
+                case "while":
+                    depth ++;
+                    const whileLbl = randomStr();
+                    const whileCond = line.slice(1).join(" ");
+                    depthStack.push(["while",whileLbl,whileCond]);
+                    newScript += `: ${whileLbl}\n`;
+                    break;
+                case "until":
+                    depth ++;
+                    const untilLbl = randomStr();
+                    const untilCond = line.slice(1).join(" ");
+                    depthStack.push(["until",untilLbl,untilCond]);
+                    newScript += `: ${untilLbl}\n`;
+                    break;
+                case "forever":
+                    depth ++;
+                    const foreverLbl = randomStr();
+                    depthStack.push(["forever",foreverLbl]);
+                    newScript += `quitTo ${foreverLbl}\n: ${foreverLbl}\n`;
+                    break;
+                case "switch":
+                    depth ++;
+                    const switchLbl = randomStr();
+                    const switchValueKey = randomStr();
+                    const switchValue = line.slice(1).join(" ");
+                    depthStack.push(["switch",switchLbl,switchValueKey]);
+                    newScript += compileValue(switchValue,switchValueKey);
+                    break;
+                case "case":
+                    depth ++;
+                    const caseLatestDepth = depthStack[depthStack.length - 1];
+                    if ((caseLatestDepth ?? [])[0] == "switch") {
+                        const caseLbl = randomStr();
+                        const caseValueKey = randomStr();
+                        const caseValue = line.slice(1).join(" ");
+                        depthStack.push(["case",caseLbl,caseValue,caseLatestDepth[1]]);
+                        newScript += `${compileValue(caseValue, caseValueKey)}jne ${caseLbl} ${caseValueKey} ${caseLatestDepth[2]}\n`;
+                    } else {
+                        throw Error("case outside switch");
+                    }
+                    break;
+                case "caseif":
+                    depth ++;
+                    const caseifLatestDepth = depthStack[depthStack.length - 1];
+                    if ((caseifLatestDepth ?? [])[0] == "switch") {
+                        const caseLbl = randomStr();
+                        const caseValueKey = randomStr();
+                        const caseValue = line.slice(1).join(" ");
+                        depthStack.push(["case",caseLbl,caseValue,caseifLatestDepth[1]]);
+                        newScript += `${compileValue(caseValue, caseValueKey)}jn ${caseLbl} ${caseValueKey}\n`;
+                    } else {
+                        throw Error("case outside switch");
+                    }
+                    break;
+                case "return":
+                    const data = line.slice(1).join(" ");
+                    const dataKey = randomStr();
+                    newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
+                    break;
+                case "Panel.clip":
+                    depth ++;
+                    depthStack.push(["Panel.clip"]);
+                    const x1Key = randomStr();
+                    const y1Key = randomStr();
+                    const x2Key = randomStr();
+                    const y2Key = randomStr();
+                    newScript += `${compileValue(line[1], x1Key)}${compileValue(line[2], y1Key)}${compileValue(line[3], x2Key)}${compileValue(line[4], y2Key)}panel clip ${x1Key} ${y1Key} ${x2Key} ${y2Key}\n`;
+                    break;
+                case "exit":
+                    if (line.length == 1) {
+                        newScript += "quit\n";
+                    } else if (line.length == 2) {
+                        newScript += `quitTo ${line[1]}\n`;
+                    }
+                    break;
+                case "label":
+                    newScript += `: ${line[1]}`;
+                    break;
+                default:
+                    if (line[0]) {
+                        const commandTokens = splitCommand(line.join(" ").trim());
+                        if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
+                            const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
+                            const argKeys = args.map(v => randomStr());
+                            const builtin = compileFunction(commandTokens, randomStr(), args, argKeys);
+                            newScript += builtin ? builtin :
+                                `${args.map((v,i) => compileValue(v, argKeys[i])).join("")}call ${commandTokens[0]} ${argKeys.join(" ")}\n`
                         }
                     }
-                }
-            } else if (line[0] === "print") {
-                const name = randomStr();
-                newScript += compileValue(line[1], name);
-                newScript += `print ${name}\n`;
-            } else if (line[0] === "if") {
-                depth ++;
-                const lbl = randomStr();
-                const condKey = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["if",lbl]);
-                newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
-            } else if (line[0] === "while") {
-                depth ++;
-                const lbl = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["while",lbl,cond]);
-                newScript += `: ${lbl}\n`;
-            } else if (line[0] === "until") {
-                depth ++;
-                const lbl = randomStr();
-                const cond = line.slice(1).join(" ");
-                depthStack.push(["until",lbl,cond]);
-                newScript += `: ${lbl}\n`;
-            } else if (line[0] === "forever") {
-                depth ++;
-                const lbl = randomStr();
-                depthStack.push(["forever",lbl]);
-                newScript += `quitTo ${lbl}\n: ${lbl}\n`;
-            } else if (line[0] === "return") {
-                const data = line.slice(1).join(" ");
-                const dataKey = randomStr();
-                newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
-            } else if (line[0] === "Panel.clip") {
-                depth ++;
-                depthStack.push(["Panel.clip"]);
-                const x1Key = randomStr();
-                const y1Key = randomStr();
-                const x2Key = randomStr();
-                const y2Key = randomStr();
-                newScript += `${compileValue(line[1], x1Key)}${compileValue(line[2], y1Key)}${compileValue(line[3], x2Key)}${compileValue(line[4], y2Key)}panel clip ${x1Key} ${y1Key} ${x2Key} ${y2Key}\n`;
-            } else if (line[0] === "exit") {
-                if (line.length == 1) {
-                    newScript += "quit";
-                } else if (line.length == 2) {
-                    newScript += `quitTo ${line[1]}`;
-                }
-            } else if (line[0] === "label") {
-                newScript += `: ${line[1]}`;
-            } else if (line[0]) {
-                const commandTokens = splitCommand(line.join(" ").trim());
-                if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
-                    const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
-                    const argKeys = args.map(v => randomStr());
-                    const builtin = compileFunction(commandTokens, randomStr(), args, argKeys);
-                    newScript += builtin ? builtin :
-                        `${args.map((v,i) => compileValue(v, argKeys[i])).join("")}call ${commandTokens[0]} ${argKeys.join(" ")}\n`
-                }
             }
         }
     }
@@ -373,6 +517,14 @@ function compileScript(code) {
 }
 
 function compileValue(code, name) {
+    const pipe = splitCharedCommand(code, " ");
+    if (pipe.length > 2 && pipe[pipe.length-2] == "|>") {
+        const op = pipe.pop();
+        pipe.pop();
+        const a = pipe.join(" ");
+        const aKey = randomStr();
+        return `${compileValue(a, aKey)}${op} ${name} ${aKey}\n`;
+    }
     const logic = splitLogic(code);
     if (logic.length > 2) {
         const b = logic.pop();
@@ -381,14 +533,6 @@ function compileValue(code, name) {
         const aKey = randomStr();
         const bKey = randomStr();
         return `${compileValue(a, aKey)}${compileValue(b, bKey)}${{"||":"or","&&":"and"}[log]} ${name} ${aKey} ${bKey}\n`;
-    }
-    const pipe = splitCharedCommand(code, " ");
-    if (pipe.length > 2 && pipe[pipe.length-2] == "|>") {
-        const op = pipe.pop();
-        pipe.pop();
-        const a = pipe.join("");
-        const aKey = randomStr();
-        return `${compileValue(a, aKey)}${op} ${name} ${aKey}\n`;
     }
     const comp = splitComparison(code,["==","!=",">","<",">=","<="]);
     if (comp.length == 3) {
@@ -460,6 +604,8 @@ function compileValue(code, name) {
             return `set bool ${name} true\n`;
         case "false":
             return `set bool ${name} false\n`;
+        case "newline":
+            return `dupe ${name} newline\n`;
         case "Time.deltaTime":
             return `const dt ${name}\n`;
         case "Time.fps":
@@ -480,6 +626,12 @@ function compileValue(code, name) {
             return `const winselected ${name}\n`;
         case "Win.focused":
             return `const winfocused ${name}\n`;
+        case "Win.buttons.default":
+            return `const winbuttonsdefault ${name}\n`;
+        case "Process.list":
+            return `proc list ${name}\n`;
+        case "Process.this":
+            return `proc this ${name}\n`;
     }
     if (isValidVariable(code)) {
         return `dupe ${name} var_${code}\n`;
@@ -489,3 +641,9 @@ function compileValue(code, name) {
     }
     return `\n`;
 }
+
+const fs = require('fs');
+
+const compiled = compileScript(fs.readFileSync('raw.cfbl', 'utf8'));
+console.log(compiled);
+fs.writeFileSync('compiled.fbl', compiled, 'utf8');

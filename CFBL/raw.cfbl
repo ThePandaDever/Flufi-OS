@@ -1,0 +1,10 @@
+fn main
+    switch "funny"
+        caseif true
+            print "l"
+        end
+        case "funny"
+            print "sad"
+        end
+    end
+end
