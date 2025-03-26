@@ -1,10 +1,36 @@
 fn main
-    switch "funny"
-        caseif true
-            print "l"
-        end
-        case "funny"
-            print "sad"
-        end
+  Process.store("clawUrl","https://claw.rotur.dev/")
+  Process.store("winRef",Win.create())
+  Win.setTitle(Process.get("winRef"),"Claw")
+  reloadMsgs()
+  forever
+    Win.resetTimeout(winRef)
+    Win.panel.base(winRef)
+    size = Win.getSize(winRef)
+    i = 0
+    y = size[1] * .5 - 17.5
+    while i < (msgs |> len)
+      msg = msgs[i]
+      height \= (msg["content"]) |> getLines |> len
+      height = 40
+      Panel.color(theme("win-primary"))
+      y -= height + 15 / 2
+      Panel.rect(0, y, size[0] - 10, height, 10)
+      Panel.color(theme("win-text"))
+      Panel.text(msg["content"], size[0] * (-.5) + 10, y - 10, 10)
+      Panel.image(msg["pfp"], size[0] * (-.5) + 20, y + 10, 15, 100, 100)
+      Panel.text(msg["user"], size[0] * (-.5) + 40, y + 10, 9)
+      i += 1
+      y -= height + 15 / 2
     end
+    
+    Win.topbar(winRef, Win.buttons.default)
+    Win.panel.update(winRef)
+  end
+end
+fn reloadMsgs
+  Process.store("msgs",json.parse(fetch(Process.get("clawUrl") + "feed?limit=10")))
+end
+fn theme key
+  return key |> theme
 end

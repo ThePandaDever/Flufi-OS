@@ -1,16 +1,155 @@
 ~ main
-set str XOaaeHxQtU funny
-set bool urYtm6VsJX true
-jn hPhZnx9wrv urYtm6VsJX
-set str tnBsVZkmBR l
-print tnBsVZkmBR
-jp jBUGVSTIO1
-: hPhZnx9wrv
-set str CI4dzsJQiq funny
-jne Mme0xeTsG5 CI4dzsJQiq XOaaeHxQtU
-set str JkvhtlRVps sad
-print JkvhtlRVps
-jp jBUGVSTIO1
-: Mme0xeTsG5
-: jBUGVSTIO1
+set str ESGs9Wb9a3 var_
+set str fhkJvPNZn8 clawUrl
+add y2kbVZAlGn ESGs9Wb9a3 fhkJvPNZn8
+set str 1Ljiwpy1wp https://claw.rotur.dev/
+proc store y2kbVZAlGn 1Ljiwpy1wp
+set str aKDoGQqj7l var_
+set str cwSKBOruNR winRef
+add fcBV3AeYKj aKDoGQqj7l cwSKBOruNR
+win create 3BBXcPbstI
+proc store fcBV3AeYKj 3BBXcPbstI
+set str cg3tLyNa4K var_
+set str cps27CIw19 winRef
+add su7lTk0wHu cg3tLyNa4K cps27CIw19
+proc get su7lTk0wHu KbOtaitUHO
+set str I8hOoaiWnJ title
+set str sNKjKrjhLS Claw
+win setKey KbOtaitUHO I8hOoaiWnJ sNKjKrjhLS
+call reloadMsgs 
+quitTo tcXUYhbNEc
+: tcXUYhbNEc
+dupe s9ue8nmHOW var_winRef
+win timeout s9ue8nmHOW
+dupe vPXUVzUy4B var_winRef
+win panel base vPXUVzUy4B
+dupe dzmBov3gBa var_winRef
+set str gmArfqRQTd size
+win getKey dzmBov3gBa gmArfqRQTd Nz6MYlEaSq
+dupe var_size Nz6MYlEaSq
+set num RFk3fESrPQ 0
+dupe var_i RFk3fESrPQ
+dupe F764JshRn5 var_size
+set num 4oasycO833 1
+obj get F764JshRn5 WvxYvCQ7JZ 4oasycO833
+set num kdvJaKXFTl .5
+mul k1bl1GwkRW WvxYvCQ7JZ kdvJaKXFTl
+set num b9VV8bZMr8 17.5
+sub 0Yf9cxDJtE k1bl1GwkRW b9VV8bZMr8
+dupe var_y 0Yf9cxDJtE
+: 0fHStZYSgu
+dupe cVF8hnQ7sh var_msgs
+dupe IJt0ngwkx1 var_i
+obj get cVF8hnQ7sh X80SAFYLGx IJt0ngwkx1
+dupe var_msg X80SAFYLGx
+set num LvWbGTci2x 40
+dupe var_height LvWbGTci2x
+set str kF7pSsSKM2 win-primary
+callget 34DzZrMFra theme kF7pSsSKM2
+panel color 34DzZrMFra
+dupe z1NGlgF6Ud var_height
+set num ZGkrnbgWN4 15
+add 0zCptYTEdY z1NGlgF6Ud ZGkrnbgWN4
+set num hKkOD7YPw6 2
+div OiSy0whTHw 0zCptYTEdY hKkOD7YPw6
+sub var_y var_y OiSy0whTHw
+set num AUlaZ4X8t6 0
+dupe fTM8S0EwZF var_y
+dupe sBOnkdnAI9 var_size
+set num F0V8UchoXy 0
+obj get sBOnkdnAI9 LuGdldgX5e F0V8UchoXy
+set num gDH2wlYwd7 10
+sub 01qF4Dgra6 LuGdldgX5e gDH2wlYwd7
+dupe Ic7RUhtebw var_height
+set num vLvph5bUfb 10
+panel rect AUlaZ4X8t6 fTM8S0EwZF 01qF4Dgra6 Ic7RUhtebw vLvph5bUfb
+set str 4ygf1lbQUB win-text
+callget LKmoXJNKFU theme 4ygf1lbQUB
+panel color LKmoXJNKFU
+dupe 0TkoBO9xPA var_msg
+set str 2RGA5JnYxo content
+obj get 0TkoBO9xPA PoIWKfsnMh 2RGA5JnYxo
+dupe GzfjTkJuWd var_size
+set num IW7M555eKA 0
+obj get GzfjTkJuWd aCrMBrzt6x IW7M555eKA
+set num 9xQUS5oMSt -.5
+mul 24i2BX35NT aCrMBrzt6x 9xQUS5oMSt
+set num kcLDhEl9z8 10
+add KIGRV7W4fO 24i2BX35NT kcLDhEl9z8
+dupe z1foYEOF6q var_y
+set num EgGDEbN3XZ 10
+sub ES6srq07PY z1foYEOF6q EgGDEbN3XZ
+set num DS5xItVI5c 10
+panel text KIGRV7W4fO ES6srq07PY DS5xItVI5c PoIWKfsnMh
+dupe mbHuxLEBJS var_msg
+set str aYf2lxfw5c pfp
+obj get mbHuxLEBJS v0yMBrFdui aYf2lxfw5c
+dupe 8K7QS1Psvy var_size
+set num HY7BCwjNQ5 0
+obj get 8K7QS1Psvy 83wnfSjcPv HY7BCwjNQ5
+set num j4zcgDwF4a -.5
+mul YCvdYOykJM 83wnfSjcPv j4zcgDwF4a
+set num vyuNMx7Ncw 20
+add HBEkOAppsH YCvdYOykJM vyuNMx7Ncw
+dupe vmDAVpLVTn var_y
+set num Cep3MLEZVG 10
+add nsI6JBRQ3S vmDAVpLVTn Cep3MLEZVG
+set num 74qYgjGU52 15
+set num 9YgIAdxGOo 100
+set num CxRQuMCZSK 100
+panel image v0yMBrFdui HBEkOAppsH nsI6JBRQ3S 74qYgjGU52 9YgIAdxGOo CxRQuMCZSK
+dupe AfNzVw6oXV var_msg
+set str TBp6PXSDTh user
+obj get AfNzVw6oXV 8Dcu0RXwj4 TBp6PXSDTh
+dupe WNVlb3F6va var_size
+set num R8XW6Drdti 0
+obj get WNVlb3F6va WZbXpWlLSH R8XW6Drdti
+set num 8PBLfF6VCL -.5
+mul dSV57ZsghP WZbXpWlLSH 8PBLfF6VCL
+set num yfU0tRmwJG 40
+add GCVImmDSf0 dSV57ZsghP yfU0tRmwJG
+dupe hrwfudiKzA var_y
+set num geAHGQZHuJ 10
+add biFRew8EI4 hrwfudiKzA geAHGQZHuJ
+set num AG6Opn7UKY 9
+panel text GCVImmDSf0 biFRew8EI4 AG6Opn7UKY 8Dcu0RXwj4
+set num w1mb9NWNk8 1
+add var_i var_i w1mb9NWNk8
+dupe sCHvsX6wz5 var_height
+set num WxNiTGCPaM 15
+add ZHkuGjlIr7 sCHvsX6wz5 WxNiTGCPaM
+set num j7ZvQapQTa 2
+div JBmYzCPUNw ZHkuGjlIr7 j7ZvQapQTa
+sub var_y var_y JBmYzCPUNw
+dupe bB5qxlNMff var_i
+dupe WEVeCiAimw var_msgs
+len 2A46RnPJIh WEVeCiAimw
+sml tnE2C5llKd bB5qxlNMff 2A46RnPJIh
+ji 0fHStZYSgu tnE2C5llKd
+dupe iGIr6DdlWf var_winRef
+const winbuttonsdefault 2EB7OvybTk
+win topbar iGIr6DdlWf 2EB7OvybTk
+dupe bUUURaGiX1 var_winRef
+win panel update bUUURaGiX1
+quitTo tcXUYhbNEc
+~
+~ reloadMsgs
+set str H0vQE3DIon var_
+set str 1QqPSOGaid msgs
+add CXzslTacND H0vQE3DIon 1QqPSOGaid
+set str YKCpHPUU0u var_
+set str cdeJX3Q3la clawUrl
+add wv5eJag9iS YKCpHPUU0u cdeJX3Q3la
+proc get wv5eJag9iS Pl7Toyph4x
+set str OtMJYATffM feed?limit=10
+add hD1IyXuMrS Pl7Toyph4x OtMJYATffM
+fetch 2Sq6IvhT9T hD1IyXuMrS
+json parse hgiYShDJML 2Sq6IvhT9T
+proc store CXzslTacND hgiYShDJML
+~
+~ theme
+dupe var_key arg0
+dupe AWUVBCVOMn var_key
+theme 9UE89E0nfa AWUVBCVOMn
+ret 9UE89E0nfa
 ~
