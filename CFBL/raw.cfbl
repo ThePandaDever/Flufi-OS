@@ -1,36 +1,58 @@
 fn main
-  Process.store("clawUrl","https://claw.rotur.dev/")
-  Process.store("winRef",Win.create())
-  Win.setTitle(Process.get("winRef"),"Claw")
-  reloadMsgs()
+  Process.store("winKey",Win.create())
+  Process.store("path","sys/dock")
+  loadFiles()
+  handleWin(Process.get("winKey"))
   forever
-    Win.resetTimeout(winRef)
-    Win.panel.base(winRef)
-    size = Win.getSize(winRef)
-    i = 0
-    y = size[1] * .5 - 17.5
-    while i < (msgs |> len)
-      msg = msgs[i]
-      height \= (msg["content"]) |> getLines |> len
-      height = 40
-      Panel.color(theme("win-primary"))
-      y -= height + 15 / 2
-      Panel.rect(0, y, size[0] - 10, height, 10)
-      Panel.color(theme("win-text"))
-      Panel.text(msg["content"], size[0] * (-.5) + 10, y - 10, 10)
-      Panel.image(msg["pfp"], size[0] * (-.5) + 20, y + 10, 15, 100, 100)
-      Panel.text(msg["user"], size[0] * (-.5) + 40, y + 10, 9)
-      i += 1
-      y -= height + 15 / 2
-    end
-    
-    Win.topbar(winRef, Win.buttons.default)
-    Win.panel.update(winRef)
+    draw(winKey)
+    Win.panel.update(winKey)
   end
 end
-fn reloadMsgs
-  Process.store("msgs",json.parse(fetch(Process.get("clawUrl") + "feed?limit=10")))
+
+fn draw winKey
+  size = Win.getKey(winKey,"size")
+  Panel.color("win-back" |> theme)
+  Panel.rect(0,0,size[0],size[1],10)
+  
+  files = Process.get("files")
+  fpath = Process.get("path")
+  len = files |> len
+  i = 0
+  while i < len
+    path = fpath + "/" + files[i]
+    x = i - (len - 1 / 2) * 50
+    s = 3.8
+    d = dist(x,0,Win.getMouseX(winKey),Win.getMouseY(winKey))
+    if (d < 25)
+      s = 4.2
+      if Input.mouseLeftClick && Win.focused == winKey
+        Process.launch(path)
+      end
+    end
+    Panel.file(path,x,0,s)
+    i += 1
+  end
+  
+  Win.resetTimeout(winKey)
 end
-fn theme key
-  return key |> theme
+
+fn handleWin winKey
+  pos = [0,0]
+  pos[1] = Screen.height * (-.5) + 40
+  
+  size = [0,50]
+  size[0] = (Process.get("files") |> len) * 50
+  
+  Win.setKey(winKey,"position",pos)
+  Win.setKey(winKey,"size",size)
+  Win.setKey(winKey,"grabbable",false)
+  Win.setKey(winKey,"resizable",false)
+end
+
+fn loadFiles
+  Process.store("files",fs.list(Process.get("path")))
+end
+
+fn dist x1 y1 x2 y2
+  return (x2-x1 |> sqr) + (y2-y1 |> sqr) |> sqrt
 end

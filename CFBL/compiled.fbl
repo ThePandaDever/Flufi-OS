@@ -1,155 +1,156 @@
 ~ main
-set str ESGs9Wb9a3 var_
-set str fhkJvPNZn8 clawUrl
-add y2kbVZAlGn ESGs9Wb9a3 fhkJvPNZn8
-set str 1Ljiwpy1wp https://claw.rotur.dev/
-proc store y2kbVZAlGn 1Ljiwpy1wp
-set str aKDoGQqj7l var_
-set str cwSKBOruNR winRef
-add fcBV3AeYKj aKDoGQqj7l cwSKBOruNR
-win create 3BBXcPbstI
-proc store fcBV3AeYKj 3BBXcPbstI
-set str cg3tLyNa4K var_
-set str cps27CIw19 winRef
-add su7lTk0wHu cg3tLyNa4K cps27CIw19
-proc get su7lTk0wHu KbOtaitUHO
-set str I8hOoaiWnJ title
-set str sNKjKrjhLS Claw
-win setKey KbOtaitUHO I8hOoaiWnJ sNKjKrjhLS
-call reloadMsgs 
-quitTo tcXUYhbNEc
-: tcXUYhbNEc
-dupe s9ue8nmHOW var_winRef
-win timeout s9ue8nmHOW
-dupe vPXUVzUy4B var_winRef
-win panel base vPXUVzUy4B
-dupe dzmBov3gBa var_winRef
-set str gmArfqRQTd size
-win getKey dzmBov3gBa gmArfqRQTd Nz6MYlEaSq
-dupe var_size Nz6MYlEaSq
-set num RFk3fESrPQ 0
-dupe var_i RFk3fESrPQ
-dupe F764JshRn5 var_size
-set num 4oasycO833 1
-obj get F764JshRn5 WvxYvCQ7JZ 4oasycO833
-set num kdvJaKXFTl .5
-mul k1bl1GwkRW WvxYvCQ7JZ kdvJaKXFTl
-set num b9VV8bZMr8 17.5
-sub 0Yf9cxDJtE k1bl1GwkRW b9VV8bZMr8
-dupe var_y 0Yf9cxDJtE
-: 0fHStZYSgu
-dupe cVF8hnQ7sh var_msgs
-dupe IJt0ngwkx1 var_i
-obj get cVF8hnQ7sh X80SAFYLGx IJt0ngwkx1
-dupe var_msg X80SAFYLGx
-set num LvWbGTci2x 40
-dupe var_height LvWbGTci2x
-set str kF7pSsSKM2 win-primary
-callget 34DzZrMFra theme kF7pSsSKM2
-panel color 34DzZrMFra
-dupe z1NGlgF6Ud var_height
-set num ZGkrnbgWN4 15
-add 0zCptYTEdY z1NGlgF6Ud ZGkrnbgWN4
-set num hKkOD7YPw6 2
-div OiSy0whTHw 0zCptYTEdY hKkOD7YPw6
-sub var_y var_y OiSy0whTHw
-set num AUlaZ4X8t6 0
-dupe fTM8S0EwZF var_y
-dupe sBOnkdnAI9 var_size
-set num F0V8UchoXy 0
-obj get sBOnkdnAI9 LuGdldgX5e F0V8UchoXy
-set num gDH2wlYwd7 10
-sub 01qF4Dgra6 LuGdldgX5e gDH2wlYwd7
-dupe Ic7RUhtebw var_height
-set num vLvph5bUfb 10
-panel rect AUlaZ4X8t6 fTM8S0EwZF 01qF4Dgra6 Ic7RUhtebw vLvph5bUfb
-set str 4ygf1lbQUB win-text
-callget LKmoXJNKFU theme 4ygf1lbQUB
-panel color LKmoXJNKFU
-dupe 0TkoBO9xPA var_msg
-set str 2RGA5JnYxo content
-obj get 0TkoBO9xPA PoIWKfsnMh 2RGA5JnYxo
-dupe GzfjTkJuWd var_size
-set num IW7M555eKA 0
-obj get GzfjTkJuWd aCrMBrzt6x IW7M555eKA
-set num 9xQUS5oMSt -.5
-mul 24i2BX35NT aCrMBrzt6x 9xQUS5oMSt
-set num kcLDhEl9z8 10
-add KIGRV7W4fO 24i2BX35NT kcLDhEl9z8
-dupe z1foYEOF6q var_y
-set num EgGDEbN3XZ 10
-sub ES6srq07PY z1foYEOF6q EgGDEbN3XZ
-set num DS5xItVI5c 10
-panel text KIGRV7W4fO ES6srq07PY DS5xItVI5c PoIWKfsnMh
-dupe mbHuxLEBJS var_msg
-set str aYf2lxfw5c pfp
-obj get mbHuxLEBJS v0yMBrFdui aYf2lxfw5c
-dupe 8K7QS1Psvy var_size
-set num HY7BCwjNQ5 0
-obj get 8K7QS1Psvy 83wnfSjcPv HY7BCwjNQ5
-set num j4zcgDwF4a -.5
-mul YCvdYOykJM 83wnfSjcPv j4zcgDwF4a
-set num vyuNMx7Ncw 20
-add HBEkOAppsH YCvdYOykJM vyuNMx7Ncw
-dupe vmDAVpLVTn var_y
-set num Cep3MLEZVG 10
-add nsI6JBRQ3S vmDAVpLVTn Cep3MLEZVG
-set num 74qYgjGU52 15
-set num 9YgIAdxGOo 100
-set num CxRQuMCZSK 100
-panel image v0yMBrFdui HBEkOAppsH nsI6JBRQ3S 74qYgjGU52 9YgIAdxGOo CxRQuMCZSK
-dupe AfNzVw6oXV var_msg
-set str TBp6PXSDTh user
-obj get AfNzVw6oXV 8Dcu0RXwj4 TBp6PXSDTh
-dupe WNVlb3F6va var_size
-set num R8XW6Drdti 0
-obj get WNVlb3F6va WZbXpWlLSH R8XW6Drdti
-set num 8PBLfF6VCL -.5
-mul dSV57ZsghP WZbXpWlLSH 8PBLfF6VCL
-set num yfU0tRmwJG 40
-add GCVImmDSf0 dSV57ZsghP yfU0tRmwJG
-dupe hrwfudiKzA var_y
-set num geAHGQZHuJ 10
-add biFRew8EI4 hrwfudiKzA geAHGQZHuJ
-set num AG6Opn7UKY 9
-panel text GCVImmDSf0 biFRew8EI4 AG6Opn7UKY 8Dcu0RXwj4
-set num w1mb9NWNk8 1
-add var_i var_i w1mb9NWNk8
-dupe sCHvsX6wz5 var_height
-set num WxNiTGCPaM 15
-add ZHkuGjlIr7 sCHvsX6wz5 WxNiTGCPaM
-set num j7ZvQapQTa 2
-div JBmYzCPUNw ZHkuGjlIr7 j7ZvQapQTa
-sub var_y var_y JBmYzCPUNw
-dupe bB5qxlNMff var_i
-dupe WEVeCiAimw var_msgs
-len 2A46RnPJIh WEVeCiAimw
-sml tnE2C5llKd bB5qxlNMff 2A46RnPJIh
-ji 0fHStZYSgu tnE2C5llKd
-dupe iGIr6DdlWf var_winRef
-const winbuttonsdefault 2EB7OvybTk
-win topbar iGIr6DdlWf 2EB7OvybTk
-dupe bUUURaGiX1 var_winRef
-win panel update bUUURaGiX1
-quitTo tcXUYhbNEc
+set str 1Oc5iqxfJi var_
+set str WgbJPyJF81 winKey
+add bYHA4FOSOJ 1Oc5iqxfJi WgbJPyJF81
+win create KvAYyW3y7o
+proc store bYHA4FOSOJ KvAYyW3y7o
+set str eRYwmqMunR var_
+set str 4J1KITalCe path
+add 0rcOzcY8qU eRYwmqMunR 4J1KITalCe
+set str Vwzq0IAD7I sys/dock
+proc store 0rcOzcY8qU Vwzq0IAD7I
+call loadFiles 
+set str glMRPwndMx var_
+set str o30z6FJD5c winKey
+add dq65VEFU56 glMRPwndMx o30z6FJD5c
+proc get dq65VEFU56 OMhhwz3zBH
+call handleWin OMhhwz3zBH
+quitTo c1V9s2KjKk
+: c1V9s2KjKk
+call draw var_winKey
+win panel update var_winKey
+quitTo c1V9s2KjKk
 ~
-~ reloadMsgs
-set str H0vQE3DIon var_
-set str 1QqPSOGaid msgs
-add CXzslTacND H0vQE3DIon 1QqPSOGaid
-set str YKCpHPUU0u var_
-set str cdeJX3Q3la clawUrl
-add wv5eJag9iS YKCpHPUU0u cdeJX3Q3la
-proc get wv5eJag9iS Pl7Toyph4x
-set str OtMJYATffM feed?limit=10
-add hD1IyXuMrS Pl7Toyph4x OtMJYATffM
-fetch 2Sq6IvhT9T hD1IyXuMrS
-json parse hgiYShDJML 2Sq6IvhT9T
-proc store CXzslTacND hgiYShDJML
+~ draw
+set str Q0S3UHOf50 size
+win getKey arg_0 Q0S3UHOf50 8cdcwixzug
+dupe var_size 8cdcwixzug
+set str LqGTUkAZuV win-back
+theme MoBUeBYqiG LqGTUkAZuV
+panel color MoBUeBYqiG
+set num 8vS578XdLe 0
+set num Gnok06XkPm 0
+set num XrjMPCAfyV 0
+obj get var_size lo0UELfdNi XrjMPCAfyV
+set num TaiWn2KflV 1
+obj get var_size 0qt71gvqZb TaiWn2KflV
+set num L39rLYwrxv 10
+panel rect 8vS578XdLe Gnok06XkPm lo0UELfdNi 0qt71gvqZb L39rLYwrxv
+set str DWSTuve18q var_
+set str pKvRmGKdQa files
+add I0VfjW3PHl DWSTuve18q pKvRmGKdQa
+proc get I0VfjW3PHl ran6WupH9I
+dupe var_files ran6WupH9I
+set str h0fsXaFT88 var_
+set str s4XCB74JmN path
+add MtbMHbbFEp h0fsXaFT88 s4XCB74JmN
+proc get MtbMHbbFEp v597wGtnCu
+dupe var_fpath v597wGtnCu
+len NY6xjQbJEE var_files
+dupe var_len NY6xjQbJEE
+set num WYFptFJ8eq 0
+dupe var_i WYFptFJ8eq
+: 0cyzblhU54
+set str ZW190SSHG5 /
+add CJ0CvUheg2 var_fpath ZW190SSHG5
+obj get var_files 1y4MCpbMNs var_i
+add Aj3herw6rQ CJ0CvUheg2 1y4MCpbMNs
+dupe var_path Aj3herw6rQ
+set num faN2ait9xY 1
+sub V8A9VGmORk var_len faN2ait9xY
+set num W59AqOx48R 2
+div SUw6UjrJVk V8A9VGmORk W59AqOx48R
+sub MBDOb5UcFa var_i SUw6UjrJVk
+set num BfrCv7rLky 50
+mul 9t2mgQhwYw MBDOb5UcFa BfrCv7rLky
+dupe var_x 9t2mgQhwYw
+set num CYmP62rsnT 3.8
+dupe var_s CYmP62rsnT
+set num c6pQkPzx2h 0
+const mousex QYRjL7ipZn
+set str DWWHCDgs4x position
+win getKey arg_0 DWWHCDgs4x 8PVlkwSlAN
+set num Lnf5ooEHRo 0
+obj get 8PVlkwSlAN ybrnFrj7Qz Lnf5ooEHRo
+sub mkSFeYoGmQ QYRjL7ipZn ybrnFrj7Qz
+const mousey TRxuZD4sBf
+set str f2LFE01Mfj position
+win getKey arg_0 f2LFE01Mfj L1RsPfwNgw
+set num Wc06sE5IJh 1
+obj get L1RsPfwNgw jCamWWxaJf Wc06sE5IJh
+sub LCvX5ihyzE TRxuZD4sBf jCamWWxaJf
+callget a7q3n3cuuw dist var_x c6pQkPzx2h mkSFeYoGmQ LCvX5ihyzE
+dupe var_d a7q3n3cuuw
+set num wis4PC8HGM 25
+sml aO8jLv9fdU var_d wis4PC8HGM
+jn 151BNshmIr aO8jLv9fdU
+set num OBfUsrUjf6 4.2
+dupe var_s OBfUsrUjf6
+const mouselc cZa4cecXS0
+const winfocused DIrO08UTf4
+eql eCk7F2zOtd DIrO08UTf4 arg_0
+and WdWI9OJQkg cZa4cecXS0 eCk7F2zOtd
+jn LgbyOGsLz5 WdWI9OJQkg
+proc launch var_path
+: LgbyOGsLz5
+: 151BNshmIr
+set num ISBQ9dqKK4 0
+panel file var_path var_x ISBQ9dqKK4 var_s
+set num iUNL9RZNqE 1
+add var_i var_i iUNL9RZNqE
+sml 9RvquUWGvc var_i var_len
+ji 0cyzblhU54 9RvquUWGvc
+win timeout arg_0
 ~
-~ theme
-dupe var_key arg0
-dupe AWUVBCVOMn var_key
-theme 9UE89E0nfa AWUVBCVOMn
-ret 9UE89E0nfa
+~ handleWin
+set obj ZAHcC8EXDE [0,0]
+dupe var_pos ZAHcC8EXDE
+set num KgAhuo9DMG 1
+const screenheight 5XZNjvhWEU
+set num NAVIvpFAtH -.5
+mul hDd5yZP7nr 5XZNjvhWEU NAVIvpFAtH
+set num kZkLXY5Bp4 40
+add r4SSCV1vi2 hDd5yZP7nr kZkLXY5Bp4
+obj set var_pos KgAhuo9DMG r4SSCV1vi2
+set obj mBKoJrBXY6 [0,50]
+dupe var_size mBKoJrBXY6
+set num dSwQZcWtCX 0
+set str 16oB9QDxOz var_
+set str CynGYWeTcz files
+add M1dVijPLg1 16oB9QDxOz CynGYWeTcz
+proc get M1dVijPLg1 Lpnxn7Qwg3
+len ILSX9nLUXD Lpnxn7Qwg3
+set num Uy6jmqDn84 50
+mul 0mh00vowFB ILSX9nLUXD Uy6jmqDn84
+obj set var_size dSwQZcWtCX 0mh00vowFB
+set str bLLaRI3Adz position
+win setKey arg_0 bLLaRI3Adz var_pos
+set str 4wXnaSlgwL size
+win setKey arg_0 4wXnaSlgwL var_size
+set str hc49Qjk1xj grabbable
+set bool var_false false
+win setKey arg_0 hc49Qjk1xj var_false
+set str lSZ5KD9E6s resizable
+set bool var_false false
+win setKey arg_0 lSZ5KD9E6s var_false
+~
+~ loadFiles
+set str 2N05z9hN9P var_
+set str 0VddBHMA1u files
+add ye8j2LBC0P 2N05z9hN9P 0VddBHMA1u
+set str vbUU22g1Q9 var_
+set str 8Pj1hXi5CZ path
+add C1258spvx9 vbUU22g1Q9 8Pj1hXi5CZ
+proc get C1258spvx9 CxUvvQJWnA
+fs list DMxvxDmdnO CxUvvQJWnA
+proc store ye8j2LBC0P DMxvxDmdnO
+~
+~ dist
+sub sW6FwdZaBb arg_2 arg_0
+sqr 0d4aoaKyP9 sW6FwdZaBb
+sub V5H5Iy2sLF arg_3 arg_1
+sqr MdoM6KtZXk V5H5Iy2sLF
+add KOdZG75BDO 0d4aoaKyP9 MdoM6KtZXk
+sqrt IbpOVYNIsI KOdZG75BDO
+ret IbpOVYNIsI
 ~

@@ -119,6 +119,8 @@ other commands:
         defines a label
 */
 
+let funcArgs = [];
+
 function compileFunction(tokens, name, args, argKeys) {
     switch (tokens[0]) {
         case "Win.create":
@@ -346,12 +348,12 @@ function compileScript(code) {
                 const objKeys = splitKeys(line[0]);
                 if (objKeys.length == 2 && isSquareBrackets(objKeys[1])) {
                     const key = removeSquareBrackets(objKeys[1]);
-                    const keyKey = randomStr();
+                    const keyKey = compileValueKey(key);
                     const value = line.slice(2).join(" ");
-                    const valueKey = randomStr();
+                    const valueKey = compileValueKey(value);
                     newScript += `${compileValue(key,keyKey)}${compileValue(value,valueKey)}obj set var_${objKeys[0]} ${keyKey} ${valueKey}\n`;
                 } else {
-                    const key = randomStr();
+                    const key = compileValueKey(line.slice(2).join(" "));
                     newScript += `${compileValue(line.slice(2).join(" "), key)}dupe var_${line[0]} ${key}\n`;
                 }
                 continue;
@@ -364,7 +366,8 @@ function compileScript(code) {
 
             switch (line[0]) {
                 case "fn":
-                    newScript += `~ ${line[1]}\n${line.slice(2).map((v,i) => `dupe var_${v} arg${i}`).join("\n")}${line.slice(2).length > 0 ? "\n" : ""}`
+                    funcArgs = line.slice(2);
+                    newScript += `~ ${line[1]}\n`;
                     depth ++;
                     break;
                 case "end":
@@ -405,18 +408,19 @@ function compileScript(code) {
                         }
                     } else {
                         newScript += "~\n";
+                        funcArgs = [];
                     }
                     break;
                 case "print":
-                    const name = randomStr();
+                    const name = compileValueKey(line[1]);
                     newScript += compileValue(line[1], name);
                     newScript += `print ${name}\n`;
                     break;
                 case "if":
                     depth ++;
                     const lbl = randomStr();
-                    const condKey = randomStr();
                     const cond = line.slice(1).join(" ");
+                    const condKey = compileValueKey(cond);
                     depthStack.push(["if",lbl]);
                     newScript += `${compileValue(cond, condKey)}jn ${lbl} ${condKey}\n`;
                     break;
@@ -443,8 +447,8 @@ function compileScript(code) {
                 case "switch":
                     depth ++;
                     const switchLbl = randomStr();
-                    const switchValueKey = randomStr();
                     const switchValue = line.slice(1).join(" ");
+                    const switchValueKey = compileValueKey(switchValue);
                     depthStack.push(["switch",switchLbl,switchValueKey]);
                     newScript += compileValue(switchValue,switchValueKey);
                     break;
@@ -453,8 +457,8 @@ function compileScript(code) {
                     const caseLatestDepth = depthStack[depthStack.length - 1];
                     if ((caseLatestDepth ?? [])[0] == "switch") {
                         const caseLbl = randomStr();
-                        const caseValueKey = randomStr();
                         const caseValue = line.slice(1).join(" ");
+                        const caseValueKey = compileValueKey(caseValue);
                         depthStack.push(["case",caseLbl,caseValue,caseLatestDepth[1]]);
                         newScript += `${compileValue(caseValue, caseValueKey)}jne ${caseLbl} ${caseValueKey} ${caseLatestDepth[2]}\n`;
                     } else {
@@ -466,8 +470,8 @@ function compileScript(code) {
                     const caseifLatestDepth = depthStack[depthStack.length - 1];
                     if ((caseifLatestDepth ?? [])[0] == "switch") {
                         const caseLbl = randomStr();
-                        const caseValueKey = randomStr();
                         const caseValue = line.slice(1).join(" ");
+                        const caseValueKey = compileValueKey(caseValue);
                         depthStack.push(["case",caseLbl,caseValue,caseifLatestDepth[1]]);
                         newScript += `${compileValue(caseValue, caseValueKey)}jn ${caseLbl} ${caseValueKey}\n`;
                     } else {
@@ -476,16 +480,16 @@ function compileScript(code) {
                     break;
                 case "return":
                     const data = line.slice(1).join(" ");
-                    const dataKey = randomStr();
+                    const dataKey = compileValueKey(data);
                     newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
                     break;
                 case "Panel.clip":
                     depth ++;
                     depthStack.push(["Panel.clip"]);
-                    const x1Key = randomStr();
-                    const y1Key = randomStr();
-                    const x2Key = randomStr();
-                    const y2Key = randomStr();
+                    const x1Key = compileValueKey(line[1]);
+                    const y1Key = compileValueKey(line[2]);
+                    const x2Key = compileValueKey(line[3]);
+                    const y2Key = compileValueKey(line[4]);
                     newScript += `${compileValue(line[1], x1Key)}${compileValue(line[2], y1Key)}${compileValue(line[3], x2Key)}${compileValue(line[4], y2Key)}panel clip ${x1Key} ${y1Key} ${x2Key} ${y2Key}\n`;
                     break;
                 case "exit":
@@ -503,7 +507,7 @@ function compileScript(code) {
                         const commandTokens = splitCommand(line.join(" ").trim());
                         if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
                             const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
-                            const argKeys = args.map(v => randomStr());
+                            const argKeys = args.map(v => compileValueKey(v));
                             const builtin = compileFunction(commandTokens, randomStr(), args, argKeys);
                             newScript += builtin ? builtin :
                                 `${args.map((v,i) => compileValue(v, argKeys[i])).join("")}call ${commandTokens[0]} ${argKeys.join(" ")}\n`
@@ -522,7 +526,7 @@ function compileValue(code, name) {
         const op = pipe.pop();
         pipe.pop();
         const a = pipe.join(" ");
-        const aKey = randomStr();
+        const aKey = compileValueKey(a);
         return `${compileValue(a, aKey)}${op} ${name} ${aKey}\n`;
     }
     const logic = splitLogic(code);
@@ -530,8 +534,8 @@ function compileValue(code, name) {
         const b = logic.pop();
         const log = logic.pop();
         const a = logic.join("");
-        const aKey = randomStr();
-        const bKey = randomStr();
+        const aKey = compileValueKey(a);
+        const bKey = compileValueKey(b);
         return `${compileValue(a, aKey)}${compileValue(b, bKey)}${{"||":"or","&&":"and"}[log]} ${name} ${aKey} ${bKey}\n`;
     }
     const comp = splitComparison(code,["==","!=",">","<",">=","<="]);
@@ -539,8 +543,8 @@ function compileValue(code, name) {
         const b = comp.pop();
         const c = comp.pop();
         const a = comp.join("");
-        const aKey = randomStr();
-        const bKey = randomStr();
+        const aKey = compileValueKey(a);
+        const bKey = compileValueKey(b);
         switch (c) {
             case "==": case ">": case "<":
                 return `${compileValue(a, aKey)}${compileValue(b, bKey)}${{"==":"eql",">":"gtr","<":"sml"}[c]} ${name} ${aKey} ${bKey}\n`;
@@ -558,8 +562,8 @@ function compileValue(code, name) {
         const b = ops.pop();
         const op = ops.pop();
         const a = ops.join("");
-        const aKey = randomStr();
-        const bKey = randomStr();
+        const aKey = compileValueKey(a);
+        const bKey = compileValueKey(b);
         return `${compileValue(a, aKey)}${compileValue(b, bKey)}${{"+":"add","-":"sub","*":"mul","/":"div","%":"mod"}[op]} ${name} ${aKey} ${bKey}\n`;
     }
     if (code[0] == "!") {
@@ -571,8 +575,8 @@ function compileValue(code, name) {
         if (isSquareBrackets(keyTokens[keyTokens.length-1])) {
             const key = removeSquareBrackets(keyTokens.pop());
             const value = keyTokens.join("");
-            const keyKey = randomStr();
-            const valueKey = randomStr();
+            const keyKey = compileValueKey(key);
+            const valueKey = compileValueKey(value);
             return `${compileValue(value,valueKey)}${compileValue(key, keyKey)}obj get ${valueKey} ${name} ${keyKey}\n`;
         }
     }
@@ -585,7 +589,7 @@ function compileValue(code, name) {
     const commandTokens = splitCommand(code);
     if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
         const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");
-        const argKeys = args.map(v => randomStr());
+        const argKeys = args.map(v => compileValueKey(v));
 
         const builtin = compileFunction(commandTokens, name, args, argKeys);
         if (builtin)
@@ -634,12 +638,16 @@ function compileValue(code, name) {
             return `proc this ${name}\n`;
     }
     if (isValidVariable(code)) {
-        return `dupe ${name} var_${code}\n`;
+        return ``;
     }
     if (code) {
         throw Error("unknown value '" + code + "'");
     }
     return `\n`;
+}
+
+function compileValueKey(code) {
+    return funcArgs.indexOf(code) >= 0 ? `arg_${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
 }
 
 const fs = require('fs');
