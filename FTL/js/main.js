@@ -1,3 +1,29 @@
+
+flf = {};
+
+flf.ftl ??= {};
+flf.ftl.commands ??= {
+    "echo": function(data, args) {
+        data.funcs.logFunc(args.map(a => flf.ftl.runValue(a, data)));
+    },
+    "if": function(data, args) {
+        const cond = runValue(args[0], data);
+        data["lastStackValue"] = cond;
+        return runValue(args.slice(1).join(" "), data);
+    },
+    "then": function(data, args) {
+        if (data["lastStackValue"] && args[0])
+            return runValue(args[0], data);
+    },
+    "else": function(data, args) {
+        if (!data["lastStackValue"] && args[0])
+            return runValue(args[0], data);
+    },
+    "return": function(data, args) {
+        return runValue(args[1], data);
+    }
+};
+
 function split(text, type, useendbracket) {
     text = text.trim();
     const tokens = [];
@@ -149,30 +175,14 @@ function runCommand(code, data) {
     code = code.trim();
     if (!code) {return}
     const spaceTokens = split(code, " ").filter(t => !!t.trim());
-    switch (spaceTokens[0]) {
-        case "echo":
-            data.funcs.logFunc(spaceTokens.slice(1).map(a => runValue(a, data)));
-            return;
-        case "if": {
-            const cond = runValue(spaceTokens[1], data);
-            data["lastStackValue"] = cond;
-            return runValue(spaceTokens.slice(2).join(" "), data);
+    if (flf?.ftl?.commands[spaceTokens[0]]) {
+        const command = flf.ftl.commands[spaceTokens[0]];
+        if (command instanceof Function) {
+            return command(data, spaceTokens.slice(1));
         }
-        case "then": {
-            if (data["lastStackValue"] && spaceTokens[1])
-                return runValue(spaceTokens[1], data);
-            break;
-        }
-        case "else": {
-            if (!data["lastStackValue"] && spaceTokens[1])
-                return runValue(spaceTokens[1], data);
-            break;
-        }
-        case "return":
-            return runValue(spaceTokens[1], data);
-        default:
-            throw Error("unknown command: " + spaceTokens[0].split("\n").map(l => l.trim()).join("\\n"));
+        return command.code(data, spaceTokens.slice(1));
     }
+    throw Error("unknown command: " + spaceTokens[0].split("\n").map(l => l.trim()).join("\\n"));
 }
 function runValue(code, data) {
     code = code.trim();
@@ -196,6 +206,10 @@ function runValue(code, data) {
             return false;
     }
 
+    try {
+        return runCommand(code, data);
+    } catch {}
+
     throw Error("unknown syntax: `" + code.split("\n").map(l => l.trim()).join("\\n") + "`");
 }
 function runSegment(code, data) {
@@ -210,7 +224,25 @@ function runSegment(code, data) {
     }
 }
 
+flf.ftl.run = run;
+flf.ftl.runCommand = runCommand;
+flf.ftl.runValue = runValue;
+flf.ftl.runSegment = runSegment;
+
+flf.ftl.commands.silly = {
+    code: function(data, args) {
+        console.log(args);
+    }
+}
+
 run(`
-if true
-echo {then "funny"; else "sad"}
+silly "hi"
+echo "hi"
+if true then {
+    echo "hi2"
+} else {
+    echo "sad"
+} then {
+    echo "wow"
+}
 `)

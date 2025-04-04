@@ -168,6 +168,14 @@
                         }
                     },
                     {
+                        opcode: "set_transparency",
+                        blockType: BlockType.COMMAND,
+                        text: "Set transparency [transparency]",
+                        arguments: {
+                            transparency: { type: ArgumentType.NUMBER, defaultValue: 50 },
+                        }
+                    },
+                    {
                         opcode: "set_direction",
                         blockType: BlockType.COMMAND,
                         text: "Set direction [direction]",
@@ -518,6 +526,9 @@
         set_color({ color }) {
             this.currentPanel.push(color);
             this.color = color;
+        }
+        set_transparency({ transparency }) {
+            this.currentPanel.push({"id":"transparency","value":transparency});
         }
         set_direction({ direction }) {
             this.currentPanel.push(direction);
