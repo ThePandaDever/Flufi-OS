@@ -20,5 +20,8 @@
       "roturTW"
     ],
     "listener":"link"
+  },
+  "auth": {
+    "cmd": "auth"
   }
 }
