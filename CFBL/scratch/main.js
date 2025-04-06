@@ -413,6 +413,11 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `ws disconnectall\n`;
             break;
+        
+        case "Rotur.setAcc":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}rotur setacc ${argKeys[0]}\n`;
+            break;
     }
 }
 
@@ -719,6 +724,8 @@ function compileValue(code, name) {
             return `proc list ${name}\n`;
         case "Process.this":
             return `proc this ${name}\n`;
+        case "Rotur.acc":
+            return `const roturacc ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;
