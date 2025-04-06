@@ -49,12 +49,16 @@
         } else {
             system[path] = data;
         }
+        window.flf ??= {};
+        flf.fs = system;
     }
     function delFile(path, system) {
         const filePath = path.split('/');
         const fileName = filePath.pop();
         const dir = _navigatePath(filePath.join("/"), system, true);
         delete dir[fileName];
+        window.flf ??= {};
+        flf.fs = system;
     }
     function getFile(path, system) {
         return getFileRaw(path, system)
@@ -103,6 +107,8 @@
                 }
             }
         }
+        window.flf ??= {};
+        flf.fs = sys;
         return sys;
     }
     class FileExt {
@@ -116,6 +122,8 @@
                     ]
                 }
             }
+            window.flf ??= {};
+            flf.fs = this.system;
         }
         getInfo() {
             return {
@@ -330,9 +338,13 @@
 
             if (type == "json") { this.system = JSON.parse(system); return }
             this.system = system;
+            window.flf ??= {};
+            flf.fs = system;
         }
         clearSystem({ }) {
-            this.system = {}
+            this.system = {};
+            window.flf ??= {};
+            flf.fs = system;
         }
         getFileContent({ path, part, type }) {
             if (!hasFile(path, this.system)) { return "" } // if file doesnt exist, return nothing
@@ -409,6 +421,8 @@
             }
             console.log(dir)
             dir[fname] = data;
+            window.flf ??= {};
+            flf.fs = this.system;
         }
         delFolder({ path }) {
             let f = getFile(path, this.system);
@@ -418,6 +432,8 @@
             p = p.join("/")
             let dir = _navigatePath(p, this.system);
             delete dir[fname];
+            window.flf ??= {};
+            flf.fs = this.system;
         }
         movFolder({ path, newpath }) {
             let f = getFile(path, this.system);

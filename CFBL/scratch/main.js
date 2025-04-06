@@ -314,6 +314,10 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}terminal getText ${argKeys[0]} ${name}\n`;
             break;
+        case "Terminal.setText":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal setText ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
         case "Terminal.run":
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal run ${argKeys[0]} ${argKeys[1]}\n`;
@@ -329,10 +333,6 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Terminal.running":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}terminal running ${argKeys[0]} ${name}\n`;
-            break;
-        case "Terminal.setText":
-            if (args.length == 2)
-                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal setText ${argKeys[0]} ${argKeys[1]}\n`;
             break;
         case "Terminal.get":
             if (args.length == 1)
@@ -353,6 +353,30 @@ function compileFunction(tokens, name, args, argKeys) {
         case "str.slice":
             if (args.length == 3)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}slice ${name} ${argKeys[0]} ${argKeys[1]} ${argKeys[2]}\n`;
+        case "str.repeat":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}repeat ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+        
+        
+        case "FTL.run":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ftl run ${name} ${argKeys[0]}\n`;
+            break;
+        case "FTL.runWithFuncs":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl runwithfuncs ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.runTerminal":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl runterminal ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.setCommand":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl setcommand ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.getCommand":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ftl getcommand ${name} ${argKeys[0]}\n`;
             break;
     }
 }
@@ -673,6 +697,13 @@ function compileValue(code, name) {
 function compileValueKey(code) {
     return funcArgs.indexOf(code) >= 0 ? `arg${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
 }
+
+window.flf ??= {};
+flf.cfbl ??= {};
+flf.cfbl.compileFunction = compileFunction;
+flf.cfbl.compileScript = compileScript;
+flf.cfbl.compileValue = compileValue;
+flf.cfbl.compileValueKey = compileValueKey;
 
 (function(Scratch) {
     'use strict';

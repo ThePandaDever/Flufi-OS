@@ -330,6 +330,23 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}terminal running ${argKeys[0]} ${name}\n`;
             break;
+        
+        case "FTL.run":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ftl run ${name} ${argKeys[0]}\n`;
+            break;
+        case "FTL.runWithFuncs":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl runwithfuncs ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.setCommand":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl setcommand ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.getCommand":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ftl getcommand ${name} ${argKeys[0]}\n`;
+            break;
     }
 }
 
@@ -647,7 +664,7 @@ function compileValue(code, name) {
 }
 
 function compileValueKey(code) {
-    return funcArgs.indexOf(code) >= 0 ? `arg_${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
+    return funcArgs.indexOf(code) >= 0 ? `arg${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
 }
 
 const fs = require('fs');

@@ -176,6 +176,14 @@
                         }
                     },
                     {
+                        opcode: "set_blending",
+                        blockType: BlockType.COMMAND,
+                        text: "Set blending [blending]",
+                        arguments: {
+                            blending: { type: ArgumentType.STRING, defaultValue: "default", menu: 'blendTypes' },
+                        }
+                    },
+                    {
                         opcode: "set_direction",
                         blockType: BlockType.COMMAND,
                         text: "Set direction [direction]",
@@ -425,7 +433,17 @@
                             'json',
                             'object'
                         ]
-                    }
+                    },
+                    blendTypes: {
+                        acceptReporters: true,
+                        items: [
+                            { text: "default", value: "default" },
+                            { text: "additive", value: "additive" },
+                            { text: "subtract", value: "subtract" },
+                            { text: "multiply", value: "multiply" },
+                            { text: "invert", value: "invert" },
+                        ],
+                    },
                 }
 			}
 		}
@@ -529,6 +547,9 @@
         }
         set_transparency({ transparency }) {
             this.currentPanel.push({"id":"transparency","value":transparency});
+        }
+        set_blending({ blending }) {
+            this.currentPanel.push({"id":"blending","value":blending});
         }
         set_direction({ direction }) {
             this.currentPanel.push(direction);
