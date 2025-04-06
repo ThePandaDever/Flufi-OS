@@ -1,0 +1,17 @@
+{
+  "handshake": {
+    "cmd": "handshake",
+    "val": {
+      "language": "Javascript",
+      "version": {
+        "editorType": "Scratch",
+        "versionNumber": 3,
+      },
+    },
+    "listener": "handshake_cfg",
+  },
+  "setid": {
+    "cmd": "setid",
+    "listener": "username_cfg"
+  }
+}
