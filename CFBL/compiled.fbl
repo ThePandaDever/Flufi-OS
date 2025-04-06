@@ -1,4 +1,25 @@
-win create xUQ1Qtbg82
-set str R1MhGPEq5D wow
-set str IRkS0VPorz crazy
-win setKey xUQ1Qtbg82 R1MhGPEq5D IRkS0VPorz
+set num cnnrcKfbtg 0
+jne FZ4UQYf7oK cnnrcKfbtg var_stage
+set str qQ5We0457p var_
+set str MZkB5XblGF stage
+add 7VGC2sesXU qQ5We0457p MZkB5XblGF
+set num 32jKkTdfnA 1
+proc store 7VGC2sesXU 32jKkTdfnA
+set str RqQybHvMr6 handshake
+call sendDefPacket RqQybHvMr6
+jp 2Ut8Dtf52h
+: FZ4UQYf7oK
+set num NMHwgefiVC 1
+jne rr2A9uK8GV NMHwgefiVC var_stage
+set str ptzGDirTSo var_
+set str ApWnNyWCI3 stage
+add oOiZQKo4cC ptzGDirTSo ApWnNyWCI3
+set num aWYUNrMErP 2
+proc store oOiZQKo4cC aWYUNrMErP
+set str GtwqdIHO0r setid
+call sendDefPacket GtwqdIHO0r
+jp 2Ut8Dtf52h
+: rr2A9uK8GV
+: 2Ut8Dtf52h
+set str wqOKteguuS hi
+print wqOKteguuS

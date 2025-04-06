@@ -314,6 +314,10 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}terminal getText ${argKeys[0]} ${name}\n`;
             break;
+        case "Terminal.setText":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal setText ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
         case "Terminal.run":
             if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}terminal run ${argKeys[0]} ${argKeys[1]}\n`;
@@ -330,14 +334,41 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}terminal running ${argKeys[0]} ${name}\n`;
             break;
+        case "Terminal.get":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}terminal get ${argKeys[0]} ${name}\n`;
+            break;
+        
+        case "Input.init":
+            return `input init\n`;
+        case "Input.get":
+            return `input get ${name}\n`;
+        case "Input.set":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}input set ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "Input.pop":
+            return `input pop ${name}\n`;
+
+        case "str.slice":
+            if (args.length == 3)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}slice ${name} ${argKeys[0]} ${argKeys[1]} ${argKeys[2]}\n`;
+        case "str.repeat":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}repeat ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+        
         
         case "FTL.run":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}ftl run ${name} ${argKeys[0]}\n`;
             break;
         case "FTL.runWithFuncs":
-            if (args.length == 1)
+            if (args.length == 2)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl runwithfuncs ${name} ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "FTL.runTerminal":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ftl runterminal ${name} ${argKeys[0]} ${argKeys[1]}\n`;
             break;
         case "FTL.setCommand":
             if (args.length == 1)
@@ -346,6 +377,46 @@ function compileFunction(tokens, name, args, argKeys) {
         case "FTL.getCommand":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}ftl getcommand ${name} ${argKeys[0]}\n`;
+            break;
+        
+        case "WS.connect":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws connect ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.send":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ws send ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "WS.pop":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws pop ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.isConnected":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws isconnected ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.connected":
+            return `ws connected ${name}\n`;
+        case "WS.hasNew":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws hasNew ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.getAll":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws getAll ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.disconnect":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws disconnect ${argKeys[0]}\n`;
+            break;
+        case "WS.disconnectAll":
+            if (args.length == 1)
+                return `ws disconnectall\n`;
+            break;
+        
+        case "Rotur.setAcc":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}rotur setacc ${argKeys[0]}\n`;
             break;
     }
 }
@@ -417,7 +488,7 @@ function compileScript(code) {
                                 case "switch":
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
-                                case "case":
+                                case "case": case "caseif":
                                     newScript += `jp ${depthStackItem[3]}\n`;
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
@@ -653,6 +724,8 @@ function compileValue(code, name) {
             return `proc list ${name}\n`;
         case "Process.this":
             return `proc this ${name}\n`;
+        case "Rotur.acc":
+            return `const roturacc ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;

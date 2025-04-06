@@ -1,1 +1,12 @@
-Win.setKey(Win.create(), "wow", "crazy")
+
+switch stage
+    case 0
+    Process.store("stage",1)
+    sendDefPacket("handshake")
+    end
+    case 1
+    Process.store("stage",2)
+    sendDefPacket("setid")
+    end
+end
+print "hi"

@@ -378,6 +378,41 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}ftl getcommand ${name} ${argKeys[0]}\n`;
             break;
+        
+        case "WS.connect":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws connect ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.send":
+            if (args.length == 2)
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}ws send ${argKeys[0]} ${argKeys[1]}\n`;
+            break;
+        case "WS.pop":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws pop ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.isConnected":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws isconnected ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.connected":
+            return `ws connected ${name}\n`;
+        case "WS.hasNew":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws hasNew ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.getAll":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws getAll ${name} ${argKeys[0]}\n`;
+            break;
+        case "WS.disconnect":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}ws disconnect ${argKeys[0]}\n`;
+            break;
+        case "WS.disconnectAll":
+            if (args.length == 1)
+                return `ws disconnectall\n`;
+            break;
     }
 }
 
