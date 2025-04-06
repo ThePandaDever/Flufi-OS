@@ -6,9 +6,9 @@
       "version": {
         "editorType": "Scratch",
         "versionNumber": 3,
-      },
+      }
     },
-    "listener": "handshake_cfg",
+    "listener": "handshake_cfg"
   },
   "setid": {
     "cmd": "setid",
