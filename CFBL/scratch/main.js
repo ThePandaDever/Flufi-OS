@@ -725,7 +725,7 @@ function compileValue(code, name) {
         case "Process.this":
             return `proc this ${name}\n`;
         case "Rotur.acc":
-            return `const roturacc ${name}\n`;
+            return `rotur acc ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;
