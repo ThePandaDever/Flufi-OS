@@ -497,6 +497,10 @@ function compileScript(code) {
                                     newScript += `jp ${depthStackItem[3]}\n`;
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
+                                case "for":
+                                    const forTemp1 = randomStr();
+                                    newScript += `add ${depthStackItem[2]} ${depthStackItem[2]} 1\nsml ${forTemp1} ${depthStackItem[2]} ${depthStackItem[3]}\nji ${depthStackItem[1]} ${forTemp1}\n`;
+                                    break;
                             }
                         }
                     } else {
@@ -536,6 +540,15 @@ function compileScript(code) {
                     const foreverLbl = randomStr();
                     depthStack.push(["forever",foreverLbl]);
                     newScript += `quitTo ${foreverLbl}\n: ${foreverLbl}\n`;
+                    break;
+                case "for":
+                    depth ++;
+                    const forLbl = randomStr();
+                    const forVar = "var_" + line[1];
+                    const forIter = line.slice(2).join(" ");
+                    const forIterRef = compileValueKey(forIter);
+                    depthStack.push(["for",forLbl,forVar,forIterRef]);
+                    newScript += `${compileValue(forIter, forIterRef)}set num ${forVar} 0\n: ${forLbl}\n`;
                     break;
                 case "switch":
                     depth ++;
@@ -708,23 +721,23 @@ function compileValue(code, name) {
         case "Time.fps":
             return `const fps ${name}\n`;
         case "Screen.width":
-            return `const screenwidth ${name}\n`;
+            return `const screen_width ${name}\n`;
         case "Screen.height":
-            return `const screenheight ${name}\n`;
+            return `const screen_height ${name}\n`;
         case "Input.mouseX":
-            return `const mousex ${name}\n`;
+            return `input mouse_x ${name}\n`;
         case "Input.mouseY":
-            return `const mousey ${name}\n`;
+            return `input mouse_y ${name}\n`;
         case "Input.mouseLeftDown":
-            return `const mouseld ${name}\n`;
+            return `input mouse_l_d ${name}\n`;
         case "Input.mouseLeftClick":
-            return `const mouselc ${name}\n`;
+            return `input mouse_l_c ${name}\n`;
         case "Win.selected":
-            return `const winselected ${name}\n`;
+            return `win selected ${name}\n`;
         case "Win.focused":
-            return `const winfocused ${name}\n`;
+            return `win focused ${name}\n`;
         case "Win.buttons.default":
-            return `const winbuttonsdefault ${name}\n`;
+            return `win buttonsdefault ${name}\n`;
         case "Process.list":
             return `proc list ${name}\n`;
         case "Process.this":
@@ -735,6 +748,9 @@ function compileValue(code, name) {
     if (code[0] == "#") {
         const ref = randomStr();
         return `set str ${ref} ${code.slice(1)}\nproc get ${ref} ${name}\n`;
+    }
+    if (code[0] == "$") {
+        return `const ${code.slice(1)} ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;

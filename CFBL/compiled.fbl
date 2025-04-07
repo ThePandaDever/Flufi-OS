@@ -1,1 +1,14 @@
-: N06abMN3fb
+set num 5z5E08I8lo 10
+set num var_i 0
+: XuLW3nLstP
+add var_i var_i 1
+sml bKi6iP8M28 var_i 5z5E08I8lo
+ji XuLW3nLstP bKi6iP8M28
+set num 58R4pB0pz0 0
+dupe var_i 58R4pB0pz0
+: JFdsbRadpH
+set num QPKjqq6Oq2 1
+add var_i var_i QPKjqq6Oq2
+set num wfdbxHkFTK 10
+sml zmKwHGsNXS var_i wfdbxHkFTK
+ji JFdsbRadpH zmKwHGsNXS

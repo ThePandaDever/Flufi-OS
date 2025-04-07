@@ -497,6 +497,10 @@ function compileScript(code) {
                                     newScript += `jp ${depthStackItem[3]}\n`;
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
+                                case "for":
+                                    const forTemp1 = randomStr();
+                                    newScript += `add ${depthStackItem[2]} ${depthStackItem[2]} 1\nsml ${forTemp1} ${depthStackItem[2]} ${depthStackItem[3]}\nji ${depthStackItem[1]} ${forTemp1}\n`;
+                                    break;
                             }
                         }
                     } else {
@@ -540,8 +544,11 @@ function compileScript(code) {
                 case "for":
                     depth ++;
                     const forLbl = randomStr();
-                    depthStack.push(["for",forLbl]);
-                    newScript += `: ${forLbl}\n`;
+                    const forVar = "var_" + line[1];
+                    const forIter = line.slice(2).join(" ");
+                    const forIterRef = compileValueKey(forIter);
+                    depthStack.push(["for",forLbl,forVar,forIterRef]);
+                    newScript += `${compileValue(forIter, forIterRef)}set num ${forVar} 0\n: ${forLbl}\n`;
                     break;
                 case "switch":
                     depth ++;
