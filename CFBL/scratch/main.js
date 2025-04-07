@@ -269,11 +269,11 @@ function compileFunction(tokens, name, args, argKeys) {
 
         case "Process.store":
             if (args.length == 2)
-                return `${compileValue("\"var_\" + (" + args[0] + ")", argKeys[0])}${compileValue(args[1], argKeys[1])}proc store ${argKeys[0]} ${argKeys[1]}\n`;
+                return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}proc store ${argKeys[0]} ${argKeys[1]}\n`;
             break;
         case "Process.get":
             if (args.length == 1)
-                return `${compileValue("\"var_\" + (" + args[0] + ")", argKeys[0])}proc get ${argKeys[0]} ${name}\n`;
+                return `${compileValue(args[0], argKeys[0])}proc get ${argKeys[0]} ${name}\n`;
             break;
         case "Process.launch":
             if (args.length == 1)
@@ -442,7 +442,12 @@ function compileScript(code) {
                     newScript += `${compileValue(key,keyKey)}${compileValue(value,valueKey)}obj set var_${objKeys[0]} ${keyKey} ${valueKey}\n`;
                 } else {
                     const key = compileValueKey(line.slice(2).join(" "));
-                    newScript += `${compileValue(line.slice(2).join(" "), key)}dupe var_${line[0]} ${key}\n`;
+                    if (line[0][0] == "#") {
+                        const ref = randomStr();
+                        newScript += `${compileValue(line.slice(2).join(" "), key)}set str ${ref} ${line[0].slice(1)}\nproc store ${ref} ${key}\n`;
+                    } else {
+                        newScript += `${compileValue(line.slice(2).join(" "), key)}dupe var_${line[0]} ${key}\n`;
+                    }
                 }
                 continue;
             }
@@ -726,6 +731,10 @@ function compileValue(code, name) {
             return `proc this ${name}\n`;
         case "Rotur.acc":
             return `rotur acc ${name}\n`;
+    }
+    if (code[0] == "#") {
+        const ref = randomStr();
+        return `set str ${ref} ${code.slice(1)}\nproc get ${ref} ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;
