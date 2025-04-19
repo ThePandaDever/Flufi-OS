@@ -14,7 +14,7 @@
     "cmd": "setid",
     "listener": "username_cfg"
   },
-  "list": {
+  "link": {
     "cmd": "link",
     "val":[
       "roturTW"
