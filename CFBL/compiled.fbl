@@ -1,15 +1,19 @@
-set obj ZfLqgnnA3A null
-proc list 9UfIVSSLZh
-set num haADmoYvDK 0
-len rqnmvN64gm 9UfIVSSLZh
-: 0WsGrzcO81
-obj get 9UfIVSSLZh var_process_find_proc haADmoYvDK
-proc getData var_process_find_proc KnWpQraGy9
-set str Kgs6hLjCHl path
-obj get KnWpQraGy9 lSLPxzmqJA Kgs6hLjCHl
-eql AearwSgans lSLPxzmqJA CbpfT8kKSI
-jn AWXjiMMoNa AearwSgans
-dupe var_out var_process_find_proc
-: AWXjiMMoNa
-jsi 0WsGrzcO81 haADmoYvDK rqnmvN64gm
-print ZfLqgnnA3A
+set str ahUUScefxE hi
+jne J1WYRqBDNt ahUUScefxE var_value
+set str MVuCfLf9Xw hi
+print MVuCfLf9Xw
+jp yr57sA703b
+: J1WYRqBDNt
+set bool var_true true
+jn NsEWlro4RJ var_true
+set str 2rQ6sXylrQ cringe
+print 2rQ6sXylrQ
+jp yr57sA703b
+: NsEWlro4RJ
+set str zwMwyNj061 :(
+jne eojKQqswfa zwMwyNj061 var_value
+set str he9OG1KvAV grah
+print he9OG1KvAV
+jp yr57sA703b
+: eojKQqswfa
+: yr57sA703b

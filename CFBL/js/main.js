@@ -287,16 +287,17 @@ function compileFunction(tokens, name, args, argKeys) {
         case "Process.kill":
             return `${compileValue(args[0], argKeys[0])}proc kill ${argKeys[0]}\n`;
         case "Process.find":
-            return compileScript(`
-            out = null
+            return compileValue(args[0], argKeys[0]) + compileScript(`
+            out = "null"
             foreach process_find_proc Process.list
-                if Process.getData(process_find_proc)["path"] == in
+                process_find_proc_path = Process.getData(process_find_proc)["path"]
+                if process_find_proc_path == in
                     out = process_find_proc
                 end
             end
-            `).replace("var_out",name).replace("var_in",argKeys[0]);
+            `).replaceAll("var_out",name).replaceAll("var_in",argKeys[0]);
         case "Process.call":
-            return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}proc call ${argKeys[0]} ${argKeys[1]} ${argKeys[2]}\n`;
+            return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}proc call ${argKeys[0]} ${argKeys[1]} ${name ?? ""} ${argKeys[2] ?? ""}\n`;
         
         case "fs.get":
             if (args.length == 1)
@@ -432,6 +433,10 @@ function compileFunction(tokens, name, args, argKeys) {
             break;
         
         default:
+            if (apis[tokens[0]]) {
+                console.log(apis);
+                return compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"))`, name);
+            }
             break
     }
 }
@@ -481,10 +486,9 @@ function compileScript(code) {
                     depth ++;
                     break;
                 case "api":
-                    funcArgs = line.slice(2);
-                    saveScript = newScript;
-                    newScript = "";
-                    depthStack.push(["api",line[1]]);
+                    funcArgs = line.slice(3);
+                    newScript += `~ API_${line[2]}\n`;
+                    depthStack.push(["api",line[1], line[2]]);
                     break;
                 case "end":
                     depth --;
@@ -527,8 +531,8 @@ function compileScript(code) {
                                     newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n`;
                                     break;
                                 case "api":
-                                    apis[depthStackItem[1]] = newScript;
-                                    newScript = saveScript;
+                                    newScript += "~\n";
+                                    apis[depthStackItem[2]] = [depthStackItem[1]];
                                     break;
                             }
                         }
@@ -679,6 +683,7 @@ function compileScript(code) {
 }
 
 function compileValue(code, name) {
+    if (!code) return "";
     const pipe = splitCharedCommand(code, " ");
     if (pipe.length > 2 && pipe[pipe.length-2] == "|>") {
         const op = pipe.pop();
@@ -817,6 +822,7 @@ function compileValueKey(code) {
     return funcArgs.indexOf(code) >= 0 ? `arg${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
 }
 
+const { trace } = require('console');
 const fs = require('fs');
 
 const c = fs.readFileSync('raw.cfbl', 'utf8');

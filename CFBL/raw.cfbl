@@ -1,1 +1,11 @@
-print Process.find("sys/apps/roturHandler.cfbl")
+switch value
+  case "hi"
+    print "hi"
+  end
+  caseif true
+    print "cringe" 
+  end
+  case ":("
+    print "grah"
+  end
+end
