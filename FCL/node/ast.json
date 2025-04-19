@@ -1,0 +1,121 @@
+{
+    "code": "void main() {\n    print(\"hi\");\n}\n\nint() {\n    print(\"hi\");\n}\n\nnum test(str hi, num skibidi = 5) {\n    print(hi);\n    return hi;\n}",
+    "kind": "segment",
+    "elements": [
+        {
+            "code": "void main() {\n    print(\"hi\");\n}",
+            "kind": "function",
+            "params": [],
+            "key": "void main",
+            "content": {
+                "code": "print(\"hi\");",
+                "kind": "segment",
+                "elements": [
+                    {
+                        "code": "print(\"hi\")",
+                        "kind": "execution",
+                        "args": [
+                            {
+                                "code": "\"hi\"",
+                                "kind": "string",
+                                "value": "hi"
+                            }
+                        ],
+                        "key": {
+                            "code": "print",
+                            "kind": "variable",
+                            "key": "print"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "code": "int() {\n    print(\"hi\");\n}",
+            "kind": "function",
+            "params": [],
+            "key": "INL§0.926840005693786",
+            "content": {
+                "code": "print(\"hi\");",
+                "kind": "segment",
+                "elements": [
+                    {
+                        "code": "print(\"hi\")",
+                        "kind": "execution",
+                        "args": [
+                            {
+                                "code": "\"hi\"",
+                                "kind": "string",
+                                "value": "hi"
+                            }
+                        ],
+                        "key": {
+                            "code": "print",
+                            "kind": "variable",
+                            "key": "print"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "code": "num test(str hi, num skibidi = 5) {\n    print(hi);\n    return hi;\n}",
+            "kind": "function",
+            "params": [
+                {
+                    "code": "str hi",
+                    "type": "str",
+                    "default": {
+                        "code": "undefined",
+                        "kind": "variable",
+                        "key": "undefined"
+                    },
+                    "name": "hi"
+                },
+                {
+                    "code": "num skibidi = 5",
+                    "type": "num",
+                    "default": {
+                        "code": "5",
+                        "kind": "number",
+                        "value": 5
+                    },
+                    "name": "skibidi"
+                }
+            ],
+            "key": "num test",
+            "content": {
+                "code": "print(hi);\n    return hi;",
+                "kind": "segment",
+                "elements": [
+                    {
+                        "code": "print(hi)",
+                        "kind": "execution",
+                        "args": [
+                            {
+                                "code": "hi",
+                                "kind": "variable",
+                                "key": "hi"
+                            }
+                        ],
+                        "key": {
+                            "code": "print",
+                            "kind": "variable",
+                            "key": "print"
+                        }
+                    },
+                    {
+                        "code": "return hi",
+                        "kind": "statement",
+                        "key": "return",
+                        "value": {
+                            "code": "hi",
+                            "kind": "variable",
+                            "key": "hi"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -120,6 +120,7 @@ other commands:
 */
 
 let funcArgs = [];
+let apis = {};
 
 function compileFunction(tokens, name, args, argKeys) {
     switch (tokens[0]) {
@@ -285,6 +286,17 @@ function compileFunction(tokens, name, args, argKeys) {
             return `${compileValue(args[0], argKeys[0])}proc getData ${argKeys[0]} ${name}\n`;
         case "Process.kill":
             return `${compileValue(args[0], argKeys[0])}proc kill ${argKeys[0]}\n`;
+        case "Process.find":
+            return compileScript(`
+            out = null
+            foreach process_find_proc Process.list
+                if Process.getData(process_find_proc)["path"] == in
+                    out = process_find_proc
+                end
+            end
+            `).replace("var_out",name).replace("var_in",argKeys[0]);
+        case "Process.call":
+            return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}proc call ${argKeys[0]} ${argKeys[1]} ${argKeys[2]}\n`;
         
         case "fs.get":
             if (args.length == 1)
@@ -418,11 +430,15 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}rotur setacc ${argKeys[0]}\n`;
             break;
+        
+        default:
+            break
     }
 }
 
 function compileScript(code) {
     let newScript = "";
+    let saveScript = "";
 
     const lines = code.split(/[\n;]+/);
 
@@ -446,7 +462,8 @@ function compileScript(code) {
                         const ref = randomStr();
                         newScript += `${compileValue(line.slice(2).join(" "), key)}set str ${ref} ${line[0].slice(1)}\nproc store ${ref} ${key}\n`;
                     } else {
-                        newScript += `${compileValue(line.slice(2).join(" "), key)}dupe var_${line[0]} ${key}\n`;
+                        assignmentval = compileValue(line.slice(2).join(" "), `var_${line[0]}`);
+                        newScript += assignmentval ? assignmentval : `dupe var_${line[0]} var_${line[2]}\n`;
                     }
                 }
                 continue;
@@ -462,6 +479,12 @@ function compileScript(code) {
                     funcArgs = line.slice(2);
                     newScript += `~ ${line[1]}\n`;
                     depth ++;
+                    break;
+                case "api":
+                    funcArgs = line.slice(2);
+                    saveScript = newScript;
+                    newScript = "";
+                    depthStack.push(["api",line[1]]);
                     break;
                 case "end":
                     depth --;
@@ -498,8 +521,14 @@ function compileScript(code) {
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
                                 case "for":
-                                    const forTemp1 = randomStr();
-                                    newScript += `add ${depthStackItem[2]} ${depthStackItem[2]} 1\nsml ${forTemp1} ${depthStackItem[2]} ${depthStackItem[3]}\nji ${depthStackItem[1]} ${forTemp1}\n`;
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n`;
+                                    break;
+                                case "foreach":
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n`;
+                                    break;
+                                case "api":
+                                    apis[depthStackItem[1]] = newScript;
+                                    newScript = saveScript;
                                     break;
                             }
                         }
@@ -549,6 +578,29 @@ function compileScript(code) {
                     const forIterRef = compileValueKey(forIter);
                     depthStack.push(["for",forLbl,forVar,forIterRef]);
                     newScript += `${compileValue(forIter, forIterRef)}set num ${forVar} 0\n: ${forLbl}\n`;
+                    break;
+                case "foreach":
+                    depth ++;
+                    if (line.length == 4) {
+                        const foreachLbl = randomStr();
+                        const foreachVar = "var_" + line[1];
+                        const foreachVarItem = "var_" + line[2];
+                        const foreachIter = line.slice(3).join(" ");
+                        const foreachIterRef = compileValueKey(foreachIter);
+                        const foreachLenRef = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
+                    }
+                    if (line.length == 3) {
+                        const foreachLbl = randomStr();
+                        const foreachVar = randomStr();
+                        const foreachVarItem = "var_" + line[1];
+                        const foreachIter = line.slice(2).join(" ");
+                        const foreachIterRef = compileValueKey(foreachIter);
+                        const foreachLenRef = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
+                    }
                     break;
                 case "switch":
                     depth ++;
@@ -721,23 +773,23 @@ function compileValue(code, name) {
         case "Time.fps":
             return `const fps ${name}\n`;
         case "Screen.width":
-            return `const screenwidth ${name}\n`;
+            return `const screen_width ${name}\n`;
         case "Screen.height":
-            return `const screenheight ${name}\n`;
+            return `const screen_height ${name}\n`;
         case "Input.mouseX":
-            return `const mousex ${name}\n`;
+            return `input mouse_x ${name}\n`;
         case "Input.mouseY":
-            return `const mousey ${name}\n`;
+            return `input mouse_y ${name}\n`;
         case "Input.mouseLeftDown":
-            return `const mouseld ${name}\n`;
+            return `input mouse_l_d ${name}\n`;
         case "Input.mouseLeftClick":
-            return `const mouselc ${name}\n`;
+            return `input mouse_l_c ${name}\n`;
         case "Win.selected":
-            return `const winselected ${name}\n`;
+            return `win selected ${name}\n`;
         case "Win.focused":
-            return `const winfocused ${name}\n`;
+            return `win focused ${name}\n`;
         case "Win.buttons.default":
-            return `const winbuttonsdefault ${name}\n`;
+            return `win buttonsdefault ${name}\n`;
         case "Process.list":
             return `proc list ${name}\n`;
         case "Process.this":
@@ -748,6 +800,9 @@ function compileValue(code, name) {
     if (code[0] == "#") {
         const ref = randomStr();
         return `set str ${ref} ${code.slice(1)}\nproc get ${ref} ${name}\n`;
+    }
+    if (code[0] == "$") {
+        return `const ${code.slice(1)} ${name}\n`;
     }
     if (isValidVariable(code)) {
         return ``;
@@ -764,6 +819,9 @@ function compileValueKey(code) {
 
 const fs = require('fs');
 
-const compiled = compileScript(fs.readFileSync('raw.cfbl', 'utf8'));
+const c = fs.readFileSync('raw.cfbl', 'utf8');
+console.time()
+const compiled = compileScript(c);
+console.timeEnd();
 console.log(compiled);
 fs.writeFileSync('compiled.fbl', compiled, 'utf8');

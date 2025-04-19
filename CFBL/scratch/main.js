@@ -446,7 +446,7 @@ function compileScript(code) {
                         const ref = randomStr();
                         newScript += `${compileValue(line.slice(2).join(" "), key)}set str ${ref} ${line[0].slice(1)}\nproc store ${ref} ${key}\n`;
                     } else {
-                        newScript += `${compileValue(line.slice(2).join(" "), key)}dupe var_${line[0]} ${key}\n`;
+                        newScript += `${compileValue(line.slice(2).join(" "), `var_${line[0]}`)}`;
                     }
                 }
                 continue;
@@ -498,8 +498,10 @@ function compileScript(code) {
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
                                 case "for":
-                                    const forTemp1 = randomStr();
-                                    newScript += `add ${depthStackItem[2]} ${depthStackItem[2]} 1\nsml ${forTemp1} ${depthStackItem[2]} ${depthStackItem[3]}\nji ${depthStackItem[1]} ${forTemp1}\n`;
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n`;
+                                    break;
+                                case "foreach":
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n`;
                                     break;
                             }
                         }
@@ -549,6 +551,29 @@ function compileScript(code) {
                     const forIterRef = compileValueKey(forIter);
                     depthStack.push(["for",forLbl,forVar,forIterRef]);
                     newScript += `${compileValue(forIter, forIterRef)}set num ${forVar} 0\n: ${forLbl}\n`;
+                    break;
+                case "foreach":
+                    depth ++;
+                    if (line.length == 4) {
+                        const foreachLbl = randomStr();
+                        const foreachVar = "var_" + line[1];
+                        const foreachVarItem = "var_" + line[2];
+                        const foreachIter = line.slice(3).join(" ");
+                        const foreachIterRef = compileValueKey(foreachIter);
+                        const foreachLenRef = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
+                    }
+                    if (line.length == 3) {
+                        const foreachLbl = randomStr();
+                        const foreachVar = randomStr();
+                        const foreachVarItem = "var_" + line[1];
+                        const foreachIter = line.slice(2).join(" ");
+                        const foreachIterRef = compileValueKey(foreachIter);
+                        const foreachLenRef = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
+                    }
                     break;
                 case "switch":
                     depth ++;

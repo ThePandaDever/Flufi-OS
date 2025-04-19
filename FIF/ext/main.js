@@ -105,19 +105,52 @@ function split(text, type, useendbracket) {
     return tokens;
 }
 
-function compileFIF(code) {
+function is(text, type) {
+    const first = text[0],
+        last = text[text.length - 1];
+    
+    const pairs = {
+        "bracket": ["(",")"],
+        "curly":["{","}"],
+        "square":["[","]"],
+        "arrow":["<",">"],
+        "single-q":["'","'"],
+        "double-q":['"','"'],
+        "back-q":["`","`"]
+    }
+
+    const pair = pairs[type];
+    return pair ? (first === pair[0] && last === pair[1]) : false;
+}
+
+function getDecimalPlace(num) {
+    const str = num.toString();
+    const decimalPart = str.split(".")[1];
+    const decimalDigits = decimalPart ? decimalPart.length : 0;
+    return 10 ** decimalDigits;
+}
+
+function parseFIF(code) {
     const tokens = split(code, [" ", "\n"]).filter(t => ![" ", "\n"].includes(t));
     const outSplit = [];
     const params = {};
+    const flags = {};
     let isNeeded = false;
     
     const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
-    const compileArg = (arg) => {const isNum = isNumeric(arg); if (!isNum) isNeeded = true; return isNum ? arg : ["arg",arg]}
+    const parseArg = (arg) => {const isNum = isNumeric(arg); if (!isNum) isNeeded = true; return isNum ? arg : arg[0] == "?" ? ["flag",arg.slice(1)] : ["arg",arg]}
 
-    const shiftArg = () => compileArg(tokens.shift());
+    const shiftArg = () => parseArg(tokens.shift());
 
     while (tokens.length > 0) {
         let token = tokens.shift();
+        
+        if (tokens[0] === "=") {
+            const name = token;
+            tokens.shift();
+            outSplit.push(["assignment",name,shiftArg()]);
+            continue;
+        }
 
         switch (token) {
             case "#": {
@@ -131,8 +164,64 @@ function compileFIF(code) {
                             param["default"] = tokens.shift();
                         }
                         params[name] = param;
+                        break;
+                    }
+                    case "flag": {
+                        const name = tokens.shift();
+                        const flag = {"name":name};
+                        if (tokens[0] === "default") {
+                            tokens.shift();
+                            flag["default"] = Boolean(tokens.shift());
+                        }
+                        flag["default"] ??= false;
+                        flags[name] = flag;
+                        break;
                     }
                 }
+                continue;
+            }
+
+            case "if": {
+                isNeeded = true;
+                const condition = shiftArg();
+                const stackToken = tokens.shift();
+                let stack;
+                if (is(stackToken,"curly"))
+                    stack = parseFIF(stackToken.slice(1,-1));
+                else
+                    throw Error("unknown content for if statement");
+
+                outSplit.push(["if", condition, stack]);
+                continue;
+            }
+            case "else": {
+                isNeeded = true;
+                const stackToken = tokens.shift();
+                let stack;
+                if (is(stackToken,"curly"))
+                    stack = parseFIF(stackToken.slice(1,-1));
+                else
+                    throw Error("unknown content for else");
+
+                outSplit.push(["else", stack]);
+                continue;
+            }
+            case "every": {
+                isNeeded = true;
+                const variable = tokens.shift();
+                const start = shiftArg();
+                const end = shiftArg();
+                let step = 1;
+                if (!is(tokens[0], "curly"))
+                    step = shiftArg();
+                const stackToken = tokens.shift();
+                let stack;
+                if (is(stackToken,"curly"))
+                    stack = parseFIF(stackToken.slice(1,-1));
+                else
+                    throw Error("unknown content for every");
+
+                outSplit.push(["every", variable, start, end, step, stack]);
                 continue;
             }
             
@@ -169,12 +258,13 @@ function compileFIF(code) {
         throw Error("unexpected token '" + token + "'");
     }
     let out = outSplit.map(o => o.map(a => Array.isArray(a) ? a[0] + ":" + a[1] : a).join(" ")).join(" ");
-    return {"icn":out.trim(),"split":outSplit,"params":params,"isNeeded":isNeeded};
+    return {"icn":out.trim(),"split":outSplit,"params":params,"flags":flags,"isNeeded":isNeeded};
 }
 
-function runFIF(compiled, args) {
+function compileFIF(compiled, args, flags) {
     args ??= {};
-    return compiled["split"].map(c => c[0] + " " + c.slice(1).map(a => {
+    flags ??= [];
+    const compileArg = (a) => {
         if (a[0] == "arg") {
             const param = compiled["params"][a[1]];
             const arg = args[a[1]];
@@ -185,11 +275,47 @@ function runFIF(compiled, args) {
                     throw Error("arg '" + a[1] + "' not given");
                 }
             } else {
-                return "0";
+                if (args[a[1]])
+                    return args[a[1]];
+                return 0;
             }
         }
-        return a.toString();
-    }).join(" ").trim()).join(" ").trim();
+        if (a[0] == "flag") {
+            return (flags ?? []).includes(a[1]);
+        }
+        return a;
+    }
+    let stackValue = false;
+    const compileCommand = (c) => {
+        switch (c[0]) {
+            case "if":
+                stackValue = compileArg(c[1]);
+                if (stackValue)
+                    return compileFIF(c[2], args, flags) + " ";
+                else
+                    return "";
+            case "else":
+                if (!stackValue)
+                    return compileFIF(c[1], args, flags) + " ";
+                else
+                    return "";
+            case "every":
+                args[c[1]] = Number(compileArg(c[2]));
+                let outEvery = "";
+                const step = Number(compileArg(c[4]));
+                const div = getDecimalPlace(step);
+                for (; 0 <= compileArg(c[3]) - args[c[1]];) {
+                    outEvery += compileFIF(c[5], args, flags) + " ";
+                    args[c[1]] = Math.round((Number(args[c[1]]) + step) * div) / div;
+                }
+                return outEvery;
+            case "assignment":
+                args[c[1]] = compileArg(c[2]);
+                return "";
+        }
+        return c[0] + " " + c.slice(1).map(a => compileArg(a).toString()).join(" ").trim() + " ";
+    }
+    return compiled["split"].map(c => compileCommand(c)).join("").trim();
 }
 
 (function(Scratch) {
@@ -203,31 +329,34 @@ function runFIF(compiled, args) {
                 color1: "#bb57d4",
                 blocks: [
                     {
-                        opcode: 'compile',
+                        opcode: 'parse',
                         blockType: Scratch.BlockType.REPORTER,
-                        text: 'Compile [text]',
+                        text: 'Parse [text]',
                         arguments: {
                             text: { type: Scratch.ArgumentType.STRING, defaultValue: '# param hi square 0 0 10 10' }
                         }
                     },
                     {
-                        opcode: 'run',
+                        opcode: 'compile',
                         blockType: Scratch.BlockType.REPORTER,
-                        text: 'Run [compiled] with [args]',
+                        text: 'Compile [parsed] with [args] [flags]',
                         arguments: {
-                            compiled: { type: Scratch.ArgumentType.STRING, defaultValue: '<compiled>' },
+                            parsed: { type: Scratch.ArgumentType.STRING, defaultValue: '<parsed>' },
                             args: { type: Scratch.ArgumentType.STRING, defaultValue: '<js obj of args>' },
+                            flags: { type: Scratch.ArgumentType.STRING, defaultValue: '<js obj of flags>' },
                         }
                     },
                 ]
             };
         }
 
-        compile({ text }) {
-            return compileFIF(text);
+        parse({ text }) {
+            return parseFIF(text);
         }
-        run({ compiled, args }) {
-            return runFIF(compiled, args);
+        compile({ parsed, args, flags }) {
+            if (args === "") args = null;
+            if (flags === "") flags = null;
+            return compileFIF(parsed, args, flags);
         }
     }
 

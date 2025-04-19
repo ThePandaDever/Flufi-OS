@@ -1,14 +1,15 @@
-set num 5z5E08I8lo 10
-set num var_i 0
-: XuLW3nLstP
-add var_i var_i 1
-sml bKi6iP8M28 var_i 5z5E08I8lo
-ji XuLW3nLstP bKi6iP8M28
-set num 58R4pB0pz0 0
-dupe var_i 58R4pB0pz0
-: JFdsbRadpH
-set num QPKjqq6Oq2 1
-add var_i var_i QPKjqq6Oq2
-set num wfdbxHkFTK 10
-sml zmKwHGsNXS var_i wfdbxHkFTK
-ji JFdsbRadpH zmKwHGsNXS
+set obj ZfLqgnnA3A null
+proc list 9UfIVSSLZh
+set num haADmoYvDK 0
+len rqnmvN64gm 9UfIVSSLZh
+: 0WsGrzcO81
+obj get 9UfIVSSLZh var_process_find_proc haADmoYvDK
+proc getData var_process_find_proc KnWpQraGy9
+set str Kgs6hLjCHl path
+obj get KnWpQraGy9 lSLPxzmqJA Kgs6hLjCHl
+eql AearwSgans lSLPxzmqJA CbpfT8kKSI
+jn AWXjiMMoNa AearwSgans
+dupe var_out var_process_find_proc
+: AWXjiMMoNa
+jsi 0WsGrzcO81 haADmoYvDK rqnmvN64gm
+print ZfLqgnnA3A
