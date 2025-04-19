@@ -434,8 +434,7 @@ function compileFunction(tokens, name, args, argKeys) {
         
         default:
             if (apis[tokens[0]]) {
-                console.log(apis);
-                return compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"))`, name);
+                return compileScript(["API_CALL_DATA = {}", ...(argKeys.map((k,i) => `API_CALL_DATA[${i}] = ${args[i]}`))].join("\n")) + compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"), API_CALL_DATA)`, name);
             }
             break
     }
@@ -634,7 +633,7 @@ function compileScript(code) {
                         const caseLbl = randomStr();
                         const caseValue = line.slice(1).join(" ");
                         const caseValueKey = compileValueKey(caseValue);
-                        depthStack.push(["case",caseLbl,caseValue,caseifLatestDepth[1]]);
+                        depthStack.push(["caseifc",caseLbl,caseValue,caseifLatestDepth[1]]);
                         newScript += `${compileValue(caseValue, caseValueKey)}jn ${caseLbl} ${caseValueKey}\n`;
                     } else {
                         throw Error("case outside switch");

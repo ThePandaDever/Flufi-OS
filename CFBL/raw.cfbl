@@ -1,11 +1,5 @@
-switch value
-  case "hi"
-    print "hi"
-  end
-  caseif true
-    print "cringe" 
-  end
-  case ":("
-    print "grah"
-  end
+api test.cfbl Rotur.send message target
+  sendpmsg(message, target)
 end
+
+Rotur.send({"hi":"wow"},"flf-server")
