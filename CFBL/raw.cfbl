@@ -1,5 +1,2 @@
-api test.cfbl Rotur.send message target
-  sendpmsg(message, target)
-end
 
-Rotur.send({"hi":"wow"},"flf-server")
+print {"rrynujh":treeeeeeeeeeeeeees}

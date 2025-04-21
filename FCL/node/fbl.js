@@ -257,16 +257,17 @@ class Context {
         });
         this.operations = {
             "add": (target,aref,bref,a,b) => {
+                console.log(a.get_type(),b.get_type());
                 if (a.get_type() === "num" && b.get_type() === "num")
-                    return `add ${target} ${aref} ${bref}`;
-                return `add ${target} emptystring ${aref} space ${bref}`;
+                    return [`add ${target} ${aref} ${bref}`,"num"];
+                return [`add ${target} emptystring ${aref} space ${bref}`,"str"];
             },
-            "join": (target,aref,bref) => `add ${target} emptystring ${aref} ${bref}`,
-            "sub": (target,aref,bref) => `sub ${target} ${aref} ${bref}`,
-            "mul": (target,aref,bref) => `mul ${target} ${aref} ${bref}`,
-            "div": (target,aref,bref) => `div ${target} ${aref} ${bref}`,
-            "pow": (target,aref,bref) => `pow ${target} ${aref} ${bref}`,
-            "mod": (target,aref,bref) => `mod ${target} ${aref} ${bref}`
+            "join": (target,aref,bref) => [`add ${target} emptystring ${aref} ${bref}`,"str"],
+            "sub": (target,aref,bref) => [`sub ${target} ${aref} ${bref}`,"str"],
+            "mul": (target,aref,bref) => [`mul ${target} ${aref} ${bref}`,"str"],
+            "div": (target,aref,bref) => [`div ${target} ${aref} ${bref}`,"str"],
+            "pow": (target,aref,bref) => [`pow ${target} ${aref} ${bref}`,"str"],
+            "mod": (target,aref,bref) => [`mod ${target} ${aref} ${bref}`,"str"]
         }
 
         if (!isParse) {
@@ -663,7 +664,7 @@ class Node {
                 this.b.compile_main(context, b);
                 target ??= "NOPLACE:" + randomStr();
                 if (context.operations[this.type])
-                    context.text += context.operations[this.type](target,a,b,this.a,this.b) + "\n";
+                    context.text += context.operations[this.type](target,a,b,this.a,this.b)[0] + "\n";
                 else
                     throw Error("couldnt compile operation of type " + this.type);
             }
@@ -798,7 +799,7 @@ class DefinedFunc extends Func {
 
 code = `
 void main() {
-    print(5 + 3 ++ -3 + "sad");
+    print("5" + 3 + -3 + "sad");
 }
 `;
 

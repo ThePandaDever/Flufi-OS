@@ -434,7 +434,7 @@ function compileFunction(tokens, name, args, argKeys) {
         
         default:
             if (apis[tokens[0]]) {
-                return compileScript(["API_CALL_DATA = {}", ...(argKeys.map((k,i) => `API_CALL_DATA[${i}] = ${args[i]}`))].join("\n")) + compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"), API_CALL_DATA)`, name);
+                return compileScript(["API_CALL_DATA = {}", ...(argKeys.map((k,i) => `API_CALL_DATA["arg${i}"] = ${args[i]}`))].join("\n")) + compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"), API_CALL_DATA)`, name);
             }
             break
     }
@@ -523,6 +523,7 @@ function compileScript(code) {
                                     newScript += `jp ${depthStackItem[3]}\n`;
                                     newScript += `: ${depthStackItem[1]}\n`;
                                     break;
+                                case "default": break;
                                 case "for":
                                     newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n`;
                                     break;
@@ -538,6 +539,14 @@ function compileScript(code) {
                     } else {
                         newScript += "~\n";
                         funcArgs = [];
+                    }
+                    break;
+                case "else":
+                    const depthStackItem = depthStack.pop();
+                    if (depthStackItem && depthStackItem[0] == "if") {
+                        const elseLbl = randomStr();
+                        newScript += `jp ${elseLbl}\n: ${depthStackItem[1]}\n`;
+                        depthStack.push(["if",elseLbl])
                     }
                     break;
                 case "print":
@@ -633,10 +642,19 @@ function compileScript(code) {
                         const caseLbl = randomStr();
                         const caseValue = line.slice(1).join(" ");
                         const caseValueKey = compileValueKey(caseValue);
-                        depthStack.push(["caseifc",caseLbl,caseValue,caseifLatestDepth[1]]);
+                        depthStack.push(["caseif",caseLbl,caseValue,caseifLatestDepth[1]]);
                         newScript += `${compileValue(caseValue, caseValueKey)}jn ${caseLbl} ${caseValueKey}\n`;
                     } else {
                         throw Error("case outside switch");
+                    }
+                    break;
+                case "default":
+                    depth ++;
+                    const defaultLatestDepth = depthStack[depthStack.length - 1];
+                    if ((defaultLatestDepth ?? [])[0] == "switch") {
+                        depthStack.push(["default"]);
+                    } else {
+                        throw Error("default outside switch");
                     }
                     break;
                 case "return":
@@ -748,6 +766,29 @@ function compileValue(code, name) {
             return `set obj ${name} ${code}\n`;
         }
     } catch {}
+    if (isCurlyBrackets(code)) {
+        console.log(code);
+        keyPairs = splitCharedCommand(code.slice(1,-1),",").map(p => splitCharedCommand(p,":"));
+        console.log(keyPairs);
+        let base = {};
+        let defs = "";
+        for (let i = 0; i < keyPairs.length; i++) {
+            const pair = keyPairs[i];
+            try {
+                base[JSON.parse(pair[0])] = JSON.parse(pair[1]);
+                continue;
+            } catch {
+                const key = compileValueKey(pair[0]);
+                const ref = compileValueKey(pair[1]);
+                defs += compileValue(pair[0], key);
+                defs += compileValue(pair[1], ref);
+                try {
+                    defs += `obj set ${name} ${key} ${ref}\n`;
+                } catch { throw Error("couldnt parse object pair " + pair.join(":")) }
+            }
+        }
+        return `set obj ${name} ${JSON.stringify(base)}\n${defs}`;
+    }
     const commandTokens = splitCommand(code);
     if (commandTokens.length == 2 && isNoBrackets(commandTokens[0]) && isBrackets(commandTokens[1])) {
         const args = splitCharedCommand(removeBrackets(commandTokens[1]),",");

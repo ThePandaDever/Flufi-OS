@@ -1,27 +1,4 @@
-~ API_Rotur.send
-call sendpmsg arg0 arg1
-~
-set obj var_API_CALL_DATA {}
-set num Pd5pDCkSKj 0
-set obj bYPYE16b9W {"hi":"wow"}
-obj set var_API_CALL_DATA Pd5pDCkSKj bYPYE16b9W
-set num bJEqURWnEw 1
-set str joQWOLIoUl flf-server
-obj set var_API_CALL_DATA bJEqURWnEw joQWOLIoUl
-set str lCBHtywDBO API_Rotur.send
-set str fnAFcN6SoN test.cfbl
-set str 1dPcmgg3tl null
-proc list mY9BSWvFTB
-set num gQ9W5Q5Kg0 0
-len TE9V0UkNbn mY9BSWvFTB
-: YfJ3L8SWo7
-obj get mY9BSWvFTB var_process_find_proc gQ9W5Q5Kg0
-proc getData var_process_find_proc JQIfGcAWtT
-set str CuT5mUBiQz path
-obj get JQIfGcAWtT var_process_find_proc_path CuT5mUBiQz
-eql 7efH7Vbjxe var_process_find_proc_path fnAFcN6SoN
-jn DxpzBj27M5 7efH7Vbjxe
-dupe 1dPcmgg3tl var_process_find_proc
-: DxpzBj27M5
-jsi YfJ3L8SWo7 gQ9W5Q5Kg0 TE9V0UkNbn
-proc call lCBHtywDBO 1dPcmgg3tl ap1zuloEdZ var_API_CALL_DATA
+set obj O01kjQ9gMa {}
+set str QwDFaLM24a rrynujh
+obj set O01kjQ9gMa QwDFaLM24a var_treeeeeeeeeeeeeees
+print O01kjQ9gMa
