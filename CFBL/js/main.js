@@ -501,13 +501,13 @@ function compileScript(code) {
                                 case "while":
                                     if (depthStackItem[2].length >= 0) {
                                         const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n`;
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}`;
                                     }
                                     break;
                                 case "until":
                                     if (depthStackItem[2].length >= 0) {
                                         const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}\njn ${depthStackItem[1]} ${condKey}\n`;
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}`;
                                     }
                                     break;
                                 case "Panel.clip":
@@ -566,15 +566,19 @@ function compileScript(code) {
                     depth ++;
                     const whileLbl = randomStr();
                     const whileCond = line.slice(1).join(" ");
-                    depthStack.push(["while",whileLbl,whileCond]);
-                    newScript += `: ${whileLbl}\n`;
+                    const whileEndLbl = randomStr();
+                    const condKey2 = randomStr();
+                    depthStack.push(["while",whileLbl,whileCond,whileEndLbl]);
+                    newScript += `${compileValue(whileCond, condKey2)}jn ${whileEndLbl} ${condKey2}\n: ${whileLbl}\n`;
                     break;
                 case "until":
                     depth ++;
                     const untilLbl = randomStr();
                     const untilCond = line.slice(1).join(" ");
-                    depthStack.push(["until",untilLbl,untilCond]);
-                    newScript += `: ${untilLbl}\n`;
+                    const untilEndLbl = randomStr();
+                    const condKey3 = randomStr();
+                    depthStack.push(["until",untilLbl,untilCond,untilEndLbl]);
+                    newScript += `${compileValue(untilCond, condKey3)}ji ${untilEndLbl} ${condKey3}\n: ${untilLbl}\n`;
                     break;
                 case "forever":
                     depth ++;
