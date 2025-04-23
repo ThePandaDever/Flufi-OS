@@ -256,18 +256,17 @@ class Context {
             "num": new ClassValue("num"),
         });
         this.operations = {
-            "add": (target,aref,bref,a,b) => {
-                console.log(a.get_type(),b.get_type());
-                if (a.get_type() === "num" && b.get_type() === "num")
+            "add": (context,target,aref,bref,a,b) => {
+                if (a.get_type(context) === "num" && b.get_type(context) === "num")
                     return [`add ${target} ${aref} ${bref}`,"num"];
                 return [`add ${target} emptystring ${aref} space ${bref}`,"str"];
             },
-            "join": (target,aref,bref) => [`add ${target} emptystring ${aref} ${bref}`,"str"],
-            "sub": (target,aref,bref) => [`sub ${target} ${aref} ${bref}`,"str"],
-            "mul": (target,aref,bref) => [`mul ${target} ${aref} ${bref}`,"str"],
-            "div": (target,aref,bref) => [`div ${target} ${aref} ${bref}`,"str"],
-            "pow": (target,aref,bref) => [`pow ${target} ${aref} ${bref}`,"str"],
-            "mod": (target,aref,bref) => [`mod ${target} ${aref} ${bref}`,"str"]
+            "join": (_,target,aref,bref) => [`add ${target} emptystring ${aref} ${bref}`,"str"],
+            "sub": (_,target,aref,bref) => [`sub ${target} ${aref} ${bref}`,"str"],
+            "mul": (_,target,aref,bref) => [`mul ${target} ${aref} ${bref}`,"str"],
+            "div": (_,target,aref,bref) => [`div ${target} ${aref} ${bref}`,"str"],
+            "pow": (_,target,aref,bref) => [`pow ${target} ${aref} ${bref}`,"str"],
+            "mod": (_,target,aref,bref) => [`mod ${target} ${aref} ${bref}`,"str"]
         }
 
         if (!isParse) {
@@ -664,7 +663,7 @@ class Node {
                 this.b.compile_main(context, b);
                 target ??= "NOPLACE:" + randomStr();
                 if (context.operations[this.type])
-                    context.text += context.operations[this.type](target,a,b,this.a,this.b)[0] + "\n";
+                    context.text += context.operations[this.type](context,target,a,b,this.a,this.b)[0] + "\n";
                 else
                     throw Error("couldnt compile operation of type " + this.type);
             }
@@ -721,6 +720,9 @@ class Node {
     
     get_type(context) {
         switch (this.kind) {
+            case "operation":
+                return context.operations[this.type](context,"target","a","b",this.a,this.b)[1];
+
             case "function":
                 return "Func";
             case "string":
@@ -799,7 +801,7 @@ class DefinedFunc extends Func {
 
 code = `
 void main() {
-    print("5" + 3 + -3 + "sad");
+    print("a" + 3 + -3 + "sad");
 }
 `;
 

@@ -1,6 +1,8 @@
-set bool 92VfdGHFo4 false
-ji VeJz2LaRb9 92VfdGHFo4
-: paEt7KP7ih
-set bool BePPXljFn7 false
-jn paEt7KP7ih BePPXljFn7
-: VeJz2LaRb9
+set num SRGLoUsp7I 10
+set num var_it 0
+len jFiXDJKPw9 SRGLoUsp7I
+: 6UOsjDtK3X
+obj get SRGLoUsp7I var_i var_it
+jp SRGLoUsp7I
+jsi 6UOsjDtK3X var_it jFiXDJKPw9
+: SRGLoUsp7I

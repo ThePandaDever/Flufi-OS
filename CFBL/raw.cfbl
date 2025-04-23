@@ -1,3 +1,4 @@
-until false
 
+foreach it i 10
+  break
 end

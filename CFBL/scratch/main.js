@@ -12,6 +12,111 @@ function isNoBrackets(t){return"string"==typeof t&&!(isBrackets(t)||isCurlyBrack
 function splitLogic(t){const e=[];let i="",r=!1,s=!1,n=0,u=0,c=0,o=!1;const l=/(\|\||&&)/;for(let p=0;p<t.length;p++){const m=t[p];if(o)i+=m,o=!1;else if("\\"!==m){if("'"!==m||s||o?'"'!==m||r||o||(s=!s):r=!r,r||s||("["===m?n++:"]"===m?n--:"{"===m?u++:"}"===m?u--:"("===m?c++:")"===m&&c--),!r&&!s&&0===n&&0===u&&0===c){const r=t.slice(p).match(l);if(r&&0===r.index){i.trim()&&(e.push(i.trim()),i=""),e.push(r[0]),p+=r[0].length-1;continue}}i+=m}else o=!0,i+=m}return i.trim()&&e.push(i.trim()),e}
 function splitOperators(t,e){const i=[];let r="",s=!1,n=!1,u=0,c=0,o=0,l=!1;for(let p=0;p<t.length;p++){const m=t[p];l?(l=!1,r+=m):"\\"!==m?"'"!==m||n||u||c||o?'"'!==m||s||u||c||o?s||n?r+=m:("["===m?u++:"]"===m?u--:"{"===m?c++:"}"===m?c--:"("===m?o++:")"===m&&o--,e.includes(m)&&0===u&&0===c&&0===o?"+"!=m||"+"==m&&"+"!=t[p-1]&&"+"!=t[p+1]?(r.trim()&&i.push(r.trim()),i.push(m),r=""):("+"==m&&"+"==t[p+1]&&(i.push(r.trim()),r=""),r+=m,"+"==m&&"+"==t[p-1]&&(i.push(r.trim()),r="")):r+=m):(l||(n=!n),r+=m):(l||(s=!s),r+=m):(l=!0,r+=m)}return r.trim()&&i.push(r.trim()),i}
 function splitCommand(t){const e=[];let i="",r=!1,s="",n=0,u=0,c=0,o=!1;for(let l=0;l<t.length;l++){const p=t[l];o?(i+=p,o=!1):"\\"!==p?r?(i+=p,p===s&&(r=!1)):'"'===p||"'"===p?(r=!0,s=p,i+=p):"("===p?(0===n&&0===u&&0===c?(i.trim()&&e.push(i.trim()),i="("):i+="(",n++):")"===p?(n--,0===n&&0===u&&0===c?(i+=")",i.trim()&&e.push(i.trim()),i=""):i+=")"):"{"===p?(0===n&&0===u&&0===c&&(i.trim()&&e.push(i.trim()),i=""),u++,i+=p):"}"===p?(u--,i+=p,0===n&&0===u&&0===c&&(i.trim()&&e.push(i.trim()),i="")):"["===p?(c++,i+=p):"]"===p?(c--,i+=p,0===n&&0===u&&0===c&&(""!==i&&e.push(i.trim()),i="")):i+=p:(o=!0,i+=p)}return""!==i&&e.push(i.trim()),e}
+function split(text, type, useendbracket) {
+    text = text.trim();
+    const tokens = [];
+    let current = "";
+
+    let bracketDepth = 0,
+        curlyDepth = 0,
+        squareDepth = 0,
+        arrowDepth = 0;
+    let inSingle = false,
+        inDouble = false,
+        inTick = false;
+    
+    const brackets = {"bracket":["(",")"],"curly":["{","}"],"square":["[","]"],"arrow":["<",">"]}[type] ?? ["",""]; // get the bracket pairs
+    const open = brackets[0],
+        close = brackets[1];
+    const splitChars = (typeof type == "string") ? (type.length === 1 ? type : "") : type;
+
+    const operators = [
+        "+","-","*","/","^","%",
+        "."
+    ]
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (char == "\\") { current += char + text[i + 1]; i ++; continue; }
+
+        if (char == "'" && !(inDouble || inTick))
+            inSingle = !inSingle;
+        if (char == "\"" && !(inSingle || inTick))
+            inDouble = !inDouble;
+        if (char == "`" && !(inSingle || inDouble))
+            inTick = !inTick;
+
+        const inQuotes = inSingle || inDouble || inTick;
+
+        if (inQuotes) {
+            current += char;
+            continue;
+        }
+
+        if (char === "(")
+            bracketDepth ++;
+        if (char === ")")
+            bracketDepth --;
+        if (char === "{")
+            curlyDepth ++;
+        if (char === "}")
+            curlyDepth --;
+        if (char === "[")
+            squareDepth ++;
+        if (char === "]")
+            squareDepth --;
+        if (char === "<" && type == "arrow")
+            arrowDepth ++;
+        if (char === ">" && type == "arrow")
+            arrowDepth --;
+        
+        if (char === open && 
+            bracketDepth == (type == "bracket" ? 1 : 0) &&
+            curlyDepth == (type == "curly" ? 1 : 0) &&
+            squareDepth == (type == "square" ? 1 : 0) &&
+            arrowDepth == (type == "arrow" ? 1 : 0)
+        ) {
+            if (current.trim())
+                tokens.push(current.trim());
+            if (text[i+1] == close && !tokens[tokens.length - 1])
+                tokens.push("");
+            else
+                current = ")";
+            current = open;
+            continue;
+        }
+        if (char === close && bracketDepth == 0 && curlyDepth == 0 && squareDepth == 0 && arrowDepth == 0) {
+            current += close;
+            if (current.trim())
+                tokens.push(current.trim());
+            current = "";
+            continue;
+        }
+
+        if (useendbracket && char === "}" && !operators.includes(text[i + 1]) && bracketDepth == 0 && curlyDepth == 0 && squareDepth == 0 && arrowDepth == 0) {
+            current += char;
+            tokens.push(current.trim());
+            current = "";
+            continue;
+        }
+
+        if (splitChars.includes(char) && bracketDepth == 0 && curlyDepth == 0 && squareDepth == 0 && arrowDepth == 0) {
+            if (current.trim())
+                tokens.push(current.trim());
+            tokens.push(char);
+            current = "";
+            continue;
+        }
+
+        current += char;
+    }
+
+    if (current.trim())
+        tokens.push(current.trim());
+
+    return tokens;
+}
 const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
 const isValidVariable = (t) => /^[A-Za-z0-9_]+$/.test(t)
 function escapeRegExp(r){return r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
@@ -267,6 +372,14 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 6)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}${compileValue(args[4], argKeys[4])}${compileValue(args[5], argKeys[5])}panel image ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[4]} ${argKeys[5]}\n`;
             break;
+        case "Panel.transparency":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}panel transparency ${argKeys[0]}\n`;
+            break;
+        case "Panel.opacity":
+            if (args.length == 1)
+                return `${compileValue(`1 - (${args[0]})`, argKeys[0])}panel transparency ${argKeys[0]}\n`;
+            break;
 
         case "Process.store":
             if (args.length == 2)
@@ -444,7 +557,7 @@ function compileScript(code) {
     let newScript = "";
     let saveScript = "";
 
-    const lines = code.split(/[\n;]+/);
+    const lines = split(code, [";","\n"]);
 
     let depth = 0;
     const depthStack = [];
@@ -501,13 +614,13 @@ function compileScript(code) {
                                 case "while":
                                     if (depthStackItem[2].length >= 0) {
                                         const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}`;
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
                                     }
                                     break;
                                 case "until":
                                     if (depthStackItem[2].length >= 0) {
                                         const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}`;
+                                        newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
                                     }
                                     break;
                                 case "Panel.clip":
@@ -771,9 +884,7 @@ function compileValue(code, name) {
         }
     } catch {}
     if (isCurlyBrackets(code)) {
-        console.log(code);
         keyPairs = splitCharedCommand(code.slice(1,-1),",").map(p => splitCharedCommand(p,":"));
-        console.log(keyPairs);
         let base = {};
         let defs = "";
         for (let i = 0; i < keyPairs.length; i++) {
