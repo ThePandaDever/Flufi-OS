@@ -372,6 +372,14 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 6)
                 return `${compileValue(args[0], argKeys[0])}${compileValue(args[1], argKeys[1])}${compileValue(args[2], argKeys[2])}${compileValue(args[3], argKeys[3])}${compileValue(args[4], argKeys[4])}${compileValue(args[5], argKeys[5])}panel image ${argKeys[0]} ${argKeys[1]} ${argKeys[2]} ${argKeys[3]} ${argKeys[4]} ${argKeys[5]}\n`;
             break;
+        case "Panel.transparency":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}panel transparency ${argKeys[0]}\n`;
+            break;
+        case "Panel.opacity":
+            if (args.length == 1)
+                return `${compileValue(`1 - (${args[0]})`, argKeys[0])}panel transparency ${argKeys[0]}\n`;
+            break;
 
         case "Process.store":
             if (args.length == 2)

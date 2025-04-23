@@ -638,10 +638,10 @@ function compileScript(code) {
                                     break;
                                 case "default": break;
                                 case "for":
-                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n`;
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n: ${depthStackItem[4]}\n`;
                                     break;
                                 case "foreach":
-                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n`;
+                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n: ${depthStackItem[4]}\n`;
                                     break;
                                 case "api":
                                     newScript += "~\n";
@@ -654,6 +654,23 @@ function compileScript(code) {
                         funcArgs = [];
                     }
                     break;
+                case "break":
+                    const latestDepth = depthStack[depthStack.length - 1];
+                    if (latestDepth) {
+                        switch (latestDepth[0]) {
+                            case "while": case "until":
+                                newScript += `jp ${latestDepth[3]}\n`;
+                                break;
+                            case "for": case "foreach":
+                                newScript += `jp ${latestDepth[4]}\n`;
+                                break;
+                            case "switch": case "case": case "caseif": case "default":
+                                newScript += `jp ${latestDepth[1]}\n`;
+                                break;
+                        }
+                    }
+                    break;
+
                 case "else":
                     const depthStackItem = depthStack.pop();
                     if (depthStackItem && depthStackItem[0] == "if") {
@@ -705,7 +722,8 @@ function compileScript(code) {
                     const forVar = "var_" + line[1];
                     const forIter = line.slice(2).join(" ");
                     const forIterRef = compileValueKey(forIter);
-                    depthStack.push(["for",forLbl,forVar,forIterRef]);
+                    const forEndLbl = randomStr();
+                    depthStack.push(["for",forLbl,forVar,forIterRef,forEndLbl]);
                     newScript += `${compileValue(forIter, forIterRef)}set num ${forVar} 0\n: ${forLbl}\n`;
                     break;
                 case "foreach":
@@ -717,7 +735,8 @@ function compileScript(code) {
                         const foreachIter = line.slice(3).join(" ");
                         const foreachIterRef = compileValueKey(foreachIter);
                         const foreachLenRef = randomStr();
-                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        const foreachEndLbl = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef,foreachEndLbl]);
                         newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
                     }
                     if (line.length == 3) {
@@ -727,7 +746,8 @@ function compileScript(code) {
                         const foreachIter = line.slice(2).join(" ");
                         const foreachIterRef = compileValueKey(foreachIter);
                         const foreachLenRef = randomStr();
-                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef]);
+                        const foreachEndLbl = randomStr();
+                        depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef,foreachEndLbl]);
                         newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
                     }
                     break;
