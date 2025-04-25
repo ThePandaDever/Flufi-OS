@@ -226,6 +226,7 @@ other commands:
 
 let funcArgs = [];
 let apis = {};
+let enums = {};
 
 function compileFunction(tokens, name, args, argKeys) {
     switch (tokens[0]) {
@@ -565,10 +566,74 @@ function compileScript(code) {
 
     let depth = 0;
     const depthStack = [];
+    let inEnum = false;
+    let enumName = "";
+    enums = {};
 
     for (let i = 0; i < lines.length; i++) {
         const line = splitCharedCommand(lines[i].trim()," ");
         if (line.length > 0) {
+            if (line[0] == "end") {
+                depth --;
+                if (depth > 0 || depthStack.length > 0) {
+                    const depthStackItem = depthStack.pop();
+                    if (depthStackItem) {
+                        switch (depthStackItem[0]) {
+                            case "if":
+                                newScript += `: ${depthStackItem[1]}\n`;
+                                break;
+                            case "while":
+                                if (depthStackItem[2].length >= 0) {
+                                    const condKey = randomStr();
+                                    newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
+                                }
+                                break;
+                            case "until":
+                                if (depthStackItem[2].length >= 0) {
+                                    const condKey = randomStr();
+                                    newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
+                                }
+                                break;
+                            case "Panel.clip":
+                                newScript += `panel clipexit\n`;
+                                break;
+                            case "forever":
+                                newScript += `quitTo ${depthStackItem[1]}\n`;
+                                break;
+                            case "switch":
+                                newScript += `: ${depthStackItem[1]}\n`;
+                                break;
+                            case "case": case "caseif":
+                                newScript += `jp ${depthStackItem[3]}\n`;
+                                newScript += `: ${depthStackItem[1]}\n`;
+                                break;
+                            case "default": break;
+                            case "for":
+                                newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n: ${depthStackItem[4]}\n`;
+                                break;
+                            case "foreach":
+                                newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n: ${depthStackItem[4]}\n`;
+                                break;
+                            case "api":
+                                newScript += "~\n";
+                                apis[depthStackItem[2]] = [depthStackItem[1]];
+                                break;
+                            case "enum":
+                                inEnum = false;
+                                break;
+                        }
+                    }
+                } else {
+                    newScript += "~\n";
+                    funcArgs = [];
+                }
+            }
+
+            if (inEnum) {
+                enums[enumName].push(line.join(" ").trim());
+                continue;
+            }
+
             if (line[1] === "=" && isNoBrackets(line[0])) {
                 const objKeys = splitKeys(line[0]);
                 if (objKeys.length == 2 && isSquareBrackets(objKeys[1])) {
@@ -607,56 +672,6 @@ function compileScript(code) {
                     depthStack.push(["api",line[1], line[2]]);
                     break;
                 case "end":
-                    depth --;
-                    if (depth > 0 || depthStack.length > 0) {
-                        const depthStackItem = depthStack.pop();
-                        if (depthStackItem) {
-                            switch (depthStackItem[0]) {
-                                case "if":
-                                    newScript += `: ${depthStackItem[1]}\n`;
-                                    break;
-                                case "while":
-                                    if (depthStackItem[2].length >= 0) {
-                                        const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}ji ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
-                                    }
-                                    break;
-                                case "until":
-                                    if (depthStackItem[2].length >= 0) {
-                                        const condKey = randomStr();
-                                        newScript += `${compileValue(depthStackItem[2], condKey)}jn ${depthStackItem[1]} ${condKey}\n: ${depthStackItem[3]}\n`;
-                                    }
-                                    break;
-                                case "Panel.clip":
-                                    newScript += `panel clipexit\n`;
-                                    break;
-                                case "forever":
-                                    newScript += `quitTo ${depthStackItem[1]}\n`;
-                                    break;
-                                case "switch":
-                                    newScript += `: ${depthStackItem[1]}\n`;
-                                    break;
-                                case "case": case "caseif":
-                                    newScript += `jp ${depthStackItem[3]}\n`;
-                                    newScript += `: ${depthStackItem[1]}\n`;
-                                    break;
-                                case "default": break;
-                                case "for":
-                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[3]}\n: ${depthStackItem[4]}\n`;
-                                    break;
-                                case "foreach":
-                                    newScript += `jsi ${depthStackItem[1]} ${depthStackItem[2]} ${depthStackItem[5]}\n: ${depthStackItem[4]}\n`;
-                                    break;
-                                case "api":
-                                    newScript += "~\n";
-                                    apis[depthStackItem[2]] = [depthStackItem[1]];
-                                    break;
-                            }
-                        }
-                    } else {
-                        newScript += "~\n";
-                        funcArgs = [];
-                    }
                     break;
                 case "break":
                     const latestDepth = depthStack[depthStack.length - 1];
@@ -674,7 +689,12 @@ function compileScript(code) {
                         }
                     }
                     break;
-
+                case "enum":
+                    depthStack.push(["enum",line[1]]);
+                    enumName = line[1];
+                    enums[enumName] = [];
+                    inEnum = true;
+                    break;
                 case "else":
                     const depthStackItem = depthStack.pop();
                     if (depthStackItem && depthStackItem[0] == "if") {
@@ -1010,6 +1030,14 @@ function compileValue(code, name) {
     }
     if (isValidVariable(code)) {
         return ``;
+    }
+    const enumTokens = splitCharedCommand(code, ":");
+    if (enumTokens.length == 2 && Object.keys(enums).includes(enumTokens[0])) {
+        const e = enums[enumTokens[0]];
+        if (e.includes(enumTokens[1]))
+            return `set num ${name} ${e.indexOf(enumTokens[1])}\n`;
+        else
+            throw Error("unknown enum value " + enumTokens[1] + " for " + enumTokens[0]);
     }
     if (code) {
         throw Error("unknown value '" + code + "'");

@@ -1031,7 +1031,6 @@ function compileValue(code, name) {
     if (isValidVariable(code)) {
         return ``;
     }
-    console.log(enums);
     const enumTokens = splitCharedCommand(code, ":");
     if (enumTokens.length == 2 && Object.keys(enums).includes(enumTokens[0])) {
         const e = enums[enumTokens[0]];
