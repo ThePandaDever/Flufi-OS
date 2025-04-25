@@ -331,7 +331,6 @@ class Scope {
     }
     assign(key, value) {
         const ref = this.getRef(key);
-        console.log(key);
         if (ref) {
             memory[ref] = value;
         } else {
@@ -390,7 +389,7 @@ class Node {
         this.code = code.trim();
         this.formattedCode = code.split("\n").map(l => l.trim()).join("\\n");
         this.kind = "unknown";
-        this.parse(this.code, context);
+        return this.parse(this.code, context);
     }
 
     parse(code, context) {
@@ -401,7 +400,7 @@ class Node {
             const elements = split(code, ";", true).filter(t => t !== ";");
             if (has(code, ";") || elements.length > 1) {
                 this.kind = "segment";
-                this.elements = elements.map(e => new Node(e));
+                this.elements = elements.map(e => new Node(e)).filter(e => !!e);
                 return;
             }
         }
@@ -532,6 +531,11 @@ class Node {
             }
         }
 
+        if (!code.trim()) {
+            this.kind = "empty";
+            return;
+        }
+
         throw Error("unexpected tokens: " + this.formattedCode)
     }
 
@@ -549,6 +553,7 @@ class Node {
     }
     compile_early(context) {
         switch (this.kind) {
+            case "empty": break;
             case "segment": {
                 context.segment_layers.push({"funcs":[]});
                 for (let i = 0; i < this.elements.length; i++) {
@@ -580,6 +585,7 @@ class Node {
             case "variable": return
 
             case "function": {
+                context.scope.assignTop(this.key, new DefinedFunc(this.key));
                 context.functions.push(this);
                 context.function_names.push(this.name);
                 this.content.compile_early(context);
@@ -596,6 +602,7 @@ class Node {
     compile_main(context, target) {
         let hasValue = false;
         switch (this.kind) {
+            case "empty": break;
             case "segment": {
                 context.scope.newLayer();
                 for (let i = 0; i < this.elements.length; i++) {
@@ -618,7 +625,7 @@ class Node {
                         context.text += out + "\n";
                     break;
                 }
-                const ref = this.key.compile_function_ref(context)
+                const ref = this.key.compile_function_ref(context);
                 if (!ref)
                     throw Error("attempt to call non function: " + this.formattedCode)
                 if (target) {
@@ -800,8 +807,12 @@ class DefinedFunc extends Func {
 }
 
 code = `
+num test() {
+    print("hi");
+}
+
 void main() {
-    print("a" + 3 + -3 + "sad");
+    test();
 }
 `;
 

@@ -1,8 +1,4 @@
-set num SRGLoUsp7I 10
-set num var_it 0
-len jFiXDJKPw9 SRGLoUsp7I
-: 6UOsjDtK3X
-obj get SRGLoUsp7I var_i var_it
-jp SRGLoUsp7I
-jsi 6UOsjDtK3X var_it jFiXDJKPw9
-: SRGLoUsp7I
+~ main
+set num i8dFXaW85s 0
+print i8dFXaW85s
+~

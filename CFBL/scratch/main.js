@@ -420,6 +420,10 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs list ${name} ${argKeys[0]}\n`;
             break;
+        case "fs.isFolder":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fs isfolder ${name} ${argKeys[0]}\n`;
+            break;
         case "json.parse":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}json parse ${name} ${argKeys[0]}\n`;
@@ -904,7 +908,7 @@ function compileValue(code, name) {
         }
     } catch {}
     if (isCurlyBrackets(code)) {
-        keyPairs = splitCharedCommand(code.slice(1,-1),",").map(p => splitCharedCommand(p,":"));
+        let keyPairs = splitCharedCommand(code.slice(1,-1),",").map(p => splitCharedCommand(p,":"));
         let base = {};
         let defs = "";
         for (let i = 0; i < keyPairs.length; i++) {
@@ -920,6 +924,26 @@ function compileValue(code, name) {
                 try {
                     defs += `obj set ${name} ${key} ${ref}\n`;
                 } catch { throw Error("couldnt parse object pair " + pair.join(":")) }
+            }
+        }
+        return `set obj ${name} ${JSON.stringify(base)}\n${defs}`;
+    }
+    if (isSquareBrackets(code)) {
+        let elements = splitCharedCommand(code.slice(1,-1),",");
+        let base = [];
+        let defs = "";
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            try {
+                base.push(JSON.parse(element));
+                continue;
+            } catch {
+                const ref = compileValueKey(element);
+                const key = randomStr();
+                defs += compileValue(element, ref);
+                try {
+                    defs += `set num ${key} ${i}\nobj set ${name} ${key} ${ref}\n`;
+                } catch { throw Error("couldnt parse array element " + elements) }
             }
         }
         return `set obj ${name} ${JSON.stringify(base)}\n${defs}`;

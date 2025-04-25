@@ -1,4 +1,9 @@
+enum test
+    testValue
+    testValue2
+    fn hi
+end
 
-foreach it i 10
-  break
+fn main
+    print test:hte
 end
