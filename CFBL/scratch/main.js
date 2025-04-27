@@ -227,6 +227,8 @@ other commands:
 let funcArgs = [];
 let apis = {};
 let enums = {};
+let apiScripts = {};
+let apiScriptsAdd = "";
 
 function compileFunction(tokens, name, args, argKeys) {
     switch (tokens[0]) {
@@ -425,6 +427,11 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}fs isfolder ${name} ${argKeys[0]}\n`;
             break;
+        case "fs.open":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}fs open ${argKeys[0]}\n`;
+            break;
+        
         case "json.parse":
             if (args.length == 1)
                 return `${compileValue(args[0], argKeys[0])}json parse ${name} ${argKeys[0]}\n`;
@@ -554,6 +561,14 @@ function compileFunction(tokens, name, args, argKeys) {
             if (apis[tokens[0]]) {
                 return compileScript(["API_CALL_DATA = {}", ...(argKeys.map((k,i) => `API_CALL_DATA["arg${i}"] = ${args[i]}`))].join("\n")) + compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"), API_CALL_DATA)`, name);
             }
+            //console.log(apiScripts);
+            if (Object.keys(apiScripts).includes(tokens[0])) {
+                if (apiScripts[tokens[0]][1]) {
+                    apiScriptsAdd += apiScripts[tokens[0]][0];
+                } else {
+                    return argKeys.reduce((acc, arg, argi) => acc.replace(".localapiarg." + argi, arg),argKeys.map((a,i) => compileValue(args[i],a)).join("") + apiScripts[tokens[0]][0].replace(".localapioutput",name));
+                }
+            }
             break
     }
 }
@@ -562,16 +577,19 @@ function compileScript(code) {
     let newScript = "";
     let saveScript = "";
 
-    const lines = split(code, [";","\n"]);
+    const lines = split(code, [";","\n"]).filter(t => ![";","\n"].includes(t));
 
     let depth = 0;
     const depthStack = [];
     let inEnum = false;
     let enumName = "";
     enums = {};
+    let isLocalApi = false;
+    apiScriptsAdd = "";
 
     for (let i = 0; i < lines.length; i++) {
         const line = splitCharedCommand(lines[i].trim()," ");
+        //console.log(lines[i], isLocalApi);
         if (line.length > 0) {
             if (line[0] == "end") {
                 depth --;
@@ -618,6 +636,16 @@ function compileScript(code) {
                                 newScript += "~\n";
                                 apis[depthStackItem[2]] = [depthStackItem[1]];
                                 break;
+                            case "localApi":
+                                apiScripts[depthStackItem[1]] = [newScript.split("\n").map(l => l.split(" ").map(a => l.split(" ")[0] == "set" ? a : a.startsWith("arg") ? ".localapiarg." + a.slice(3) : a).join(" ")).join("\n"),true];
+                                newScript = saveScript;
+                                saveScript = "";
+                                isLocalApi = false;
+                            case "inlineApi":
+                                apiScripts[depthStackItem[1]] = [newScript.split("\n").map(l => l.split(" ").map(a => l.split(" ")[0] == "set" ? a : a.startsWith("arg") ? ".localapiarg." + a.slice(3) : a).join(" ")).join("\n"),false];
+                                newScript = saveScript;
+                                saveScript = "";
+                                isLocalApi = false;
                             case "enum":
                                 inEnum = false;
                                 break;
@@ -671,6 +699,20 @@ function compileScript(code) {
                     newScript += `~ API_${line[2]}\n`;
                     depthStack.push(["api",line[1], line[2]]);
                     break;
+                case "localApi":
+                    funcArgs = line.slice(2);
+                    saveScript = newScript;
+                    newScript = "";
+                    depthStack.push(["localApi", line[1]]);
+                    isLocalApi = true;
+                    break;
+                case "inlineApi":
+                    funcArgs = line.slice(2);
+                    saveScript = newScript;
+                    newScript = "";
+                    depthStack.push(["inlineApi", line[1]]);
+                    isLocalApi = true;
+                    break;
                 case "end":
                     break;
                 case "break":
@@ -704,8 +746,8 @@ function compileScript(code) {
                     }
                     break;
                 case "print":
-                    const name = compileValueKey(line[1]);
-                    newScript += compileValue(line[1], name);
+                    const name = compileValueKey(line.slice(1).join(" "));
+                    newScript += compileValue(line.slice(1).join(" "), name);
                     newScript += `print ${name}\n`;
                     break;
                 case "if":
@@ -761,7 +803,7 @@ function compileScript(code) {
                         const foreachLenRef = randomStr();
                         const foreachEndLbl = randomStr();
                         depthStack.push(["foreach",foreachLbl,foreachVar,foreachVarItem,foreachIterRef,foreachLenRef,foreachEndLbl]);
-                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
+                        newScript += `${compileValue(foreachIter, foreachIterRef)}set num ${foreachVar} 0\nlen ${foreachLenRef} ${foreachIterRef}\n: ${foreachLbl}\njn\nobj get ${foreachIterRef} ${foreachVarItem} ${foreachVar}\n`;
                     }
                     if (line.length == 3) {
                         const foreachLbl = randomStr();
@@ -819,9 +861,13 @@ function compileScript(code) {
                     }
                     break;
                 case "return":
-                    const data = line.slice(1).join(" ");
-                    const dataKey = compileValueKey(data);
-                    newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`
+                    if (!isLocalApi) {
+                        const data = line.slice(1).join(" ");
+                        const dataKey = compileValueKey(data);
+                        newScript += `${compileValue(data, dataKey)}ret ${dataKey}\n`;
+                    } else {
+                        newScript += compileValue(line.slice(1).join(" "), ".localapioutput");
+                    }
                     break;
                 case "Panel.clip":
                     depth ++;
@@ -857,7 +903,7 @@ function compileScript(code) {
         }
     }
 
-    return newScript;
+    return apiScriptsAdd + newScript;
 }
 
 function compileValue(code, name) {

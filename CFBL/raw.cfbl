@@ -1,9 +1,1 @@
-enum test
-    testValue
-    testValue2
-    fn hi
-end
-
-fn main
-    print test:hte
-end
+print 5 + 3
