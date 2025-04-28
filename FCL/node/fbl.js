@@ -246,7 +246,7 @@ function deallocate(id) {
 }
 
 class Context {
-    constructor(isParse) {
+    constructor() {
         this.classes = {
             "str": new Class(),
             "num": new Class(),
@@ -268,21 +268,11 @@ class Context {
             "pow": (_,target,aref,bref) => [`pow ${target} ${aref} ${bref}`,"str"],
             "mod": (_,target,aref,bref) => [`mod ${target} ${aref} ${bref}`,"str"]
         }
-
-        if (!isParse) {
-            this.functions = [];
-            this.function_names = [];
-            this.compile_functions = {
-                "print": (argKeys) => `print ${argKeys.join(" ")}`
-            }
-            this.text = "";
-            this.segment_layers = [];
-        }
     }
 }
 class ParseContext extends Context {
     constructor() {
-        super(true);
+        super();
 
         this.statements = [
             "return"
@@ -290,6 +280,18 @@ class ParseContext extends Context {
         this.branches = [
             "forever"
         ];
+    }
+}
+class CompileContext extends Context {
+    constructor() {
+        super();
+        this.functions = [];
+        this.function_names = [];
+        this.compile_functions = {
+            "print": (argKeys) => `print ${argKeys.join(" ")}`
+        }
+        this.text = "";
+        this.segment_layers = [];
     }
 }
 
@@ -540,207 +542,22 @@ class Node {
     }
 
     compile(context, target) {
-        context ??= new Context();
-        context.scope.newLayer();
-        this.compile_early(context, target);
-        for (let i = 0; i < context.functions.length; i++) {
-            const element = context.functions[i];
-            element.compile_function(context);
-        }
-        this.compile_main(context, target);
-        context.scope.exitLayer();
-        return context.text;
-    }
-    compile_early(context) {
+        if (!context) throw Error("no context");
+        console.log(this);
+        
+
         switch (this.kind) {
-            case "empty": break;
             case "segment": {
-                context.segment_layers.push({"funcs":[]});
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
-                    element.compile_early(context);
+                    element.compile(context)
                 }
-                this.layer = context.segment_layers.pop();
-                return;
             }
-
-            case "execution": {
-                this.key.compile_early(context);
-                this.args.forEach(a => a.compile_early(context));
-                return;
-            }
-            case "statement": {
-                this.value.compile_early(context);
-                break;
-            }
-            case "branch": {
-                this.content.compile_early(context);
-                return;
-            }
-            case "operation": {
-                this.a.compile_early(context);
-                this.b.compile_early(context);
-            }
-
-            case "variable": return
-
-            case "function": {
-                context.scope.assignTop(this.key, new DefinedFunc(this.key));
-                context.functions.push(this);
-                context.function_names.push(this.name);
-                this.content.compile_early(context);
-                return;
-            }
-            case "string": return
-            case "number": return
-
             default:
-                throw Error("cannot compile (early) of node kind " + this.kind);
+                throw Error("cannot compile node " + this.kind)
         }
-    }
-
-    compile_main(context, target) {
-        let hasValue = false;
-        switch (this.kind) {
-            case "empty": break;
-            case "segment": {
-                context.scope.newLayer();
-                for (let i = 0; i < this.elements.length; i++) {
-                    const element = this.elements[i];
-                    element.compile_main(context);
-                }
-                context.scope.exitLayer();
-                break;
-            }
-
-            case "execution": {
-                const keys = new Array(this.args.length).fill(null).map((_,i) => this.args[i].compile_ref(context))
-                this.args.forEach((a,i) => a.compile_main(context, keys[i]));
-                if (this.key.kind == "variable" && Object.keys(context.compile_functions).includes(this.key.key)) {
-                    const out = context.compile_functions[this.key.key](keys, context);
-                    if (Array.isArray(out))
-                        hasValue = out[1],
-                        context.text += out[0] + "\n";
-                    else
-                        context.text += out + "\n";
-                    break;
-                }
-                const ref = this.key.compile_function_ref(context);
-                if (!ref)
-                    throw Error("attempt to call non function: " + this.formattedCode)
-                if (target) {
-                    context.text += `callget ${target} ${ref} ${keys.join(" ")}\n`;
-                    hasValue = true;
-                } else {
-                    context.text += `call ${ref} ${keys.join(" ")}\n`
-                }
-                break;
-            }
-            case "statement": {
-                const valueKey = this.value.compile_ref(context);
-                this.value.compile_main(context, valueKey);
-                switch (this.key) {
-                    case "return":
-                        context.text += `ret ${valueKey}\n`;
-                        break;
-                    default:
-                        throw Error("couldnt compile statement " + this.key);
-                }
-                break;
-            }
-            case "branch": {
-                const compileContent = () => this.content.compile_main(context);
-
-                switch (this.key) {
-                    case "forever": {
-                        const label = randomStr();
-                        context.text += ": " + label + "\n";
-                        compileContent();
-                        context.text += "quitTo " + label + "\n";
-                        break;
-                    }
-                    default:
-                        throw Error("cannot compile branch of type " + this.key)
-                }
-            }
-            case "operation": {
-                const a = randomStr(),
-                    b = randomStr();
-                this.a.compile_main(context, a);
-                this.b.compile_main(context, b);
-                target ??= "NOPLACE:" + randomStr();
-                if (context.operations[this.type])
-                    context.text += context.operations[this.type](context,target,a,b,this.a,this.b)[0] + "\n";
-                else
-                    throw Error("couldnt compile operation of type " + this.type);
-            }
-
-            case "variable": return;
-
-            case "function":
-                context.scope.assignTop(this.key, new DefinedFunc(this.key));
-                if (target)
-                    context.text += `set string ${target} func`;
-                hasValue = true;
-                break;
-            case "string":
-                context.text += `set str ${target} ${fblExcape(this.value)}\n`;
-                hasValue = true;
-                break;
-            case "number":
-                context.text += `set num ${target} ${this.value}\n`;
-                hasValue = true;
-                break;
-
-            default:
-                throw Error("cannot compile (main) of node kind " + this.kind);
-        }
-        if (!hasValue && target) {
-            context.text += `set undefined ${target}\n`;
-        }
-    }
-
-    compile_ref(context) {
-        switch (this.kind) {
-            case "variable":
-                return "var_" + this.key;
-        }
-        return randomStr();
-    }
-
-    compile_function(context) {
-        context.text += `~ ${this.key}\n`;
-        this.content.compile_main(context);
-        context.text += `~\n`;
-    }
-
-    compile_function_ref(context) {
-        switch (this.kind) {
-            case "function":
-                return this.key;
-            case "variable":
-                return context.scope.get(this.key)?.compile_function_ref(context);
-            default:
-                throw Error("couldnt compile (function ref) of node kind " + this.kind);
-        }
-    }
-    
-    get_type(context) {
-        switch (this.kind) {
-            case "operation":
-                return context.operations[this.type](context,"target","a","b",this.a,this.b)[1];
-
-            case "function":
-                return "Func";
-            case "string":
-                return "str";
-            case "number":
-                return "num";
-        }
-        return "any";
     }
 }
-
 class Parameter {
     constructor(code, context) {
         this.code = code.trim();
@@ -767,8 +584,20 @@ class Parameter {
         throw Error("unexpected tokens: " + code.split("\n").map(l => l.trim()).join("\\n"))
     }
 }
-
 class Value {
+    constructor() {
+        this.type = "unknown";
+    }
+
+    get_type(context) {
+        return this.type;
+    }
+    compileTo(context, target) {
+
+    }
+}
+
+class StringValue {
     constructor() {
 
     }
@@ -777,7 +606,6 @@ class Value {
 class Class {
 
 }
-
 class ClassValue extends Value {
     constructor(name) {
         super();
@@ -793,7 +621,6 @@ class Func extends Value {
         this.funcType = "unknown";
     }
 }
-
 class DefinedFunc extends Func {
     constructor(key) {
         super();
@@ -806,9 +633,24 @@ class DefinedFunc extends Func {
     }
 }
 
+class Script {
+    constructor(code) {
+        this.node = new Node(code);
+    }
+
+    compile(context, target) {
+        context ??= new CompileContext();
+        this.node.compile(context, target);
+        return context.text;
+    }
+}
+
 code = `
 num test() {
-    print("hi");
+    print(void() {
+        print("hi");
+    });
+    return "skibidi" + 5;
 }
 
 void main() {
@@ -816,6 +658,6 @@ void main() {
 }
 `;
 
-const script = new Node(code);
+const script = new Script(code);
 //console.log(JSON.stringify(script, null, "    "));
 console.log(script.compile());

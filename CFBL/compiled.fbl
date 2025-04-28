@@ -1,4 +1,109 @@
-set num VE3KE07K3I 5
-set num YC9P6SG92B 3
-add pMD2JV0LeO VE3KE07K3I YC9P6SG92B
-print pMD2JV0LeO
+~ main
+win create 0xpQZo4tKE
+set str hkCE7HvHIB winRef
+proc store hkCE7HvHIB 0xpQZo4tKE
+set str krkhamLoae winRef
+proc get krkhamLoae VxOx2Q7ZcT
+call updateWin VxOx2Q7ZcT
+quitTo 2slV05mGXR
+: 2slV05mGXR
+set str fa8SYF74BJ winRef
+proc get fa8SYF74BJ 1H3mIVJu5z
+win timeout 1H3mIVJu5z
+rotur acc 9CwbqRIKqo
+set str oq9gusPPzG not logged in
+eql ZuGIyCa23r 9CwbqRIKqo oq9gusPPzG
+inv 2xA6wNqEht ZuGIyCa23r
+jn SOL8v7Iluz 2xA6wNqEht
+rotur acc 2UwQvnznP8
+set str ttsnJOmvLK wallpaper
+obj get 2UwQvnznP8 gPV23dnYoI ttsnJOmvLK
+imagesize var_imgSize gPV23dnYoI
+set num var_size 10
+set num var_stretch_x 100
+set num var_stretch_y 100
+rotur acc qvKLyEj93E
+set str V1V6xAeGug wallpaper_mode
+obj get qvKLyEj93E var_mode V1V6xAeGug
+set str var_mode Fill
+const screen_width jRgB0JMuby
+const screen_height jij3aFVPt1
+div var_screenRatio jRgB0JMuby jij3aFVPt1
+set num EQAc5wtEQb 0
+obj get var_imgSize UZvg2AjtFV EQAc5wtEQb
+set num hd80he15NJ 1
+obj get var_imgSize solSpk5DTB hd80he15NJ
+div var_imageRatio UZvg2AjtFV solSpk5DTB
+set str TQC7AsVnv8 Fill
+jne n5gbeeQwU6 TQC7AsVnv8 var_mode
+gtr KGqxWljowD var_imageRatio var_screenRatio
+jn awaJRiw7O5 KGqxWljowD
+const screen_height UKlgUPEKTm
+set num 1cNxiv8bxo 1
+obj get var_imgSize fC6Wk0adV2 1cNxiv8bxo
+div dQw41EJFzW UKlgUPEKTm fC6Wk0adV2
+set num KwHIf29k69 100
+mul var_size dQw41EJFzW KwHIf29k69
+: awaJRiw7O5
+sml LRnU5C5lpt var_imageRatio var_screenRatio
+eql PIM1mBLywA var_imageRatio var_screenRatio
+or DcPhswbLcj LRnU5C5lpt PIM1mBLywA
+jn VjzVhPdedD DcPhswbLcj
+const screen_width h8vWfzk7re
+set num lJgLhz46UG 0
+obj get var_imgSize 2gKfDvmtTa lJgLhz46UG
+div rSvVg3r0GM h8vWfzk7re 2gKfDvmtTa
+set num EdnP58bNUi 100
+mul var_size rSvVg3r0GM EdnP58bNUi
+: VjzVhPdedD
+jp r0H9ENjo1u
+: n5gbeeQwU6
+: r0H9ENjo1u
+rotur acc 1d9kvfPtLu
+set str yMJv0miFHu wallpaper
+obj get 1d9kvfPtLu 4pTiCvDZ1t yMJv0miFHu
+set num JhPlnHxbXP 0
+set num 2FjcEpfwer 0
+panel image 4pTiCvDZ1t JhPlnHxbXP 2FjcEpfwer var_size var_stretch_x var_stretch_y
+: SOL8v7Iluz
+rotur acc rNPNvvLBj4
+set str FxfHeMpC6M not logged in
+eql n2CJVr8VHM rNPNvvLBj4 FxfHeMpC6M
+jn O8f3GzfSk3 n2CJVr8VHM
+set str bKsZlK2DGv background
+callget wS7onlz6YR theme bKsZlK2DGv
+panel color wS7onlz6YR
+set str OxUDM2URPd w 2 dot 0 0
+set num gmpT0OxhfI 0
+set num wnIoPBazQf 0
+callget CPm8DUR5md getDotSize 
+panel icon gmpT0OxhfI wnIoPBazQf CPm8DUR5md OxUDM2URPd
+: O8f3GzfSk3
+set str YZMtd4IVwp winRef
+proc get YZMtd4IVwp AOtk7USkMy
+win panel update AOtk7USkMy
+quitTo 2slV05mGXR
+~
+~ getDotSize
+const screen_width 6u1DuJ0Zg3
+callget lBczFT4qbd sqr 6u1DuJ0Zg3
+const screen_height mWoSPaKcax
+callget d3nBvacIot sqr mWoSPaKcax
+add FLCBgLuc1y lBczFT4qbd d3nBvacIot
+callget PmgTJRA9oi sqrt FLCBgLuc1y
+ret PmgTJRA9oi
+~
+~ updateWin
+set obj var_size []
+set num YXoP9uRhJ1 0
+const screen_width 5llOwJIQdk
+obj set var_size YXoP9uRhJ1 5llOwJIQdk
+set num Eu5bHwkfkr 1
+const screen_height eSVL0M65zp
+obj set var_size Eu5bHwkfkr eSVL0M65zp
+set str bKfViNUOjN size
+win setKey arg0 bKfViNUOjN var_size
+set str tOlm2GAHfr background
+set bool var_true true
+win setKey arg0 tOlm2GAHfr var_true
+~

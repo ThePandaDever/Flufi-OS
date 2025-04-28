@@ -562,10 +562,12 @@ function compileFunction(tokens, name, args, argKeys) {
                 return compileScript(["API_CALL_DATA = {}", ...(argKeys.map((k,i) => `API_CALL_DATA["arg${i}"] = ${args[i]}`))].join("\n")) + compileValue(`Process.call("API_${tokens[0]}", Process.find("${apis[tokens[0]][0]}"), API_CALL_DATA)`, name);
             }
             console.log(apiScripts);
-            if (Object.keys(apiScripts).includes(tokens[0]) && apiScripts[tokens[0]][1]) {
-                apiScriptsAdd += apiScripts[tokens[0]][0];
-            } else {
-                return argKeys.reduce((acc, arg, argi) => acc.replace(".localapiarg." + argi, arg),argKeys.map((a,i) => compileValue(args[i],a)).join("") + apiScripts[tokens[0]][0].replace(".localapioutput",name));
+            if (Object.keys(apiScripts).includes(tokens[0])) {
+                if (apiScripts[tokens[0]][1]) {
+                    apiScriptsAdd += apiScripts[tokens[0]][0];
+                } else {
+                    return argKeys.reduce((acc, arg, argi) => acc.replace(".localapiarg." + argi, arg),argKeys.map((a,i) => compileValue(args[i],a)).join("") + apiScripts[tokens[0]][0].replace(".localapioutput",name));
+                }
             }
             break
     }
