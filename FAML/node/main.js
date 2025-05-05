@@ -285,11 +285,17 @@ class AppSection extends Section {
 
     parse(code) {
         const elements = split(code,[";","\n"],true).filter(t => ![";","\n"].includes(t));
-
+        const nodes = [];
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            nodes.push(new ScriptNode(element));
+        }
+        this.nodes = nodes;
     }
 
     stringify(padding="") {
-        return `${padding}App {}`;
+        const formatContents = (contents) => `${contents.map(s => s.stringify(padding + padLayer)).map(s => "\n" + s).join(",")}\n${padding}`;
+        return `${padding}App {${formatContents(this.nodes)}}`;
     }
 }
 
@@ -307,7 +313,7 @@ class VariablesSection extends Section {
             const element = elements[i];
             const keyPair = split(element,":").filter(t => t !== ":");
             if (keyPair.length == 2) {
-                this.data[keyPair[0]] = new ScriptValue(keyPair[1]);
+                this.data[keyPair[0]] = new ValueNode(keyPair[1]);
             } else {
                 const format = text => text.split("\n").map(l => l.trim()).join("\\n");
                 throw Error("invalid keypair (key: value): " + format(element));
@@ -320,23 +326,68 @@ class VariablesSection extends Section {
     }
 }
 
-class ScriptValue {
+class ValueNode {
     constructor(code) {
         this.code = code;
         this.formattedCode = code.split("\n").map(l => l.trim()).join("\\n");
+        this.isNode = true;
         this.parse(code);
     }
 
     parse(code) {
-        switch (code) {
-            case "false":
-                this.type = "bool";
-                this.value = false;
+        /* constants */ {
+            switch (code) {
+                case "false":
+                    this.kind = "bool";
+                    this.value = false;
+                    return;
+                case "true":
+                    this.kind = "bool";
+                    this.value = true;
+                    return;
+                case "~":
+                    this.kind = "constant";
+                    this.type = "equal";
+                    return;
+            }
+        }
+
+        /* number */ {
+            if (/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(code)) {
+                this.kind = "number";
+                this.value = Number(code);
                 return;
-            case "true":
-                this.type = "bool";
-                this.value = true;
+            }
+        }
+
+        /* string */ {
+            if (
+                is(code, "single-q") ||
+                is(code, "double-q") ||
+                is(code, "back-q")
+            ) {
+                this.kind = "string";
+                this.value = unExcape(code.slice(1,-1));
                 return;
+            }
+        }
+
+        /* app variable */ {
+            if (code[0] == "@" && /^[A-Za-z0-9_]+$/.test(code.slice(1))) {
+                this.kind = "variable";
+                this.scope = "app";
+                this.name = code.slice(1);
+                return;
+            }
+        }
+
+        /* script variable */ {
+            if (/^[A-Za-z0-9_]+$/.test(code)) {
+                this.kind = "variable";
+                this.scope = "script";
+                this.name = code;
+                return;
+            }
         }
 
         const format = text => text.split("\n").map(l => l.trim()).join("\\n");
@@ -344,20 +395,199 @@ class ScriptValue {
     }
 
     stringify(padding) {
-        return `<${this.type}>`;
+        const toTitleCase = text => text.split(" ").map(w => w.charAt(0).toUpperCase() + w.substring(1).toLowerCase()).join(" ");
+        return this.kind == "variable" ? `${toTitleCase(this.scope)} variable ${this.name}` :
+            this.kind == "number" ? `Number ${this.value}` :
+            this.kind == "string" ? `String ${JSON.stringify(this.value)}` :
+            this.kind == "bool" ? `Bool ${this.value}` :
+            `Node ${this.kind}`;
+    }
+}
+class ScriptNode {
+    constructor(code) {
+        this.code = code;
+        this.formattedCode = code.split("\n").map(l => l.trim()).join("\\n");
+        this.parse(code);
+    }
+
+    parse(code) {
+        
+        /* modifiers */ {
+            const tokens = split(code, ":").filter(t => t != ":");
+            if (tokens.length >= 3) {
+                code = tokens.shift();
+                const tokens2 = split(tokens.join(":"), ",").filter(t => t != ",").map(m => split(m,":").filter(t => t != ":"));
+                this.modifiers = tokens2.map(p => {
+                    const format = text => text.split("\n").map(l => l.trim()).join("\\n");
+                    if (p.length != 2) throw Error("invalid modifer syntax: " + format(p.join(":")));
+                    p[1] = new ValueNode(p[1]);
+                    return p;
+                });
+            }
+        }
+        
+        /* assignments */ {
+            /* var op= and var = */ {
+                const ops = {
+                    "+": "add",
+                    "-": "sub",
+                    "*": "mul",
+                    "/": "div",
+                    "^": "pow",
+                    "%": "mod"
+                };
+                const tokens = split(code, ["=",...Object.keys(ops)]);
+                let key = tokens.shift();
+                let op = null;
+                if (/^[A-Za-z0-9_@]+$/.test(key)) {
+                    if (Object.keys(ops).includes(tokens[0])) {
+                        op = ops[tokens.shift()];
+                    }
+                    if (tokens.shift() == "=") {
+
+                        let scope = "script";
+                        if (key[0] == "@") {
+                            key = key.slice(1);
+                            scope = "app";
+                        }
+
+                        this.kind = "assignment";
+                        this.key = key;
+                        this.scope = scope;
+                        this.op = op;
+                        this.value = new ValueNode(tokens.join(""));
+                        return;
+                    }
+                }
+            }
+            /* var ++ or var -- */ {
+                const tokens = split(code, ["+","-"]);
+                if (tokens.length >= 3) {
+                    let key = tokens.shift();
+                    if (/^[A-Za-z0-9_@]+$/.test(key)) {
+                        let op = "";
+                        let token;
+                        while (["+","-"].includes(token = tokens.shift()))
+                            op += token;
+                        const types = {
+                            "++": "increment",
+                            "--": "decrement"
+                        }
+                        if (types[op]) {
+                            let scope = "script";
+                            if (key[0] == "@") {
+                                key = key.slice(1);
+                                scope = "app";
+                            }
+                            this.kind = "operation";
+                            this.type = types[op];
+                            this.key = key;
+                            this.scope = scope;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        
+        /* commands */ {
+            const spaceTokens = split(code, " ").filter(t => t != " ");
+            if (spaceTokens[0] && /^[A-Za-z0-9_]+$/.test(spaceTokens[0])) {
+                const getArg = (fallback) => new ValueNode(spaceTokens.shift() ?? fallback ?? "null");
+                const getAllArgs = () => spaceTokens.map(a => new ValueNode(a));
+                const getContent = (content) => split(content.slice(1,-1),[";","\n"],true).filter(t => ![";","\n"].includes(t)).map(n => new ScriptNode(n));
+
+                const cmdName = spaceTokens.shift();
+                switch(cmdName) {
+                    case "loc": {
+                        this.kind = "command";
+                        this.name = "loc";
+                        this.div = [getArg("~"), getArg("~")];
+                        this.offset = [getArg("~"), getArg("~")];
+                        return;
+                    }
+
+                    case "square": {
+                        this.kind = "command";
+                        this.name = "square";
+                        this.size = [getArg("~"), getArg("~")];
+                        this.rounding = getArg("0");
+                        return;
+                    }
+                    case "text": {
+                        this.kind = "command";
+                        this.name = "text";
+                        this.data = getArg();
+                        return;
+                    }
+
+                    case "if": {
+                        const content = spaceTokens.pop();
+                        if (is(content, "curly")) {
+                            this.kind = "command";
+                            this.name = "if";
+                            this.content = getContent(content);
+                            this.conds = getAllArgs();
+                            return;
+                        } else {
+                            throw Error(`${cmdName} content isnt in {}`);
+                        }
+                    }
+                    default:
+                        throw Error("unknown command: " + cmdName);
+                }
+            }
+        }
+
+        /* attached events */ {
+            const spaceTokens = split(code, " ").filter(t => t != " ");
+            if (spaceTokens[0] == "^-" && is(spaceTokens[spaceTokens.length-1], "curly")) {
+                spaceTokens.shift();
+                const getAllArgs = () => spaceTokens.map(a => new ValueNode(a));
+                const getContent = (content) => split(content.slice(1,-1),[";","\n"],true).filter(t => ![";","\n"].includes(t)).map(n => new ScriptNode(n));
+                
+                this.kind = "attached_event";
+                this.event = spaceTokens.shift();
+                this.content = getContent(spaceTokens.join(" "));
+                return;
+            }
+        }
+
+        const format = text => text.split("\n").map(l => l.trim()).join("\\n");
+        throw Error("unknown node: " + format(code));
+    }
+
+    stringify(padding) {
+        const formatContents = (contents) => `${contents.map(s => s.stringify(padding + padLayer)).map(s => "\n" + s).join(",")}\n${padding}`;
+        const toTitleCase = text => text.split(" ").map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+        const formatOp = op => ({"add":"+","sub":"-","mul":"*","div":"/","pow":"^","mod":"%"})[op] ?? op;
+        return padding + (
+            this.kind == "command" ? (
+                this.name == "if" ? `If [${this.conds.map(c => c.stringify(padding + padLayer)).join(",")}] {${formatContents(this.content)}}` :
+                `Command ${this.name}`
+            ) :
+            this.kind == "operation" ? (
+                ["increment","decrement"].includes(this.type) ? `${toTitleCase(this.type)} of ${this.scope} ${this.key}` :
+                `Operation ${this.type}`
+            ) :
+            this.kind == "attached_event" ? `Attached Event [${this.event}] {${formatContents(this.content)}}` :
+            this.kind == "assignment" ? `Assignment ${this.scope} ${this.key} ${formatOp(this.op ?? "")}= ${this.value.stringify(padding)}` :
+            `Node ${this.kind}`
+        ) + (!!this.modifiers ? " : " + this.modifiers.map(m => m[0] + ": " + m[1].stringify()).join(", ") : "")
     }
 }
 
 const code = `
 variables {
-    didClick: false
+    didClick:false
 }
 app {
     loc ~ 2 0 -50
     square 100 20 : c:prim
-    ^- [clicked] {
+    ^- clicked {
         @didClick = true
     }
+    
     text "click me :3" 10 : aligned:middle, c:text
     
     loc ~ 2
@@ -368,4 +598,4 @@ app {
 `;
 
 const script = new Script(code);
-console.log(script.stringify());
+console.log(script.stringify(), JSON.stringify(script));

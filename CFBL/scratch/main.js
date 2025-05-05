@@ -318,6 +318,10 @@ function compileFunction(tokens, name, args, argKeys) {
             if (args.length == 1)
                 return compileValue(`Win.getKey(${args[0]},"resizable")`, name);
             break;
+        case "Win.setFocused":
+            if (args.length == 1)
+                return `${compileValue(args[0], argKeys[0])}win setfocused ${argKeys[0]}\n`;
+            break;
 
         case "Panel.clear":
             return `panel clear\n`;

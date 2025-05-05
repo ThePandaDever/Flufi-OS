@@ -251,10 +251,6 @@ class Context {
             "str": new Class(),
             "num": new Class(),
         };
-        this.scope = new Scope({
-            "str": new ClassValue("str"),
-            "num": new ClassValue("num"),
-        });
         this.operations = {
             "add": (context,target,aref,bref,a,b) => {
                 if (a.get_type(context) === "num" && b.get_type(context) === "num")
@@ -277,6 +273,9 @@ class ParseContext extends Context {
         this.statements = [
             "return"
         ];
+        this.standalone_statements = [
+            "return"
+        ]
         this.branches = [
             "forever"
         ];
@@ -285,13 +284,13 @@ class ParseContext extends Context {
 class CompileContext extends Context {
     constructor() {
         super();
-        this.functions = [];
-        this.function_names = [];
-        this.compile_functions = {
-            "print": (argKeys) => `print ${argKeys.join(" ")}`
-        }
         this.text = "";
-        this.segment_layers = [];
+        this.functionText = "";
+        this.functionDataLayers = [];
+
+        this.scope = new Scope({
+            "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`)
+        });
     }
 }
 
@@ -299,9 +298,9 @@ memory = {};
 
 class Scope {
     constructor(variables) {
-        variables ??= {};
         this.layers = [];
-        this.code = "";
+        if (variables)
+            this.newLayer(variables);
     }
 
     newLayer(variables) {
@@ -383,6 +382,15 @@ class ScopeLayer {
 }
 
 function isTypeSafe(typea,compare) {
+    if (typea instanceof Type) {
+        typea = typea.name;
+    }
+    if (compare instanceof Type) {
+        return isTypeSafe(typea,compare.name);
+    }
+    if (compare == "void") {
+        compare = "null";
+    }
     return typea === compare || compare === "any";
 }
 
@@ -400,7 +408,7 @@ class Node {
 
         /* segment */ {
             const elements = split(code, ";", true).filter(t => t !== ";");
-            if (has(code, ";") || elements.length > 1) {
+            if (has(code, ";") || elements.length > 1 && elements[elements.length-1] !== "()") {
                 this.kind = "segment";
                 this.elements = elements.map(e => new Node(e)).filter(e => !!e);
                 return;
@@ -409,11 +417,20 @@ class Node {
 
         /* statement */ {
             const spaceTokens = split(code, " ").filter(t => t !== " ");
-            if (context.statements.includes(spaceTokens[0]) && spaceTokens.length > 1) {
-                this.kind = "statement";
-                this.key = spaceTokens[0];
-                this.value = new Node(spaceTokens.slice(1).join(" "));
-                return;
+            /* has a value */ {
+                if (context.statements.includes(spaceTokens[0]) && spaceTokens.length > 1) {
+                    this.kind = "statement";
+                    this.key = spaceTokens[0];
+                    this.value = new Node(spaceTokens.slice(1).join(" "));
+                    return;
+                }
+            }
+            /* standalone */ {
+                if (context.standalone_statements.includes(code)) {
+                    this.kind = "statement";
+                    this.key = code;
+                    return;
+                }
             }
         }
 
@@ -482,7 +499,7 @@ class Node {
                     this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
                     this.key = spaceTokens[1];
                     this.content = new Node(bracketTokens[2].slice(1,-1));
-                    this.type = spaceTokens[0];
+                    this.type = new Node(spaceTokens[0]);
                     return;
                 }
             } else if (bracketTokens.length == 3) {
@@ -491,7 +508,7 @@ class Node {
                     this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
                     this.key = "INL§" + Math.random().toString();
                     this.content = new Node(bracketTokens[2].slice(1,-1));
-                    this.type = spaceTokens[0];
+                    this.type = new Node(spaceTokens[0]);
                     return;
                 }
             }
@@ -518,6 +535,34 @@ class Node {
             }
         }
 
+        /* constants */ {
+            /* types */ {
+                const types = [
+                    "str",
+                    "num",
+                    
+                    "void"
+                ];
+                if (types.includes(code)) {
+                    this.kind = "type";
+                    this.name = code;
+                    return;
+                }
+            }
+            /* values */ {
+                const values = [
+                    "true",
+                    "false",
+                    
+                    "null"
+                ]
+                if (values.includes(code)) {
+                    this.kind = "constant";
+                    this.name = code;
+                }
+            }
+        }
+
         /* variable */ {
             if (/^[A-Za-z0-9_]+$/.test(code)) {
                 this.kind = "variable";
@@ -541,20 +586,115 @@ class Node {
         throw Error("unexpected tokens: " + this.formattedCode)
     }
 
-    compile(context, target) {
+    compile(context, target, flags) {
         if (!context) throw Error("no context");
-        console.log(this);
+        if (target && !(target instanceof Target)) throw Error("no correct target");
+        //console.log(this);
         
 
         switch (this.kind) {
             case "segment": {
+                context.scope.newLayer();
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
-                    element.compile(context)
+                    element.compile(context);
                 }
+                context.scope.exitLayer();
+                break;
             }
+            case "function": {
+                const type = this.type.getValue(context);
+                if (!type || !(type instanceof Type)) throw Error("invalid type " + this.type.code)
+                const saveText = context.text;
+                context.text = `~ ${this.key}\n`;
+                context.functionDataLayers.push({"key":this.kind,"return_type":type,"branch":[]});
+                this.content.compile(context);
+                context.functionDataLayers.pop();
+                context.text += "~\n";
+                context.functionText += context.text;
+                context.text = saveText;
+
+                const value = new DefinedFunc(this.key, type);
+                context.scope.assignTop(this.key, value);
+
+                if (target) {
+                    context.text += `set str ${target.id} ${value.stringify()}\n`;
+                }
+                break;
+            }
+            case "execution": {
+                const func = this.key.getValue(context);
+                const argKeys = this.args.map(a => a.compileKey(context));
+                const args = this.args.map((a,i) => a.compile(context, new Target(argKeys[i])));
+
+                if (func instanceof CompiledFunc) {
+                    context.text += func.compileFunc(argKeys, target) + "\n";
+                } else if (func instanceof DefinedFunc) {
+                    if (target)
+                        context.text += `callget ${target.id} ${func.key} ${argKeys.join(" ")}\n`;
+                    else
+                        context.text += `call ${func.key} ${argKeys.join(" ")}\n`;
+                }
+                
+                break;
+            }
+            case "statement": {
+                switch (this.key) {
+                    case "return": {
+                        const topLayer = context.functionDataLayers[context.functionDataLayers.length-1];
+                        if (this.value) {
+                            const key = this.value.compileKey(context);
+                            this.value.compile(context, new Target(key));
+                            const value = this.value.getValue();
+                            if (topLayer && !isTypeSafe(value.type,topLayer.return_type)) {
+                                throw Error(`attempt to return a value of type ${new Type(value.type).stringify()} when the function should return ${topLayer.return_type.stringify()}`)
+                            }
+                            context.text += `ret ${key}\n`;
+                        } else {
+                            console.log(topLayer);
+                            if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type)) {
+                                throw Error(`attempt to return null when the function should return ${topLayer.return_type.stringify()}`)
+                            }
+                        }
+                        break;
+                    }
+                    default:
+                        throw Error("cannot compile statement of type " + this.key);
+                }
+                break;
+            }
+
+            case "string":
+                context.text += `set str ${target.id} ${fblExcape(this.value)}\n`;
+                return;
+            case "number":
+                context.text += `set num ${target.id} ${this.value}\n`;
+                return
+
             default:
                 throw Error("cannot compile node " + this.kind)
+        }
+    }
+
+    compileKey(context) {
+        return randomStr();
+    }
+
+    getValue(context) {
+        switch (this.kind) {
+            case "variable":
+                return context.scope.get(this.key);
+            case "function":
+                this.compile(context);
+                return new DefinedFunc(this.key);
+            case "string":
+                return new StringValue(this.value);
+            case "number":
+                return new NumberValue(this.value);
+            case "type":
+                return new Type(this.name);
+            default:
+                throw Error("cannot get value of " + this.kind);
         }
     }
 }
@@ -595,11 +735,43 @@ class Value {
     compileTo(context, target) {
 
     }
+    stringify() {
+        return `<${this.type}>`;
+    }
+}
+class Target {
+    constructor(id,type) {
+        this.id = id;
+        this.type = type;
+    }
 }
 
 class StringValue {
     constructor() {
+        this.type  = "str";
+    }
+    stringify() {
+        return this.value;
+    }
+}
+class NumberValue {
+    constructor(value) {
+        this.type = "num";
+        this.value = value;
+    }
+    stringify() {
+        return this.value.toString();
+    }
+}
 
+class Type {
+    constructor(name) {
+        this.type = "type";
+        name = name == "void" ? "null" : name;
+        this.name = name;
+    }
+    stringify() {
+        return `<type:${this.name}>`;
     }
 }
 
@@ -622,14 +794,23 @@ class Func extends Value {
     }
 }
 class DefinedFunc extends Func {
-    constructor(key) {
+    constructor(key, type) {
         super();
         this.funcType = "defined";
         this.key = key;
+        this.return_type = type;
     }
 
     compile_function_ref() {
         return this.key;
+    }
+}
+class CompiledFunc extends Func {
+    constructor(key, func) {
+        super();
+        this.funcType = "builtin";
+        this.key = key;
+        this.compileFunc = func;
     }
 }
 
@@ -641,7 +822,7 @@ class Script {
     compile(context, target) {
         context ??= new CompileContext();
         this.node.compile(context, target);
-        return context.text;
+        return context.functionText + context.text;
     }
 }
 
@@ -649,12 +830,13 @@ code = `
 num test() {
     print(void() {
         print("hi");
-    });
-    return "skibidi" + 5;
+    }());
+    return 5;
 }
 
-void main() {
+str main() {
     test();
+    print("hi");
 }
 `;
 

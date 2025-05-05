@@ -1,0 +1,15 @@
+~ INL§0.8100260708405893
+set str yN0BsOp1HB hi
+print yN0BsOp1HB
+~
+~ test
+callget UfnDC2t9Va INL§0.8100260708405893 
+print UfnDC2t9Va
+set num cD21WEbq2p 5
+ret cD21WEbq2p
+~
+~ main
+call test 
+set str U2tZEvecwk hi
+print U2tZEvecwk
+~
