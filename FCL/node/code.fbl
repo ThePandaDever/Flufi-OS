@@ -1,15 +1,12 @@
-~ INL§0.8100260708405893
-set str yN0BsOp1HB hi
-print yN0BsOp1HB
-~
 ~ test
-callget UfnDC2t9Va INL§0.8100260708405893 
-print UfnDC2t9Va
-set num cD21WEbq2p 5
-ret cD21WEbq2p
+set str tvkBv1Acb9 hi
+ret tvkBv1Acb9
 ~
 ~ main
-call test 
-set str U2tZEvecwk hi
-print U2tZEvecwk
+set num xkWVa4r6N5 5
+set str 46t6PXIVLS hi
+add h2reZTlsjq emptystring xkWVa4r6N5 space 46t6PXIVLS
+print h2reZTlsjq
+set str d4N46Gj1XO hi
+print d4N46Gj1XO
 ~
