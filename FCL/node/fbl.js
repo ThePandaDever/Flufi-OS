@@ -1,4 +1,4 @@
-function split(text, type, useendbracket) {
+function split(text, type, useendbracket, arrow) {
     text = text ?? "";
     text = text.trim();
     const tokens = [];
@@ -53,9 +53,9 @@ function split(text, type, useendbracket) {
             squareDepth ++;
         if (char === "]")
             squareDepth --;
-        if (char === "<" && type == "arrow")
+        if (char === "<" && (type == "arrow" || arrow))
             arrowDepth ++;
-        if (char === ">" && type == "arrow")
+        if (char === ">" && (type == "arrow" || arrow))
             arrowDepth --;
         
         if (char === open && 
@@ -234,14 +234,57 @@ function fblExcape(text) {
     }
     return current;
 }
+function removeComments(text) {
+    let out = "";
 
-/*
+    let inLineComment = false;
+    let inMultiLineComment = false;
+    
+    let inSingle = false,
+        inDouble = false,
+        inTick = false;
+        
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i],
+            nextChar = text[i+1];
+        
+        if (char == "\\") { out += char + text[i+1]; i ++; continue; }
+
+        if (char == "'" && !(inDouble || inTick))
+            inSingle = !inSingle;
+        if (char == "\"" && !(inSingle || inTick))
+            inDouble = !inDouble;
+        if (char == "`" && !(inSingle || inDouble))
+            inTick = !inTick;
+
+        const inQuotes = inSingle || inDouble || inTick;
+
+        if (char + nextChar == "//" && !inMultiLineComment && !inQuotes)
+            inLineComment = true;
+
+        if (char + nextChar == "/*" && !inLineComment && !inQuotes)
+            inMultiLineComment = true;
+        if (char + nextChar == "*/" && !inLineComment && !inQuotes) {
+            inMultiLineComment = false;
+            i ++; continue;
+        }
+        
+        if (char == "\n")
+            inLineComment = false;
+
+        if (!inLineComment && !inMultiLineComment)
+            out += char;
+    }
+    return out;
+}
+
+
 let randomNum = 0
 const randomStr = () => "rand" + randomNum ++;
-*/
 
-const chooseRandom = (arr) => arr[Math.round(Math.random() * arr.length - 1)]
-const randomStr = () => Array(10).fill(null).map(l => chooseRandom("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")).join("")
+//const chooseRandom = (arr) => arr[Math.floor(Math.random() * arr.length)]
+//const randomStr = () => Array(10).fill(null).map(l => chooseRandom("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")).join("")
 
 function allocate(value) {
     const id = randomStr();
@@ -261,18 +304,33 @@ class Context {
         const areTypes = (a,b,t) => isTypeSafe(a,new Union(t)) && isTypeSafe(b,new Union(t));
         const areNums = (a,b) => areTypes(a,b,["num"]);
         this.operation_compilers = {
-            "add": (_,target,aref,bref,a,b) => {
-                if (areNums(a,b))
-                    return [`add ${target.id} ${aref} ${bref}`,"num"];
-                if (areTypes(a,b,["str","num"]))
-                    return [`add ${target.id} emptystring ${aref} space ${bref}`,"str"];
+            "add": (_,target,aref,bref,atype,btype) => {
+                if (areNums(atype,btype))
+                    return `add ${target.id} ${aref} ${bref}`;
+                if (areTypes(atype,btype,["str","num"]))
+                    return `add ${target.id} emptystring ${aref} space ${bref}`;
             },
-            "join": (_,target,aref,bref,a,b) => areTypes(a,b,["str","num"]) ? [`add ${target.id} emptystring ${aref} ${bref}`,"str"] : null,
-            "sub": (_,target,aref,bref,a,b) => areNums(a,b) ? [`sub ${target.id} ${aref} ${bref}`,"str"] : null,
-            "mul": (_,target,aref,bref,a,b) => areNums(a,b) ? [`mul ${target.id} ${aref} ${bref}`,"str"] : null,
-            "div": (_,target,aref,bref,a,b) => areNums(a,b) ? [`div ${target.id} ${aref} ${bref}`,"str"] : null,
-            "pow": (_,target,aref,bref,a,b) => areNums(a,b) ? [`pow ${target.id} ${aref} ${bref}`,"str"] : null,
-            "mod": (_,target,aref,bref,a,b) => areNums(a,b) ? [`mod ${target.id} ${aref} ${bref}`,"str"] : null
+            "join": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} ${bref}` : null,
+            "sub": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sub ${target.id} ${aref} ${bref}` : null,
+            "mul": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mul ${target.id} ${aref} ${bref}` : null,
+            "div": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `div ${target.id} ${aref} ${bref}` : null,
+            "pow": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `pow ${target.id} ${aref} ${bref}` : null,
+            "mod": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mod ${target.id} ${aref} ${bref}` : null,
+        
+            "invert": (_,target,aref,bref,atype,btype) => `inv ${target.id} ${aref}`,
+            "boolify": (_,target,aref,bref,atype,btype) => `tobool ${target.id} ${aref}`,
+            "positive": (_,target,aref,bref,atype,btype) => {
+                if (!isTypeSafe(atype,new Union(["num","bool"])))
+                    return null;
+                const temp = randomStr();
+                return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+            },
+            "negative": (_,target,aref,bref,atype,btype) => {
+                if (!isTypeSafe(atype,new Union(["num","bool"])))
+                    return null;
+                const temp = randomStr();
+                return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+            },
         }
         this.operation_types = {
             "add": (_,a,b) => areNums(a,b) ? "num" : areTypes(a,b,["str","num"]) ? "str" : null,
@@ -281,8 +339,51 @@ class Context {
             "mul": (_,a,b) => areNums(a,b) ? "num" : null,
             "div": (_,a,b) => areNums(a,b) ? "num" : null,
             "pow": (_,a,b) => areNums(a,b) ? "num" : null,
-            "mod": (_,a,b) => areNums(a,b) ? "num" : null
+            "mod": (_,a,b) => areNums(a,b) ? "num" : null,
+
+            "invert": (_,a,b) => "bool",
+            "boolify": (_,a,b) => "bool",
+            "positive": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
+            "negative": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
         }
+        this.operation_names = {
+            "+": "add",
+            "++": "join",
+            "-": "sub",
+            "*": "mul",
+            "/": "div",
+            "^": "pow",
+            "%": "mod"
+        }
+        this.comparison_compilers = {
+            "equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+            "not_equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} true`,
+            "greater": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+            "smaller": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+            "greater_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
+            "smaller_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
+            "type_equal": (_1,target,_2,_3,atype,btype) => `set bool ${target.id} ${isTypeSafe(atype,btype)}`
+        }
+        this.worded_operation_compilers = {
+            "to": (context,target,aref,bref,atype,btype) => {
+                if (areNums(atype,btype)) {
+                    const temp1 = randomStr(),
+                        temp2 = randomStr();
+                    return `
+                    dupe ${temp1} ${aref}
+                    set obj ${target.id} []
+                    : ${temp2}
+                    arr add ${target.id} ${temp1}
+                    jsi ${temp2} ${temp1} ${bref}
+                    `.split("\n").map(l => l.trim()).join("\n").trim()
+                }
+            }
+        }
+        this.worded_operation_types = {
+            "to": (context,atype,btype) => areNums(atype,btype) ? new TypedValueType(new Type("Arr"), new Type("num")) : null
+        }
+        this.operation_compilers = {...this.operation_compilers, ...this.worded_operation_compilers};
+        this.operation_types = {...this.operation_types, ...this.worded_operation_types};
     }
 }
 class ParseContext extends Context {
@@ -313,8 +414,10 @@ class CompileContext extends Context {
         this.text = "";
         this.functionText = "";
         this.functionDataLayers = [];
+        this.compiledFunctions = [];
         this.variableGrabs = [];
         this.variableSets = [];
+        this.packages = {};
 
         this.scope = new Scope({
             "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`)
@@ -417,20 +520,27 @@ class ScopeLayer {
     }
 }
 
-function isTypeSafe(typea,compare) {
-    if (typea instanceof Type) {
-        typea = typea.name;
+function isTypeSafe(type,compare) {
+    if (compare instanceof Union)
+        return compare.elements.reduce((acc,v) => acc || isTypeSafeStrict(type,v), false);
+    return isTypeSafeStrict(type,compare);
+}
+
+function isTypeSafeStrict(type,compare) {
+    if (type instanceof TypedValueType && compare instanceof TypedValueType) {
+        return isTypeSafeStrict(type.baseType,compare.baseType) && isTypeSafeStrict(type.valueType,compare.valueType);
     }
-    if (compare instanceof Type) {
+    if (type instanceof Type)
+        type = type.name;
+    if (compare instanceof Type)
         compare = compare.name;
-    }
-    if (compare instanceof Union) {
-        return compare.elements.reduce((acc,v) => acc || isTypeSafe(typea,v), false);
-    }
-    if (compare == "void") {
+    if (compare instanceof Union)
+        throw Error("attempt to use a union for a strict type check");
+    if (type === ".any" || compare === ".any")
+        return true;
+    if (compare == "void")
         compare = "null";
-    }
-    return typea === compare || compare === "any";
+    return type === compare;
 }
 
 class Node {
@@ -443,13 +553,88 @@ class Node {
 
     parse(code, context) {
         if (!context) throw Error("no context");
-        //console.trace(code);
+        code = removeComments(code);
+
+        /* prefixes */ {
+            this.kind = "operation";
+            switch (code[0]) {
+                case "!":
+                    this.type = "invert";
+                    this.a = new Node(code.slice(1), context);
+                    return;
+                case "?":
+                    this.type = "boolify";
+                    this.a = new Node(code.slice(1), context);
+                    return;
+                    
+                case "+":
+                    this.type = "positive";
+                    this.a = new Node(code.slice(1), context);
+                    return;
+                case "-":
+                    this.type = "negative";
+                    this.a = new Node(code.slice(1), context);
+                    return;
+            }
+        }
+
+        /* obj */ {
+            if (is(code, "curly")) {
+                const elements = split(code.slice(1,-1), ",").filter(t => t !== ",");
+                try {
+                    this.kind = "object";
+                    this.elements = elements.map(e => {
+                        const tokens = split(e,":").filter(t => t !== ":");
+                        let key = tokens[0];
+                        if (is(tokens[0], "single-q") || is(tokens[0], "double-q") || is(tokens[0], "back-q"))
+                            key = tokens[0].slice(1,-1);
+                        if (tokens.length != 2)
+                            throw Error("unknown object key-pair syntax: " + e)
+                        return [key,new Node(tokens[1], context)];
+                    });
+                    return;
+                } catch {}
+            }
+        }
 
         /* segment */ {
+            const colons = split(code, ":");
+
             const elements = split(code, ";", true).filter(t => t !== ";");
             if (has(code, ";") || elements.length > 1 && elements[elements.length-1] !== "()") {
                 this.kind = "segment";
                 this.elements = elements.map(e => new Node(e, context)).filter(e => !!e);
+                return;
+            }
+
+            const elements2 = split(code.slice(1,-1), ";", true).filter(t => t !== ";");
+            if (is(code, "curly") && elements2.length > 0) {
+                this.kind = "segment";
+                this.elements = elements2.map(e => new Node(e, context)).filter(e => !!e);
+                return;
+            }
+        }
+
+        /* import */ {
+            const spaceTokens = split(code, " ").filter(t => t != " ");
+            let path;
+            if (spaceTokens.length >= 2 && spaceTokens.shift() == "import" && /^[A-Za-z0-9_/]+$/.test(path = spaceTokens.shift())) {
+                let name = path.split("/").pop();
+
+                let token;
+                while (token = spaceTokens.shift()) {
+                    switch (token) {
+                        case "as":
+                            name = spaceTokens.shift();
+                            break;
+                        default:
+                            throw Error("unexpected token " + token);
+                    }
+                }
+
+                this.kind = "import";
+                this.path = path;
+                this.name = name;
                 return;
             }
         }
@@ -500,6 +685,7 @@ class Node {
             const chars = ["=","+","-","*","/","^","%"];
             const tokens = split(code,chars);
             let key = tokens.shift();
+            let type;
             let op = "";
             let token;
             while (chars.includes(token = tokens.shift())) op += token;
@@ -515,26 +701,114 @@ class Node {
                 "^": "pow",
                 "%": "mod"
             }
-            if (Object.keys(types).map(k => k + "=").includes(op)) {
+            const spaceTokens = split(key, " ").filter(t => t != " ");
+            if (op == "=" && spaceTokens.length >= 2 && /^[A-Za-z0-9_| <>]+$/.test(spaceTokens.slice(0,-1).join(" ")) && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
+                key = spaceTokens.pop();
+                type = new Node(spaceTokens.join(" "),context);
+            }
+            if (Object.keys(types).map(k => k + "=").includes(op) && /^[A-Za-z0-9_|]+$/.test(key)) {
                 this.kind = "assignment";
                 this.key = key;
                 this.type = types[op.slice(0,-1)];
                 this.value = new Node(tokens.join(""), context);
+                if (type)
+                    this.varType = type;
                 return;
             }
         }
 
+        /* function */ {
+            const bracketTokens = split(code, "bracket");
+            const spaceTokens = split(bracketTokens[0], " ", null, true).filter(t => t !== " ");
+            if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
+                if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
+                    this.kind = "function";
+                    this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
+                    this.key = spaceTokens[spaceTokens.length-1];
+                    context.functionArgLayers.push(this.params);
+                    this.content = new Node(bracketTokens[2].slice(1,-1), context);
+                    context.functionArgLayers.pop();
+                    this.type = new Node(spaceTokens.slice(0,-1).join(" "), context);
+                    return;
+                }
+            } else if (bracketTokens.length == 3) {
+                if (is(bracketTokens[1],"bracket"), is(bracketTokens[2], "curly")) {
+                    this.kind = "function";
+                    this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
+                    this.key = "INL§" + Math.random().toString();
+                    context.functionArgLayers.push(this.params);
+                    this.content = new Node(bracketTokens[2].slice(1,-1), context);
+                    context.functionArgLayers.pop();
+                    this.type = new Node(spaceTokens[0], context);
+                    return;
+                }
+            }
+        }
+        
+        /* union */ {
+            const tokens = split(code,"|",null,true).filter(t => t !== "|");
+            if (tokens.length > 1) {
+                this.kind = "union";
+                this.elements = tokens.map(e => new Node(e, context));
+                return;
+            }
+        }
+
+        /* typedValueType */ {
+            const tokens = split(code, "arrow");
+            if (tokens.length == 2 && is(tokens[1],"arrow") && /^[A-Za-z0-9_]+$/.test(tokens[0])) {
+                this.kind = "typedValueType";
+                this.baseType = new Node(tokens[0], context);
+                this.valueType = new Node(tokens[1].slice(1,-1), context);
+                return;
+            }
+        }
+        
+        /* comparison */ {
+            const chars = ["=","!","?",">","<"];
+            const tokens = split(code,chars);
+            let a = tokens.shift();
+            let op = "";
+            let token;
+            while (chars.includes(token = tokens.shift())) op += token;
+            if (token) tokens.unshift(token);
+            const types = {
+                "==": "equal",
+                "!=": "not_equal",
+                ">=": "greater_equal",
+                "<=": "smaller_equal",
+                ">": "greater",
+                "<": "smaller",
+                "?=": "type_equal"
+            }
+            if (Object.keys(types).map(k => k).includes(op)) {
+                this.kind = "comparison";
+                this.a = new Node(a, context);
+                this.type = types[op];
+                this.b = new Node(tokens.join(""), context);
+                return;
+            }
+        }
+
+        /* worded operation */ {
+            const tokens = split(code, " ").filter(t => t != " ");
+            if (tokens.length > 2) {
+                const a = tokens.shift();
+                const op = tokens.shift();
+                const b = tokens.join("");
+                if (Object.keys(context.worded_operation_compilers).includes(op)) {
+                    this.kind = "operation";
+                    this.type = op;
+                    this.a = new Node(a, context);
+                    this.b = new Node(b, context);
+                    return;
+                }
+            }
+        }
+
         /* math */ {
-            const ops = ["+","-","*","/","^","%"];
-            const operations = {
-                "+": "add",
-                "++": "join",
-                "-": "sub",
-                "*": "mul",
-                "/": "div",
-                "^": "pow",
-                "%": "mod"
-            };
+            const operations = context.operation_names;
+            const ops = Object.keys(operations);
             const tokens = split(code, ops);
             const newTokens = [];
             for (let i = 0; i < tokens.length; i++) {
@@ -562,7 +836,7 @@ class Node {
 
         /* execution */ {
             const bracketTokens = split(code, "bracket");
-            if (bracketTokens.length > 1 && is(bracketTokens[bracketTokens.length - 1],"bracket")) {
+            if (bracketTokens.length > 1 && is(bracketTokens[bracketTokens.length - 1],"bracket") && bracketTokens.slice(0,-1).join("").length > 0) {
                 this.kind = "execution";
                 this.args = split(bracketTokens[bracketTokens.length - 1].slice(1,-1),",").filter(t => t != ",").map(p => new Node(p, context));
                 this.key = new Node(bracketTokens.slice(0,-1).join(""), context);
@@ -570,39 +844,23 @@ class Node {
             }
         }
 
-        /* function */ {
-            const bracketTokens = split(code, "bracket");
-            const spaceTokens = split(bracketTokens[0], " ").filter(t => t !== " ");
-            if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
-                if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
-                    this.kind = "function";
-                    this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
-                    this.key = spaceTokens[spaceTokens.length-1];
-                    context.functionArgLayers.push(this.params);
-                    this.content = new Node(bracketTokens[2].slice(1,-1), context);
-                    context.functionArgLayers.pop();
-                    this.type = new Node(spaceTokens.slice(0,-1).join(" "), context);
-                    return;
-                }
-            } else if (bracketTokens.length == 3) {
-                if (is(bracketTokens[1],"bracket"), is(bracketTokens[2], "curly")) {
-                    this.kind = "function";
-                    this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
-                    this.key = "INL§" + Math.random().toString();
-                    context.functionArgLayers.push(this.params);
-                    this.content = new Node(bracketTokens[2].slice(1,-1), context);
-                    context.functionArgLayers.pop();
-                    this.type = new Node(spaceTokens[0], context);
-                    return;
-                }
+        /* key */ {
+            const tokens = split(code, "square");
+            if (tokens.length > 1 && is(tokens[tokens.length-1],"square")) {
+                console.log(tokens);
+                this.kind = "key";
+                this.key = new Node(tokens.pop().slice(1,-1), context);
+                this.value = new Node(tokens.join(""), context);
+                return;
             }
         }
-        
-        /* union */ {
-            const tokens = split(code,"|").filter(t => t !== "|");
-            if (tokens.length > 1) {
-                this.kind = "union";
-                this.elements = tokens.map(e => new Node(e, context));
+
+        /* arr */ {
+            if (is(code, "square")) {
+                const elements = split(code.slice(1,-1), ",").filter(t => t !== ",");
+                
+                this.kind = "array";
+                this.elements = elements.map(e => new Node(e, context));
                 return;
             }
         }
@@ -628,14 +886,25 @@ class Node {
             }
         }
 
+        /* package method */ {
+            const tokens = split(code, ":").filter(t => t != ":");
+            if (tokens.length == 2) {
+                this.kind = "package_method";
+                this.package = tokens[0];
+                this.key = tokens[1];
+                return;
+            }
+        }
+
         /* constants */ {
             /* types */ {
                 const types = [
                     "str",
                     "num",
+                    "bool",
 
-                    "obj",
-                    "arr",
+                    "Obj",
+                    "Arr",
                     
                     "void"
                 ];
@@ -696,35 +965,84 @@ class Node {
     compile(context, target, flags) {
         if (!context) throw Error("no context");
         if (target && !(target instanceof Target)) throw Error("no valid target");
-        //console.log(this);        
 
         switch (this.kind) {
             case "segment": {
-                context.scope.newLayer();
+                if (!flags?.includes("noscope"))
+                    context.scope.newLayer();
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
                     element.compile(context);
                 }
-                context.scope.exitLayer();
+                if (!flags?.includes("noscope"))
+                    context.scope.exitLayer();
                 if (target) {
                     context.text += `set null ${target.id}\n`;
                 }
                 break;
             }
-            case "empty": return;
+            case "empty":
+                if (target)
+                    context.text += `set null ${target.id}\n`;
+                break;
+            case "import": {
+                let current = context.fs;
+                const tokens = this.path.split("/");
+                for (let i = 0; i < tokens.length; i++) {
+                    const token = tokens[i];
+                    if (current == null)
+                        break;
+                    current = current[token];
+                }
+                if (!current)
+                    throw Error("unknown package " + this.path + ".fcl")
+                
+                context.packages[this.name] = current;
+                current.node.import(context, this.name);
+
+                break;
+            }
 
             case "execution": {
+                if (this.key.formattedCode === "raw") {
+                    context.text += (this.args.map(n => n.kind == "string" ? n.value : "").join("\n") + "\n").replace(".target", target?.id);
+                    return;
+                }
                 const func = this.key.getValue(context);
-                const argKeys = this.args.map(a => a.compileKey(context));
-                this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
-
                 if (func instanceof CompiledFunc) {
+                    const argKeys = this.args.map(a => a.compileKey(context));
+                    this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
                     context.text += func.compileFunc(argKeys, target) + "\n";
                 } else if (func instanceof DefinedFunc) {
+                    let argKeys;
+                    if (func.params) {
+                        argKeys = [];
+                        for (let i = 0; i < func.params.length; i++) {
+                            const param = func.params[i];
+                            const arg = this.args[i];
+                            if (arg == null && param.default == null) {
+                                throw Error(`argument ${param.name} not supplied.`);
+                            } else if (!arg && param.default) {
+                                const key = param.default.compileKey(context);
+                                param.default.compile(context, new Target(key));
+                                argKeys.push(key);
+                            } else {
+                                const key = arg.compileKey(context);
+                                arg.compile(context, new Target(key));
+                                argKeys.push(key);
+                                const t = arg.getType(context);
+                                if (!isTypeSafe(t,param.type)) {
+                                    throw Error("expected " + t.getName() + " got " + new Type(param.type).getName())
+                                }
+                            }
+                        }
+                    }
                     if (target)
                         context.text += `callget ${target.id} ${func.key} ${argKeys.join(" ")}\n`;
                     else
                         context.text += `call ${func.key} ${argKeys.join(" ")}\n`;
+                } else {
+                    throw Error(this.key.formattedCode + " is not a function");
                 }
                 
                 break;
@@ -736,14 +1054,14 @@ class Node {
                         if (this.value) {
                             const key = this.value.compileKey(context);
                             this.value.compile(context, new Target(key));
-                            const value = this.value.getValue(context);
-                            if (topLayer && !isTypeSafe(value.type,topLayer.return_type)) {
-                                throw Error(`attempt to return a value of type ${new Type(value.type).stringify()} when the function should return ${topLayer.return_type.stringify()}`)
+                            const type = this.value.getType(context);
+                            if (topLayer && !isTypeSafe(type,topLayer.return_type)) {
+                                throw Error(`attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`)
                             }
                             context.text += `ret ${key}\n`;
                         } else {
                             if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type)) {
-                                throw Error(`attempt to return null when the function should return ${topLayer.return_type.stringify()}`)
+                                throw Error(`attempt to return null when the function should return ${topLayer.return_type.getName()}`)
                             }
                         }
                         break;
@@ -757,17 +1075,16 @@ class Node {
                 const operation = context.operation_compilers[this.type];
                 if (operation && target) {
                     const a_key = this.a.compileKey(context),
-                        b_key = this.b.compileKey(context);
+                        b_key = this.b?.compileKey(context);
                     const a_type = this.a.getType(context),
-                        b_type = this.b.getType(context);
+                        b_type = this.b?.getType(context);
                     this.a.compile(context, new Target(a_key));
-                    this.b.compile(context, new Target(b_key));
-                    const out = operation(context, target, a_key, b_key, a_type, b_type)
+                    this.b?.compile(context, new Target(b_key));
+                    const out = operation(context, target, a_key, b_key, a_type, b_type);
                     if (!out) {
-                        throw Error(`cannot run ${this.type} operation on values of type ${a_type} and ${b_type}`)
-                    }
-                    if (Array.isArray(out)) {
-                        context.text += out[0] + "\n";
+                        throw Error(`cannot run ${this.type} operation on values of type ${a_type.getName()} ${b_type != null ? `and ${b_type?.getName()}` : ``}`)
+                    } else {
+                        context.text += out + "\n";
                     }
                 }
                 break;
@@ -782,7 +1099,6 @@ class Node {
                         this.content.compile(context);
                         const contentTxt = context.text;
                         context.text = txt;
-                        console.log(context);
                         context.text += contentTxt;
                         context.text += `quitTo ${lbl}\n`;
                         break;
@@ -838,40 +1154,96 @@ class Node {
                 break;
             }
             case "assignment": {
-                let targetKey = "var_" + this.key;
-                let targetType = new Node(this.key, new ParseContext()).getType(context);
-                let isVariable = true;
-                if (this.type == "default") {
-                    this.value.compile(context, new Target(targetKey));
-                    if (isVariable)
-                        context.scope.assign(this.key, this.value.getValue());
-                    return;
+                // the name of the assignment's output
+                let targetRef;
+                let targetType;
+
+                // variable
+                if (true) {
+                    let err;
+                    try {
+                        targetType = new Node(this.key,new ParseContext()).getType(context);
+                        const valueType = this.value.getType(context);
+                        if (targetType == null ? false : !isTypeSafeStrict(targetType,valueType)) {
+                            err = Error("attempt to assign variable to " + valueType.getName() + " while the variable should be a " + targetType.getName());
+                        }
+                    } catch (e) {
+                        switch (this.type) {
+                            case "default":
+                                targetType = this.value.getType(context);
+                                const wantedType = this?.varType?.getValue(context);
+                                if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType)) {
+                                    throw Error("attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName())
+                                }
+                                break;
+                            default:
+                                throw e;
+                        }
+                    }
+                    if (err)
+                        throw err;
+                    try {
+                        targetRef = context.scope.assign(this.key, this.value.getValue(context));
+                    } catch {
+                        targetRef = context.scope.assign(this.key, new TypedValue(targetType?.name));
+                    }
                 }
-                const valueKey = this.value.compileKey(context);
-                const valueType = this.value.getType(context);
-                this.value.compile(context, new Target(valueKey));
+
+                // compile the assignment's value to the target
                 switch (this.type) {
-                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": {
-                        const operation = context.operation_compilers[this.type];
-                        const out = operation(context, new Target(targetKey), targetKey, valueKey, targetType, valueType);
-                        const typOperation = context.operation_types[this.type];
-                        const typOut = typOperation(context, targetType, valueType);
-                        if (!out || !typOut) {
-                            throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.stringify()} and ${valueType.stringify()}`)
-                        }
-                        if (Array.isArray(out)) {
-                            context.text += out[0] + "\n";
-                        }
-                        context.scope.assign(this.key, new TypedValue(this.value.getType(context)));
+                    case "default": {
+                        this.value.compile(context, new Target(targetRef));
                         break;
+                    }
+                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": {
+                        const valueRef = randomStr();
+                        const valueType = this.value.getType(context);
+
+                        const operation = context.operation_compilers[this.type];
+                        this.value.compile(context, new Target(valueRef));
+                        const out = operation(context, new Target(targetRef), targetRef, valueRef, targetType, valueType);
+
+                        if (!out) {
+                            throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`)
+                        }
+                        context.text += out + "\n";
+                        
+                        const operationType = context.operation_types[this.type];
+                        const outType = operationType(context, targetType, valueType);
+
+                        if (!outType) {
+                            throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`)
+                        }
+                        
+                        try {
+                            context.scope.assign(this.key, this.value.getValue(context));
+                        } catch {
+                            context.scope.assign(this.key, new TypedValue(outType.name));
+                        }
+                        break;
+                    }
+                }
+            }
+            case "comparison": {
+                const comparison = context.comparison_compilers[this.type];
+                if (comparison && target) {
+                    const a_key = this.a.compileKey(context),
+                        b_key = this.b.compileKey(context);
+                    const a_type = this.a.getType(context),
+                        b_type = this.b.getType(context);
+                    this.a.compile(context, new Target(a_key));
+                    this.b.compile(context, new Target(b_key));
+                    const out = comparison(context, target, a_key, b_key, a_type, b_type);
+                    if (!out) {
+                        throw Error(`cannot run ${this.type} comparison on values of type ${a_type} and ${b_type}`)
+                    } else {
+                        context.text += out + "\n";
                     }
                 }
                 break;
             }
 
-            case "variable":
-                context.text += target != null && !target.id.startsWith("var_") ? `dupe ${target.id} var_${this.key}\n` : "";
-                break;
+            case "variable": break;
             case "argument":
                 context.text += target != null && !target.id.startsWith("arg") ? `dupe ${target.id} arg${this.index}\n` : "";
                 break;
@@ -884,6 +1256,17 @@ class Node {
                     "null": `set null ${target.id}\n`
                 }[this.name]
                 break;
+            case "key": {
+                console.log(this);
+                if (target != null) {
+                    const keyRef = this.key.compileKey(context);
+                    this.key.compile(context, new Target(keyRef));
+                    const valueRef = this.value.compileKey(context);
+                    this.value.compile(context, new Target(valueRef));
+                    context.text += `obj get ${target.id} ${valueRef} ${keyRef}\n`;
+                }
+                return;
+            }
 
             case "string":
                 context.text += target != null ? `set str ${target.id} ${fblExcape(this.value)}\n` : "";
@@ -893,24 +1276,29 @@ class Node {
                 return
             case "function": {
                 const type = this.type.getValue(context);
-                if (!type || !(type instanceof Type || type instanceof Union)) throw Error("invalid type " + this.type.formattedCode)
-                const saveText = context.text;
-                context.text = `~ ${this.key}\n`;
-                context.functionDataLayers.push({"key":this.kind,"return_type":type,"branch":[],"args":this.args});
-                if (type.name !== "null") {
-                    const scanContext = new ScanContext();
-                    this.content.scan(scanContext);
-                    if (!scanContext.returns) {
-                        throw Error("not all code paths return a value");
+                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode)
+                
+                if (!context.compiledFunctions.includes(this.key)) {
+                    const saveText = context.text;
+                    context.text = `~ ${this.key}\n`;
+                    context.functionDataLayers.push({"key":this.kind,"return_type":type,"branch":[],"args":this.params});
+                    if (type.name !== "null") {
+                        const scanContext = new ScanContext();
+                        this.content.scan(scanContext);
+                        if (!scanContext.returns) {
+                            throw Error("not all code paths return a value");
+                        }
                     }
+                    context.scope.newLayer(Object.fromEntries(this.params.map((p,i) => [`.arg${i}`,new TypedValue(p.type)])));
+                    this.content.compile(context, null, ["noscope"]);
+                    context.scope.exitLayer();
+                    context.functionDataLayers.pop();
+                    context.text += "~\n";
+                    context.functionText += context.text;
+                    context.text = saveText;
+                    context.compiledFunctions.push(this.key);
                 }
-                this.content.compile(context);
-                context.functionDataLayers.pop();
-                context.text += "~\n";
-                context.functionText += context.text;
-                context.text = saveText;
-
-                const value = new DefinedFunc(this.key, type);
+                const value = new DefinedFunc(this.key, type, this.params);
                 context.scope.assignTop(this.key, value);
 
                 if (target) {
@@ -918,7 +1306,56 @@ class Node {
                 }
                 break;
             }
-
+            case "array": {
+                let staticArr = [];
+                this.getValue(context);
+                if (target != null) {
+                    let staticIndexes = [];
+                    for (let i = 0; i < this.elements.length; i++) {
+                        const element = this.elements[i];
+                        switch (element.kind) {
+                            case "string":
+                                staticArr.push(element.value);
+                                staticIndexes.push(i);
+                                break;
+                        }
+                    }
+                    context.text += `set obj ${target.id} ${JSON.stringify(staticArr)}\n`;
+                    for (let i = 0; i < this.elements.length; i++) {
+                        if (staticIndexes.includes(i)) continue;
+                        const element = this.elements[i];
+                        const key = element.compileKey(context);
+                        element.compile(context, new Target(key));
+                        context.text += `arr add ${target.id} ${key}\n`;
+                    }
+                }
+                return;
+            }
+            case "object": {
+                let staticKeyVals = {};
+                this.getValue(context);
+                if (target != null) {
+                    let staticPairs = [];
+                    for (let i = 0; i < this.elements.length; i++) {
+                        const [key, element] = this.elements[i];
+                        if (element.kind === "string") {
+                            staticKeyVals[key] = element.value;
+                            staticPairs.push(i);
+                        }
+                    }
+                    context.text += `set obj ${target.id} ${JSON.stringify(staticKeyVals)}\n`;
+                    for (let i = 0; i < this.elements.length; i++) {
+                        if (staticPairs.includes(i)) continue;
+                        const [key, element] = this.elements[i];
+                        const valueKey = element.compileKey(context);
+                        const keyKey = randomStr();
+                        element.compile(context, new Target(valueKey));
+                        context.text += `set str ${keyKey} ${fblExcape(key)}\nobj set ${target.id} ${keyKey} ${valueKey}\n`;
+                    }
+                }
+                return;
+            }
+            
             default:
                 throw Error("cannot compile node " + this.kind);
         }
@@ -927,11 +1364,12 @@ class Node {
     scan(context) {
         switch (this.kind) {
             case "segment": {
+                const context2 = new ScanContext();
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
-                    element.scan(context);
+                    element.scan(context2);
                 }
-                break;
+                context.returns ||= context2.returns;
             }
             case "statement": {
                 if (this.key == "return") {
@@ -942,10 +1380,27 @@ class Node {
         }
     }
 
+    import(context, name) {
+        switch (this.kind) {
+            case "function": {
+                const oldName = this.key;
+                this.key = ":" + name + ":" + this.key;
+                this.compile(context);
+                //context.scope.assign(`:${name}:${this.key}`, this.getValue(context));
+                this.key = oldName;
+            }
+        }
+    }
+
     compileKey(context) {
         switch (this.kind) {
             case "variable":
-                return "var_" + this.key;
+                if (!context.variableGrabs.includes(this.key))
+                    context.variableGrabs.push(this.key);
+                const val = context.scope.get(this.key);
+                if (!val)
+                    throw Error(`${this.key} is not defined`);
+                return val.ref;
             case "argument":
                 return "arg" + this.index;
         }
@@ -954,6 +1409,9 @@ class Node {
 
     getValue(context) {
         switch (this.kind) {
+            case "segment": return this.elements[this.elements.length-1].getType(context);
+            case "empty": return new TypedValue("null");
+
             case "variable": {
                 if (!context.variableGrabs.includes(this.key))
                     context.variableGrabs.push(this.key);
@@ -962,38 +1420,90 @@ class Node {
                     throw Error(`${this.key} is not defined`);
                 return val;
             }
-            case "argument": {
-                const top = context.functionDataLayers[context.functionDataLayers.length - 1];
-                console.log(top);
-                break;
-            }
+            case "argument":
+                return new TypedValue(context.scope.get(`.arg${this.index}`).type);
+            case "constant":
+                return {
+                    "true": new TypedValue("bool"),
+                    "false": new TypedValue("bool"),
+
+                    "null": new TypedValue("null")
+                }[this.name];
+            case "package_method":
+                return context.scope.get(`:${this.package}:${this.key}`);
             
             case "string":
                 return new StringValue(this.value);
             case "number":
                 return new NumberValue(this.value);
             case "function":
-                this.compile(context);
-                return new DefinedFunc(this.key);
+                if (!context.compiledFunctions.includes(this.key)) {
+                    this.compile(context);
+                    context.compiledFunctions.push(this.key);
+                }
+                return new DefinedFunc(this.key, this.type.getValue(context), this.params);
             case "type":
                 return new Type(this.name);
+            case "typedValueType":
+                return new TypedValueType(this.baseType.getValue(), this.valueType.getValue());
             case "union":
                 return new Union(this.elements.map(e => e.getValue(context)));
-            
+            case "array": {
+                const items = [];
+                for (let i = 0; i < this.elements.length; i++) {
+                    const element = this.elements[i];
+                    const elementType = element.getType(context);
+                    if (items.type == null || isTypeSafeStrict(elementType,items.type)) {
+                        items.type = elementType;
+                    } else {
+                        throw Error(`attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} array`);
+                    }
+                }
+                return new ArrayValue(items.type);
+            }
+            case "object": {
+                const items = {};
+                for (let i = 0; i < this.elements.length; i++) {
+                    const [key, element] = this.elements[i];
+                    const elementType = element.getType(context);
+                    if (items.type == null || isTypeSafeStrict(elementType, items.type)) {
+                        items.type = elementType;
+                    } else {
+                        throw Error(`attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} object`);
+                    }
+                }
+                return new ObjectValue(items.type);
+            }
+
             default:
                 throw Error("cannot get value of " + this.kind);
         }
     }
     getType(context) {
         switch (this.kind) {
+            case "empty": return new Type("null");
+
+            case "variable":
+                const val = context.scope.get(this.key);
+                if (!val)
+                    throw Error(`${this.key} is not defined`);
+                return new Type(val?.type);
+            
             case "execution":
+                if (this.key.formattedCode == "raw") return new Type(".any");
                 return this.key.getValue(context)?.return_type;
             case "operation":
                 const temp1 = context.operation_types[this.type];
                 if (temp1) {
-                    return new Type(temp1(context,this.a.getType(context),this.b.getType(context)));
+                    const out = temp1(context,this.a.getType(context),this.b.getType(context));
+                    return typeof out == "string" ? new Type(out) : out;
                 }
                 break;
+
+            case "array": case "object": {
+                const val = this.getValue(context);
+                return new TypedValueType(new Type(val.type), val.valueType);
+            }
         }
         return new Type(this.getValue(context)?.type);
     }
@@ -1005,7 +1515,7 @@ class Parameter {
     }
 
     parse(code, context) {
-        this.default = new Node("undefined", context);
+        this.default = null;
         const assignmentTokens = split(code, "=");
         if (assignmentTokens[1] === "=")
             this.default = new Node(assignmentTokens[2], context);
@@ -1027,8 +1537,8 @@ class Value {
         this.type = "unknown";
     }
 
-    get_type(context) {
-        return this.type;
+    getValueType(context) {
+        return null;
     }
     compileTo(context, target) {
 
@@ -1063,6 +1573,30 @@ class NumberValue extends Value {
         return this.value.toString();
     }
 }
+
+class ArrayValue extends Value {
+    constructor(type) {
+        super();
+        this.type = "Arr";
+        this.valueType = type;
+    }
+
+    getValueType(context) {
+        return this.valueType;
+    }
+}
+class ObjectValue extends Value {
+    constructor(type) {
+        super();
+        this.type = "Obj";
+        this.valueType = type;
+    }
+
+    getValueType(context) {
+        return this.valueType;
+    }
+}
+
 class TypedValue extends Value {
     constructor(type) {
         super();
@@ -1079,6 +1613,21 @@ class Type {
     stringify() {
         return `<type:${this.name}>`;
     }
+    getName() {
+        return this.name;
+    }
+}
+class TypedValueType {
+    constructor(baseType, valueType) {
+        this.baseType = baseType;
+        this.valueType = valueType;
+    }
+    stringify() {
+        return `<type:${this.baseType.getName()}<${this.valueType.getName()}>>`;
+    }
+    getName() {
+        return `${this.baseType.getName()}<${this.valueType.getName()}>`;
+    }
 }
 class Union extends Value {
     constructor(elements) {
@@ -1086,6 +1635,10 @@ class Union extends Value {
 
         this.type = "union";
         this.elements = elements;
+    }
+
+    stringify() {
+        return `<union:${this.elements.map(e => e.stringify()).join(",")}>`;
     }
 }
 
@@ -1108,11 +1661,12 @@ class Func extends Value {
     }
 }
 class DefinedFunc extends Func {
-    constructor(key, type) {
+    constructor(key, type, params) {
         super();
         this.funcType = "defined";
         this.key = key;
         this.return_type = type;
+        this.params = params;
     }
 
     compile_function_ref() {
@@ -1133,30 +1687,39 @@ class Script {
         this.node = new Node(code, new ParseContext());
     }
 
-    compile(context, target) {
+    compile(context, target, fs) {
         context ??= new CompileContext();
+        context.fs = fs;
         this.node.compile(context, target);
         return context.functionText + context.text;
     }
 }
 
-code = `
-num test(num wow) {
-    return wow;
+// NODEJSREQUIRED
+
+function getDefaultFs() {
+    return {
+        "Win": new Script(fs.readFileSync('D:/Flufi-OS/FCL/Win.fcl', 'utf8')),
+        "CFBL": new Script(fs.readFileSync('D:/Flufi-OS/FCL/CFBL.fcl', 'utf8'))
+    }
 }
 
-str crazy() {
-    return "proof:";
-}
+// NODE JS
 
-void main() {
-    t = "hi";
-    myNum = 5;
-    myNum += test(6);
-    myNum ++= 5;
-}
-`;
+const fs = require('fs');
 
-const script = new Script(code);
-//console.log(JSON.stringify(script, null, "    "));
-console.log(script.compile());
+const c = fs.readFileSync('node/code.fcl', 'utf8');
+console.time("parse");
+const script = new Script(c);
+//console.log(JSON.stringify(script, null, "  "));
+console.timeEnd("parse");
+const fclfs = getDefaultFs();
+console.time("compile");
+try {
+    const compiled = script.compile(null, null, fclfs);
+    console.timeEnd("compile");
+    fs.writeFileSync('node/code.fbl', compiled, 'utf8');
+} catch (e) {
+    fs.writeFileSync('node/code.fbl', e.toString(), 'utf8');
+    throw e;
+}

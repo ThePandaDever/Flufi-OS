@@ -1,12 +1,12 @@
-~ test
-set str tvkBv1Acb9 hi
-ret tvkBv1Acb9
-~
 ~ main
-set num xkWVa4r6N5 5
-set str 46t6PXIVLS hi
-add h2reZTlsjq emptystring xkWVa4r6N5 space 46t6PXIVLS
-print h2reZTlsjq
-set str d4N46Gj1XO hi
-print d4N46Gj1XO
+set obj rand1 []
+set num rand2 1
+arr add rand1 rand2
+set num rand3 2
+arr add rand1 rand3
+set num rand4 3
+arr add rand1 rand4
+set num rand6 2
+obj get rand5 rand1 rand6
+print rand5
 ~

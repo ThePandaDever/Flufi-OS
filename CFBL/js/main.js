@@ -1092,6 +1092,7 @@ function compileValue(code, name) {
 }
 
 function compileValueKey(code) {
+    console.log(funcArgs, code);
     return funcArgs.indexOf(code) >= 0 ? `arg${funcArgs.indexOf(code)}` : (isValidVariable(code) && !isNumeric(code)) ? "var_" + code : randomStr();
 }
 

@@ -1,1 +1,10 @@
-print hi("crazy","hmm")
+fn myFunc
+    return "crazy"
+end
+
+fn main
+    print "hi"
+    if false
+        print myFunc()
+    end
+end

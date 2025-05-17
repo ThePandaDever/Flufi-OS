@@ -1,4 +1,13 @@
-set str ZuBzVo9Zt1 crazy
-set str vd2F5AILgm hmm
-callget MYvYtz9HNA hi ZuBzVo9Zt1 vd2F5AILgm
-print MYvYtz9HNA
+~ myFunc
+set str yNpkyE9fGp crazy
+ret yNpkyE9fGp
+~
+~ main
+set str nAdlw7LMCp hi
+print nAdlw7LMCp
+set bool var_false false
+jn bwMTprjZm1 var_false
+callget JttRIcenjP myFunc 
+print JttRIcenjP
+: bwMTprjZm1
+~
