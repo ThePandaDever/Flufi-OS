@@ -1,3 +1,13 @@
+
+/* todo */ {
+    /* sequenced arrays */ {
+        /* syntax {
+        Seq<num,str,Arr<num>> = Seq[5, "hi", [3,6]]
+        } */
+    }
+}
+
+
 function split(text, type, useendbracket, arrow) {
     text = text ?? "";
     text = text.trim();
@@ -639,6 +649,68 @@ class Node {
             }
         }
 
+        /* structs */ {
+            const blockTokens = split(code, "curly");
+            const spaceTokens = split(blockTokens[0] ?? "", " ").filter(t => t != " ");
+            if (blockTokens.length == 2 && is(blockTokens[1], "curly") && spaceTokens.length == 2 && spaceTokens[0] === "struct" && /^[A-Za-z0-9_]+$/.test(spaceTokens[1])) {
+                this.kind = "struct_def";
+                this.name = spaceTokens[1];
+                this.content = split(blockTokens[1].slice(1,-1),";",true).filter(t => t !== ";").map(elem => {
+                    /* attribute */ {
+                        const tokens = split(elem,"=");
+                        if (tokens.length == 3 && /^[A-Za-z0-9_ ]+$/.test(tokens[0]) && tokens[1] == "=") {
+                            const value = new Node(tokens[2], context);
+                            let type = value.getType(context);
+                            let name;
+
+                            const tokens2 = split(tokens[0], " ").filter(t => t != " ");
+                            if (tokens2.length == 2) {
+                                const oldType = type;
+                                type = new Node(tokens2[0], context).getValue(context);
+                                name = tokens2[1];
+                                if (!isTypeSafeStrict(oldType, type))
+                                    throw Error("attempt to have an attribute as a " + type.getName() + " while the value is a " + oldType.getName());
+                            } else if (tokens2.length == 1) {
+                                name = tokens2[0];
+                            } else {
+                                throw Error("unknown key syntax " + tokens[0].split("\n").map(l => l.trim()).join("\\n"))
+                            }
+
+                            return {
+                                "kind": "attribute",
+                                "type": type,
+                                "name": name,
+                                "value": value
+                            }
+                        }
+                    }
+                    /* function */ {
+                        const bracketTokens = split(elem, "bracket");
+                        const spaceTokens = split(bracketTokens[0], " ", null, true).filter(t => t !== " ");
+                        if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
+                            if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
+                                const params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
+                                const name = spaceTokens[spaceTokens.length-1];
+                                context.functionArgLayers.push(this.params);
+                                const content = new Node(bracketTokens[2].slice(1,-1), context);
+                                context.functionArgLayers.pop();
+                                const type = new Node(spaceTokens.slice(0,-1).join(" "), context);
+                                return {
+                                    "kind": "function",
+                                    "name": name,
+                                    "content": content,
+                                    "type": type,
+                                    "params": params
+                                }
+                            }
+                        }
+                    }
+                    throw Error("unexpected tokens: " + elem.split("\n").map(l => l.trim()).join("\\n"));
+                });
+                return;
+            }
+        }
+
         /* statement */ {
             const spaceTokens = split(code, " ").filter(t => t !== " ");
             /* has a value */ {
@@ -690,6 +762,7 @@ class Node {
             let token;
             while (chars.includes(token = tokens.shift())) op += token;
             if (token) tokens.unshift(token);
+
             const types = {
                 "": "default",
 
@@ -701,12 +774,23 @@ class Node {
                 "^": "pow",
                 "%": "mod"
             }
+
             const spaceTokens = split(key, " ").filter(t => t != " ");
             if (op == "=" && spaceTokens.length >= 2 && /^[A-Za-z0-9_| <>]+$/.test(spaceTokens.slice(0,-1).join(" ")) && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
                 key = spaceTokens.pop();
                 type = new Node(spaceTokens.join(" "),context);
             }
-            if (Object.keys(types).map(k => k + "=").includes(op) && /^[A-Za-z0-9_|]+$/.test(key)) {
+
+            const isValid = Object.keys(types).map(k => k + "=").includes(op);
+
+            const keys = split(key, "square");
+            if (keys.length > 1 && is(keys[keys.length-1], "square") && isValid) {
+                this.fullKey = new Node(key, context);
+                key = new Node(keys.pop().slice(1,-1), context);
+                this.parent = new Node(keys.join(""), context);
+            }
+
+            if (isValid && (typeof key == "string" ? /^[A-Za-z0-9_|]+$/.test(key) : true)) {
                 this.kind = "assignment";
                 this.key = key;
                 this.type = types[op.slice(0,-1)];
@@ -847,7 +931,6 @@ class Node {
         /* key */ {
             const tokens = split(code, "square");
             if (tokens.length > 1 && is(tokens[tokens.length-1],"square")) {
-                console.log(tokens);
                 this.kind = "key";
                 this.key = new Node(tokens.pop().slice(1,-1), context);
                 this.value = new Node(tokens.join(""), context);
@@ -959,7 +1042,7 @@ class Node {
             return;
         }
 
-        throw Error("unexpected tokens: " + this.formattedCode)
+        throw Error("unexpected tokens: " + this.formattedCode);
     }
 
     compile(context, target, flags) {
@@ -1157,24 +1240,28 @@ class Node {
                 // the name of the assignment's output
                 let targetRef;
                 let targetType;
+                
+                let existingRef;
+
+                // obj[key] = value stuff
+                let parentKey;
+                let keyKey;
 
                 // variable
-                if (true) {
+                if (typeof this.key == "string") {
                     let err;
                     try {
                         targetType = new Node(this.key,new ParseContext()).getType(context);
                         const valueType = this.value.getType(context);
-                        if (targetType == null ? false : !isTypeSafeStrict(targetType,valueType)) {
+                        if (targetType == null ? false : !isTypeSafeStrict(targetType,valueType))
                             err = Error("attempt to assign variable to " + valueType.getName() + " while the variable should be a " + targetType.getName());
-                        }
                     } catch (e) {
                         switch (this.type) {
                             case "default":
                                 targetType = this.value.getType(context);
                                 const wantedType = this?.varType?.getValue(context);
-                                if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType)) {
+                                if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType))
                                     throw Error("attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName())
-                                }
                                 break;
                             default:
                                 throw e;
@@ -1187,6 +1274,25 @@ class Node {
                     } catch {
                         targetRef = context.scope.assign(this.key, new TypedValue(targetType?.name));
                     }
+                    existingRef = targetRef;
+                } else { // obj[key]
+                    parentKey = this.parent.compileKey(context);
+                    this.parent.compile(context, new Target(parentKey));
+                    keyKey = this.key.compileKey(context);
+                    this.key.compile(context, new Target(keyKey));
+                    targetRef = this.value.compileKey(context);
+                    targetType = this.fullKey.getType(context);
+
+                    switch (this.type) {
+                        case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod":
+                            existingRef = this.fullKey.compileKey(context);
+                            this.fullKey.compile(context, new Target(existingRef));
+                            break
+                    }
+
+                    const valueType = this.value.getType(context);
+                    if (!isTypeSafeStrict(targetType, valueType))
+                        throw Error(`attempt to assign a key which is ${targetType.getName()} to a ${valueType.getName()}`)
                 }
 
                 // compile the assignment's value to the target
@@ -1202,18 +1308,15 @@ class Node {
                         const operation = context.operation_compilers[this.type];
                         this.value.compile(context, new Target(valueRef));
                         const out = operation(context, new Target(targetRef), targetRef, valueRef, targetType, valueType);
-
-                        if (!out) {
+                        if (!out)
                             throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`)
-                        }
                         context.text += out + "\n";
                         
                         const operationType = context.operation_types[this.type];
                         const outType = operationType(context, targetType, valueType);
 
-                        if (!outType) {
+                        if (!outType)
                             throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`)
-                        }
                         
                         try {
                             context.scope.assign(this.key, this.value.getValue(context));
@@ -1223,6 +1326,9 @@ class Node {
                         break;
                     }
                 }
+
+                if (typeof this.key != "string")
+                    context.text += `obj set ${parentKey} ${keyKey} ${targetRef}\n`;
             }
             case "comparison": {
                 const comparison = context.comparison_compilers[this.type];
@@ -1257,13 +1363,16 @@ class Node {
                 }[this.name]
                 break;
             case "key": {
-                console.log(this);
                 if (target != null) {
-                    const keyRef = this.key.compileKey(context);
-                    this.key.compile(context, new Target(keyRef));
-                    const valueRef = this.value.compileKey(context);
-                    this.value.compile(context, new Target(valueRef));
-                    context.text += `obj get ${target.id} ${valueRef} ${keyRef}\n`;
+                    const valueType = this.value.getType(context);
+                    if (valueType.canGetKey()) {
+                        const keyRef = this.key.compileKey(context);
+                        this.key.compile(context, new Target(keyRef));
+                        const valueRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(valueRef));
+                        context.text += `obj get ${valueRef} ${target.id} ${keyRef}\n`;
+                    } else
+                        throw Error("cannot get a key from a " + valueType.getName());
                 }
                 return;
             }
@@ -1274,6 +1383,57 @@ class Node {
             case "number":
                 context.text += target != null ? `set num ${target.id} ${this.value}\n` : "";
                 return
+            case "array": {
+                let staticArr = [];
+                this.getValue(context);
+                if (target != null) {
+                    let staticIndexes = [];
+                    for (let i = 0; i < this.elements.length; i++) {
+                        const element = this.elements[i];
+                        switch (element.kind) {
+                            case "string": case "number":
+                                staticArr.push(element.value);
+                                staticIndexes.push(i);
+                                break;
+                        }
+                    }
+                    context.text += `set obj ${target.id} ${JSON.stringify(staticArr)}\n`;
+                    for (let i = 0; i < this.elements.length; i++) {
+                        if (staticIndexes.includes(i)) continue;
+                        const element = this.elements[i];
+                        const key = element.compileKey(context);
+                        element.compile(context, new Target(key));
+                        context.text += `arr add ${target.id} ${key}\n`;
+                    }
+                }
+                return;
+            }
+            case "object": {
+                let staticKeyVals = {};
+                this.getValue(context);
+                if (target != null) {
+                    let staticPairs = [];
+                    for (let i = 0; i < this.elements.length; i++) {
+                        const [key, element] = this.elements[i];
+                        switch (element.kind) {
+                            case "string": case "number":
+                                staticKeyVals[key] = element.value;
+                                staticPairs.push(i);
+                                break;
+                        }
+                    }
+                    context.text += `set obj ${target.id} ${JSON.stringify(staticKeyVals)}\n`;
+                    for (let i = 0; i < this.elements.length; i++) {
+                        if (staticPairs.includes(i)) continue;
+                        const [key, element] = this.elements[i];
+                        const valueKey = element.compileKey(context);
+                        const keyKey = randomStr();
+                        element.compile(context, new Target(valueKey));
+                        context.text += `set str ${keyKey} ${fblExcape(key)}\nobj set ${target.id} ${keyKey} ${valueKey}\n`;
+                    }
+                }
+                return;
+            }
             case "function": {
                 const type = this.type.getValue(context);
                 if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode)
@@ -1306,54 +1466,11 @@ class Node {
                 }
                 break;
             }
-            case "array": {
-                let staticArr = [];
-                this.getValue(context);
-                if (target != null) {
-                    let staticIndexes = [];
-                    for (let i = 0; i < this.elements.length; i++) {
-                        const element = this.elements[i];
-                        switch (element.kind) {
-                            case "string":
-                                staticArr.push(element.value);
-                                staticIndexes.push(i);
-                                break;
-                        }
-                    }
-                    context.text += `set obj ${target.id} ${JSON.stringify(staticArr)}\n`;
-                    for (let i = 0; i < this.elements.length; i++) {
-                        if (staticIndexes.includes(i)) continue;
-                        const element = this.elements[i];
-                        const key = element.compileKey(context);
-                        element.compile(context, new Target(key));
-                        context.text += `arr add ${target.id} ${key}\n`;
-                    }
-                }
-                return;
-            }
-            case "object": {
-                let staticKeyVals = {};
-                this.getValue(context);
-                if (target != null) {
-                    let staticPairs = [];
-                    for (let i = 0; i < this.elements.length; i++) {
-                        const [key, element] = this.elements[i];
-                        if (element.kind === "string") {
-                            staticKeyVals[key] = element.value;
-                            staticPairs.push(i);
-                        }
-                    }
-                    context.text += `set obj ${target.id} ${JSON.stringify(staticKeyVals)}\n`;
-                    for (let i = 0; i < this.elements.length; i++) {
-                        if (staticPairs.includes(i)) continue;
-                        const [key, element] = this.elements[i];
-                        const valueKey = element.compileKey(context);
-                        const keyKey = randomStr();
-                        element.compile(context, new Target(valueKey));
-                        context.text += `set str ${keyKey} ${fblExcape(key)}\nobj set ${target.id} ${keyKey} ${valueKey}\n`;
-                    }
-                }
-                return;
+            case "struct_def": {
+                if (target != null)
+                    throw Error("expected an output from struct definition");
+                console.log(JSON.stringify(this, null, "  "));
+                break;
             }
             
             default:
@@ -1487,7 +1604,13 @@ class Node {
                 const val = context.scope.get(this.key);
                 if (!val)
                     throw Error(`${this.key} is not defined`);
-                return new Type(val?.type);
+                return val.getType();
+            case "key":
+                const valueType = this.value.getType(context);
+                if (valueType.canGetKey())
+                    return valueType.getKeyType();
+                else
+                    throw Error("cannot get a key from a " + valueType.getName());
             
             case "execution":
                 if (this.key.formattedCode == "raw") return new Type(".any");
@@ -1546,6 +1669,9 @@ class Value {
     stringify() {
         return `<${this.type}>`;
     }
+    getType() {
+        return new Type(this?.type);
+    }
 }
 class Target {
     constructor(id,type) {
@@ -1584,6 +1710,9 @@ class ArrayValue extends Value {
     getValueType(context) {
         return this.valueType;
     }
+    getType() {
+        return new TypedValueType(new Type(this.type), this.valueType);
+    }
 }
 class ObjectValue extends Value {
     constructor(type) {
@@ -1594,6 +1723,9 @@ class ObjectValue extends Value {
 
     getValueType(context) {
         return this.valueType;
+    }
+    getType() {
+        return new TypedValueType(new Type(this.type), this.valueType);
     }
 }
 
@@ -1616,6 +1748,12 @@ class Type {
     getName() {
         return this.name;
     }
+    canGetKey() {
+        return false;
+    }
+    getKeyType() {
+        return null;
+    }
 }
 class TypedValueType {
     constructor(baseType, valueType) {
@@ -1627,6 +1765,14 @@ class TypedValueType {
     }
     getName() {
         return `${this.baseType.getName()}<${this.valueType.getName()}>`;
+    }
+    canGetKey() {
+        if (this.baseType.name === "Arr" || this.baseType.name === "Obj")
+            return true;
+        return false;
+    }
+    getKeyType() {
+        return this.valueType;
     }
 }
 class Union extends Value {

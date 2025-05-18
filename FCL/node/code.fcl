@@ -1,5 +1,12 @@
 
+struct test {
+    str prop1 = "hi";
+    num crazy = 5;
+    int wow(str crazy) {
+        print(crazy);
+    }
+}
+
 void main() {
-    Arr<num> crazy = [1,2,3];
-    print(crazy[2]);
+
 }
