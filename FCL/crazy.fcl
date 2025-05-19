@@ -1,0 +1,5 @@
+
+void main() {
+    Arr<str> a = ["3","6"];
+    str b = a[2];
+}

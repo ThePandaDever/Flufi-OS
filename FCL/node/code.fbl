@@ -1,2 +1,9 @@
 ~ main
+set obj rand3 {"methods":{"wow":"~ main\nprint arg0\n~"},"attributes":{}}
+set str rand5 methods
+obj get rand4 rand3 rand5
+set str rand5 constructor
+obj get rand4 rand4 rand5
+callvar rand4 main
+print rand3
 ~

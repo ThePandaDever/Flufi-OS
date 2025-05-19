@@ -307,93 +307,120 @@ function deallocate(id) {
 
 class Context {
     constructor() {
-        this.classes = {
-            "str": new Class(),
-            "num": new Class(),
-        };
         const areTypes = (a,b,t) => isTypeSafe(a,new Union(t)) && isTypeSafe(b,new Union(t));
         const areNums = (a,b) => areTypes(a,b,["num"]);
-        this.operation_compilers = {
-            "add": (_,target,aref,bref,atype,btype) => {
-                if (areNums(atype,btype))
-                    return `add ${target.id} ${aref} ${bref}`;
-                if (areTypes(atype,btype,["str","num"]))
-                    return `add ${target.id} emptystring ${aref} space ${bref}`;
-            },
-            "join": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} ${bref}` : null,
-            "sub": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sub ${target.id} ${aref} ${bref}` : null,
-            "mul": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mul ${target.id} ${aref} ${bref}` : null,
-            "div": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `div ${target.id} ${aref} ${bref}` : null,
-            "pow": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `pow ${target.id} ${aref} ${bref}` : null,
-            "mod": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mod ${target.id} ${aref} ${bref}` : null,
-        
-            "invert": (_,target,aref,bref,atype,btype) => `inv ${target.id} ${aref}`,
-            "boolify": (_,target,aref,bref,atype,btype) => `tobool ${target.id} ${aref}`,
-            "positive": (_,target,aref,bref,atype,btype) => {
-                if (!isTypeSafe(atype,new Union(["num","bool"])))
-                    return null;
-                const temp = randomStr();
-                return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
-            },
-            "negative": (_,target,aref,bref,atype,btype) => {
-                if (!isTypeSafe(atype,new Union(["num","bool"])))
-                    return null;
-                const temp = randomStr();
-                return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
-            },
-        }
-        this.operation_types = {
-            "add": (_,a,b) => areNums(a,b) ? "num" : areTypes(a,b,["str","num"]) ? "str" : null,
-            "join": (_,a,b) => "str",
-            "sub": (_,a,b) => areNums(a,b) ? "num" : null,
-            "mul": (_,a,b) => areNums(a,b) ? "num" : null,
-            "div": (_,a,b) => areNums(a,b) ? "num" : null,
-            "pow": (_,a,b) => areNums(a,b) ? "num" : null,
-            "mod": (_,a,b) => areNums(a,b) ? "num" : null,
 
-            "invert": (_,a,b) => "bool",
-            "boolify": (_,a,b) => "bool",
-            "positive": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
-            "negative": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
+        /* math */ {
+            this.operation_compilers = {
+                "add": (_,target,aref,bref,atype,btype) => {
+                    if (areNums(atype,btype))
+                        return `add ${target.id} ${aref} ${bref}`;
+                    if (areTypes(atype,btype,["str","num"]))
+                        return `add ${target.id} emptystring ${aref} space ${bref}`;
+                },
+                "join": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} ${bref}` : null,
+                "sub": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sub ${target.id} ${aref} ${bref}` : null,
+                "mul": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mul ${target.id} ${aref} ${bref}` : null,
+                "div": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `div ${target.id} ${aref} ${bref}` : null,
+                "pow": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `pow ${target.id} ${aref} ${bref}` : null,
+                "mod": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mod ${target.id} ${aref} ${bref}` : null,
+            
+                "invert": (_,target,aref,bref,atype,btype) => `inv ${target.id} ${aref}`,
+                "boolify": (_,target,aref,bref,atype,btype) => `tobool ${target.id} ${aref}`,
+                "positive": (_,target,aref,bref,atype,btype) => {
+                    if (!isTypeSafe(atype,new Union(["num","bool"])))
+                        return null;
+                    const temp = randomStr();
+                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+                },
+                "negative": (_,target,aref,bref,atype,btype) => {
+                    if (!isTypeSafe(atype,new Union(["num","bool"])))
+                        return null;
+                    const temp = randomStr();
+                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+                },
+            };
+            this.operation_types = {
+                "add": (_,a,b) => areNums(a,b) ? "num" : areTypes(a,b,["str","num"]) ? "str" : null,
+                "join": (_,a,b) => "str",
+                "sub": (_,a,b) => areNums(a,b) ? "num" : null,
+                "mul": (_,a,b) => areNums(a,b) ? "num" : null,
+                "div": (_,a,b) => areNums(a,b) ? "num" : null,
+                "pow": (_,a,b) => areNums(a,b) ? "num" : null,
+                "mod": (_,a,b) => areNums(a,b) ? "num" : null,
+
+                "invert": (_,a,b) => "bool",
+                "boolify": (_,a,b) => "bool",
+                "positive": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
+                "negative": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
+            };
+            this.operation_names = {
+                "+": "add",
+                "++": "join",
+                "-": "sub",
+                "*": "mul",
+                "/": "div",
+                "^": "pow",
+                "%": "mod"
+            };
         }
-        this.operation_names = {
-            "+": "add",
-            "++": "join",
-            "-": "sub",
-            "*": "mul",
-            "/": "div",
-            "^": "pow",
-            "%": "mod"
+
+        /* comparison */ {
+            this.comparison_compilers = {
+                "equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+                "not_equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} true`,
+                "greater": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+                "smaller": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
+                "greater_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
+                "smaller_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
+                "type_equal": (_1,target,_2,_3,atype,btype) => `set bool ${target.id} ${isTypeSafe(atype,btype)}`
+            };
         }
-        this.comparison_compilers = {
-            "equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
-            "not_equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} true`,
-            "greater": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
-            "smaller": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
-            "greater_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
-            "smaller_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
-            "type_equal": (_1,target,_2,_3,atype,btype) => `set bool ${target.id} ${isTypeSafe(atype,btype)}`
-        }
-        this.worded_operation_compilers = {
-            "to": (context,target,aref,bref,atype,btype) => {
-                if (areNums(atype,btype)) {
-                    const temp1 = randomStr(),
-                        temp2 = randomStr();
-                    return `
-                    dupe ${temp1} ${aref}
-                    set obj ${target.id} []
-                    : ${temp2}
-                    arr add ${target.id} ${temp1}
-                    jsi ${temp2} ${temp1} ${bref}
-                    `.split("\n").map(l => l.trim()).join("\n").trim()
+
+        /* worded operations */ {
+            this.worded_operation_compilers = {
+                "to": (context,target,aref,bref,atype,btype) => {
+                    if (areNums(atype,btype)) {
+                        const temp1 = randomStr(),
+                            temp2 = randomStr();
+                        return `
+                        dupe ${temp1} ${aref}
+                        set obj ${target.id} []
+                        : ${temp2}
+                        arr add ${target.id} ${temp1}
+                        jsi ${temp2} ${temp1} ${bref}
+                        `.split("\n").map(l => l.trim()).join("\n").trim()
+                    }
                 }
+            };
+            this.worded_operation_types = {
+                "to": (context,atype,btype) => areNums(atype,btype) ? new TypedValueType(new Type("Arr"), new Type("num")) : null
+            };
+        }
+
+        /* logic */ {
+            this.logic_names = {
+                "||": "or",
+                "&&": "and",
+                "|||": "or_bool",
+                "&&&": "and_bool"
+            }
+            this.logic_compilers = {
+                "or": (_,target,aref,bref) => `or ${target.id} ${aref} ${bref}`,
+                "and": (_,target,aref,bref) => `and ${target.id} ${aref} ${bref}`,
+                "or_bool": (_,target,aref,bref) => `or ${target.id} ${aref} ${bref}\ntobool ${target.id} ${target.id}`,
+                "and_bool": (_,target,aref,bref) => `and ${target.id} ${aref} ${bref}\ntobool ${target.id} ${target.id}`,
+            }
+            this.logic_types = {
+                "or": (_,a,b) => a instanceof Type && b instanceof Type && a.name == b.name ? a : new Union([a,b]),
+                "and": (_,a,b) => new Union([a,b]),
+                "or_bool": (_,a,b) => `bool`,
+                "and_bool": (_,a,b) => `bool`,
             }
         }
-        this.worded_operation_types = {
-            "to": (context,atype,btype) => areNums(atype,btype) ? new TypedValueType(new Type("Arr"), new Type("num")) : null
-        }
-        this.operation_compilers = {...this.operation_compilers, ...this.worded_operation_compilers};
-        this.operation_types = {...this.operation_types, ...this.worded_operation_types};
+
+        this.operation_compilers = {...this.operation_compilers, ...this.worded_operation_compilers, ...this.logic_compilers};
+        this.operation_types = {...this.operation_types, ...this.worded_operation_types, ...this.logic_types};
     }
 }
 class ParseContext extends Context {
@@ -660,16 +687,13 @@ class Node {
                         const tokens = split(elem,"=");
                         if (tokens.length == 3 && /^[A-Za-z0-9_ ]+$/.test(tokens[0]) && tokens[1] == "=") {
                             const value = new Node(tokens[2], context);
-                            let type = value.getType(context);
+                            let type = null;
                             let name;
 
                             const tokens2 = split(tokens[0], " ").filter(t => t != " ");
                             if (tokens2.length == 2) {
-                                const oldType = type;
-                                type = new Node(tokens2[0], context).getValue(context);
+                                type = new Node(tokens2[0], context);
                                 name = tokens2[1];
-                                if (!isTypeSafeStrict(oldType, type))
-                                    throw Error("attempt to have an attribute as a " + type.getName() + " while the value is a " + oldType.getName());
                             } else if (tokens2.length == 1) {
                                 name = tokens2[0];
                             } else {
@@ -689,19 +713,7 @@ class Node {
                         const spaceTokens = split(bracketTokens[0], " ", null, true).filter(t => t !== " ");
                         if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
                             if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
-                                const params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
-                                const name = spaceTokens[spaceTokens.length-1];
-                                context.functionArgLayers.push(this.params);
-                                const content = new Node(bracketTokens[2].slice(1,-1), context);
-                                context.functionArgLayers.pop();
-                                const type = new Node(spaceTokens.slice(0,-1).join(" "), context);
-                                return {
-                                    "kind": "function",
-                                    "name": name,
-                                    "content": content,
-                                    "type": type,
-                                    "params": params
-                                }
+                                return new Node(elem, context);
                             }
                         }
                     }
@@ -828,6 +840,34 @@ class Node {
                 }
             }
         }
+
+        /* logic */ {
+            const logic_operations = context.logic_names;
+            const ops = ["|","&"];
+            const tokens = split(code, ops);
+            const newTokens = [];
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                if (token == "-" && ops.includes(tokens[i - 1])) {
+                    newTokens.push("-" + tokens[i + 1]);
+                    i ++;
+                    continue;
+                } else if (ops.includes(tokens[i - 1]) && ops.includes(token)) {
+                    newTokens[newTokens.length-1] += token;
+                    continue;
+                }
+                newTokens.push(token);
+            }
+            if (newTokens.length > 2) {
+                if (logic_operations[newTokens[newTokens.length-2]]) {
+                    this.kind = "operation";
+                    this.b = new Node(newTokens.pop(), context);
+                    this.type = logic_operations[newTokens.pop()];
+                    this.a = new Node(newTokens.join(""), context);
+                    return;
+                }
+            }
+        }
         
         /* union */ {
             const tokens = split(code,"|",null,true).filter(t => t !== "|");
@@ -915,6 +955,18 @@ class Node {
                     this.a = new Node(newTokens.join(""), context);
                     return;
                 }
+            }
+        }
+
+        /* instancing */ {
+            const tokens = split(code, "bracket");
+            const spaceTokens = split(tokens[0] ?? "", " ").filter(t => t !== " ");
+
+            if (tokens.length == 2 && is(tokens[1], "bracket") && spaceTokens.length == 2 && spaceTokens[0] === "new" && /^[A-Za-z0-9_]+$/.test(spaceTokens[1])) {
+                this.kind = "instance";
+                this.name = spaceTokens[1];
+                this.args = split(tokens[1].slice(1,-1),",").filter(t => t !== ",").map(e => new Node(e, context));
+                return;
             }
         }
 
@@ -1348,6 +1400,19 @@ class Node {
                 }
                 break;
             }
+            case "instance": {
+                const instVal = context.scope.get(this.name);
+                if (!instVal || !(instVal instanceof Struct))
+                    throw Error("cannot instance " + this.name);
+                target ??= new Target(randomStr());
+                const constructortemp1 = randomStr();
+                const constructortemp2 = randomStr();
+                if (instVal instanceof Struct) {
+                    context.text += `set obj ${target.id} ${JSON.stringify(instVal.getObj(context))}\n`;
+                    context.text += `set str ${constructortemp2} methods\nobj get ${constructortemp1} ${target.id} ${constructortemp2}\nset str ${constructortemp2} constructor\nobj get ${constructortemp1} ${constructortemp1} ${constructortemp2}\ncallvar ${constructortemp1} main\n`;
+                }
+                break;
+            }
 
             case "variable": break;
             case "argument":
@@ -1436,7 +1501,7 @@ class Node {
             }
             case "function": {
                 const type = this.type.getValue(context);
-                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode)
+                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode);
                 
                 if (!context.compiledFunctions.includes(this.key)) {
                     const saveText = context.text;
@@ -1469,7 +1534,21 @@ class Node {
             case "struct_def": {
                 if (target != null)
                     throw Error("expected an output from struct definition");
-                console.log(JSON.stringify(this, null, "  "));
+                //console.log(JSON.stringify(this, null, "  "));
+                const attributes = {};
+                const methods = {};
+                for (let i = 0; i < this.content.length; i++) {
+                    const elem = this.content[i];
+                    if (elem["kind"] == "attribute")
+                        attributes[elem["name"]] = elem;
+                    if (elem["kind"] == "function")
+                        methods[elem.key] = new MethodFunc(elem.content,elem.type,elem.params);
+                }
+                context.scope.assignTop(this.name, new Struct(
+                    this.name,
+                    attributes,
+                    methods
+                ))
                 break;
             }
             
@@ -1503,7 +1582,6 @@ class Node {
                 const oldName = this.key;
                 this.key = ":" + name + ":" + this.key;
                 this.compile(context);
-                //context.scope.assign(`:${name}:${this.key}`, this.getValue(context));
                 this.key = oldName;
             }
         }
@@ -1567,6 +1645,7 @@ class Node {
                 return new Union(this.elements.map(e => e.getValue(context)));
             case "array": {
                 const items = [];
+                items.type = new Type("null");
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
                     const elementType = element.getType(context);
@@ -1580,6 +1659,7 @@ class Node {
             }
             case "object": {
                 const items = {};
+                items.type = new Type("null");
                 for (let i = 0; i < this.elements.length; i++) {
                     const [key, element] = this.elements[i];
                     const elementType = element.getType(context);
@@ -1604,11 +1684,11 @@ class Node {
                 const val = context.scope.get(this.key);
                 if (!val)
                     throw Error(`${this.key} is not defined`);
-                return val.getType();
+                return val.getType(context);
             case "key":
                 const valueType = this.value.getType(context);
                 if (valueType.canGetKey())
-                    return valueType.getKeyType();
+                    return valueType.getKeyType(this.key);
                 else
                     throw Error("cannot get a key from a " + valueType.getName());
             
@@ -1622,6 +1702,11 @@ class Node {
                     return typeof out == "string" ? new Type(out) : out;
                 }
                 break;
+            case "instance":
+                const instVal = context.scope.get(this.name);
+                if (!instVal)
+                    throw Error("cannot instance " + this.name);
+                return instVal;
 
             case "array": case "object": {
                 const val = this.getValue(context);
@@ -1674,9 +1759,8 @@ class Value {
     }
 }
 class Target {
-    constructor(id,type) {
+    constructor(id) {
         this.id = id;
-        this.type = type;
     }
 }
 
@@ -1754,6 +1838,9 @@ class Type {
     getKeyType() {
         return null;
     }
+    getType() {
+        return new Type(this?.type);
+    }
 }
 class TypedValueType {
     constructor(baseType, valueType) {
@@ -1761,10 +1848,10 @@ class TypedValueType {
         this.valueType = valueType;
     }
     stringify() {
-        return `<type:${this.baseType.getName()}<${this.valueType.getName()}>>`;
+        return `<type:${this.baseType?.getName()}<${this.valueType?.getName()}>>`;
     }
     getName() {
-        return `${this.baseType.getName()}<${this.valueType.getName()}>`;
+        return `${this.baseType?.getName()}<${this.valueType?.getName()}>`;
     }
     canGetKey() {
         if (this.baseType.name === "Arr" || this.baseType.name === "Obj")
@@ -1773,6 +1860,9 @@ class TypedValueType {
     }
     getKeyType() {
         return this.valueType;
+    }
+    getType() {
+        return new Type(this?.type);
     }
 }
 class Union extends Value {
@@ -1796,6 +1886,60 @@ class ClassValue extends Value {
         super();
         this.type = "Class";
         this.name = name;
+    }
+}
+
+class Struct extends TypedValueType {
+    constructor(name, attributes, methods) {
+        super();
+        delete this.baseType;
+        delete this.valueType;
+
+        // TODO: go through and check attribute types
+
+        this.type = "struct";
+        this.name = name;
+        this.attributes = attributes;
+        this.methods = methods;
+    }
+    stringify() {
+        return `<struct:${this.name}>`;
+    }
+    getName() {
+        return `${this.name}`;
+    }
+    getObj(context) {
+        const methods = {};
+        const e = Object.entries(this.methods);
+        for (let i = 0; i < e.length; i++) {
+            const method = e[i];
+            const oldText = context.text;
+            context.text = "~ main\n";
+            method[1].content.compile(context);
+            methods[method[0]] = context.text + "~";
+            context.text = oldText;
+        }
+        const attributes = {};
+        const e2 = Object.entries(this.attributes);
+        for (let i = 0; i < e2.length; i++) {
+            const attribute = e2[i];
+            const attribute_type = attribute[1]["type"]?.getValue(context) ?? attribute[1]["value"].getType(context);
+            console.log(attribute, attribute_type);
+        }
+        return {
+            "methods": methods,
+            "attributes": attributes
+        }
+    }
+}
+class StructInstance extends Value {
+    constructor(name) {
+        super();
+
+        this.type = name;
+    }
+    stringify() {
+        return `<${this.name}>`;
     }
 }
 
@@ -1825,6 +1969,15 @@ class CompiledFunc extends Func {
         this.funcType = "builtin";
         this.key = key;
         this.compileFunc = func;
+    }
+}
+class MethodFunc extends Func {
+    constructor(content, type, params) {
+        super();
+        this.funcType = "method";
+        this.content = content;
+        this.return_type = type;
+        this.params = params;
     }
 }
 
