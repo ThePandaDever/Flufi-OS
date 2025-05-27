@@ -1,7 +1,0 @@
-struct Win {
-
-}
-
-str create() {
-    return raw("win create .target");
-}

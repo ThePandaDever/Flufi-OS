@@ -1,0 +1,23 @@
+
+void updateEarly(str id) {
+    raw("win timeout arg0");
+    raw("win panel base arg0");
+}
+void updatePanel(str id) {
+    raw("win panel update arg0");
+}
+
+struct Win {
+    str id = "";
+
+    void constructor() {
+        self.id = raw("win create .target");
+    }
+    
+    void updateEarly() {
+        updateEarly(self.id);
+    }
+    void update() {
+        updatePanel(self.id);
+    }
+}

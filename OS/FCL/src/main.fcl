@@ -1,0 +1,14 @@
+import states/terminal;
+
+struct State {
+    str type = "terminal";
+}
+
+void main() {
+    state = new State();
+    forever {
+        if (state.type == "terminal") {
+            terminal:update();
+        }
+    }
+}

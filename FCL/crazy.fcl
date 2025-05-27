@@ -1,5 +1,11 @@
 
+Arr<str> test(Arr<str> in) {
+    in[0] = "hi";
+    return in;
+}
+
 void main() {
     Arr<str> a = ["3","6"];
-    str b = a[2];
+    b = test(a);
+    print(a,b);
 }

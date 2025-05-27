@@ -1,0 +1,3 @@
+void silly(str noWay = "hi") {
+    print(noWay);
+}

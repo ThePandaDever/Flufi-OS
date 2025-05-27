@@ -1,0 +1,4 @@
+void A() {}
+
+struct ble {
+}

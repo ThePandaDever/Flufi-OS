@@ -1,10 +1,15 @@
-fn myFunc
-    return "crazy"
-end
-
 fn main
-    print "hi"
-    if false
-        print myFunc()
+    #winRef = Win.create()
+    Win.setTitle(#winRef, "My Window")
+    Win.setSize(#winRef, [200, 150])
+    Win.setPosition(#winRef, [50, 50])
+    forever
+        Win.resetTimeout(#winRef)
+        Win.panel.base(#winRef)
+        
+        Panel.cenText("Hello world!", 0, 0, 10)
+        
+        Win.topbar(#winRef, Win.buttons.default)
+        Win.panel.update(#winRef)
     end
 end

@@ -1,0 +1,21 @@
+~ terminal:update
+set str rand1 crazy
+print rand1
+~
+~ main
+set obj rand5 {"methods":{},"attributes":{"type":"terminal"}}
+proc store rand5 rand5
+quitTo rand8
+: rand8
+proc get rand5 rand5
+set str rand12 attributes
+obj get rand5 rand10 rand12
+set str rand12 type
+obj get rand10 rand10 rand12
+set str rand11 terminal
+eql rand9 rand10 rand11
+jn rand13 rand9
+call terminal:update 
+: rand13
+quitTo rand8
+~

@@ -1,0 +1,8 @@
+import crazy;
+
+void main() {
+    test = "hi";
+    forever {
+        print(test);
+    }
+}

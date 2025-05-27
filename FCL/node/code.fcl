@@ -1,19 +1,6 @@
-
-struct wow {
-    hmm = 5;
-}
-
-struct test {
-    str prop1 = "hi";
-    num crazy = 5;
-    wow shock = new wow();
-    
-    int wow(str crazy) {
-        print(crazy);
-    }
-}
-
 void main() {
-    test myInst = new test();
-    print(myInst);
+    myVar = "hi";
+    forever {
+        print(myVar);
+    }
 }

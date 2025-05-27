@@ -1,0 +1,10 @@
+import g;
+
+
+void noWay() {
+    b = new g:ble();
+}
+
+void c() {
+    g:A();
+}
