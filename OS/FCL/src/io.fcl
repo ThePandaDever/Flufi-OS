@@ -1,0 +1,10 @@
+
+void throw(str text) {
+    raw("err arg0");
+}
+
+Arr<num> getScreenSize() {
+    num width = raw("const screen_width .target");
+    num height = raw("const screen_height .target");
+    return [width, height];
+}

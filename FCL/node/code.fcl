@@ -1,6 +1,5 @@
+
 void main() {
-    myVar = "hi";
-    forever {
-        print(myVar);
-    }
+    Obj<str> hi = {"":""};
+    hi["sus"] = "wow";
 }

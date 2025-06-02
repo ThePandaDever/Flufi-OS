@@ -1,0 +1,8 @@
+
+struct State {
+    str type = "terminal";
+}
+
+State getDefault() {
+    return new State();
+}

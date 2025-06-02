@@ -1,21 +1,196 @@
-~ terminal:update
-set str rand1 crazy
-print rand1
+~ process:clone:_createClone
+clone create arg2 arg1 arg0 rand9
+ret rand9
+~
+~ process:clone:_killClone
+clone kill arg0
+ret rand14
+~
+~ process:clone:getCloneData
+clone getData rand20 arg0
+set str rand21 .any
+settype rand20 rand21
+ret rand20
+~
+~ clone:_createClone
+clone create arg2 arg1 arg0 rand42
+ret rand42
+~
+~ clone:_killClone
+clone kill arg0
+ret rand44
+~
+~ clone:getCloneData
+clone getData rand47 arg0
+set str rand48 .any
+settype rand47 rand48
+ret rand47
+~
+~ state:getDefault
+set obj rand54 {"methods":{},"attributes":{"type":"terminal"}}
+ret rand54
+~
+~ stateManager:terminal:state:getDefault
+set obj rand61 {"methods":{},"attributes":{"type":"terminal"}}
+ret rand61
+~
+~ stateManager:terminal:graphics:io:throw
+err arg0
+~
+~ stateManager:terminal:graphics:io:getScreenSize
+const screen_width rand69
+const screen_height rand70
+set obj rand71 []
+arr add rand71 rand69
+arr add rand71 rand70
+ret rand71
+~
+~ stateManager:terminal:graphics:getDefaultFrame
+callget rand80 stateManager:terminal:graphics:io:getScreenSize 
+set num rand85 0
+obj get rand80 rand83 rand85
+set num rand86 0.5
+set num rand87 0
+sub rand84 rand87 rand86
+mul rand82 rand83 rand84
+set num rand91 1
+obj get rand80 rand89 rand91
+set num rand92 0.5
+set num rand93 0
+sub rand90 rand93 rand92
+mul rand88 rand89 rand90
+set num rand97 0
+obj get rand80 rand95 rand97
+set num rand96 0.5
+mul rand94 rand95 rand96
+set num rand101 1
+obj get rand80 rand99 rand101
+set num rand100 0.5
+mul rand98 rand99 rand100
+set obj rand81 {"methods":{".cns":"~ rand75\ndupe rand108 arg0\nset str rand109 attributes\nobj get arg0 rand110 rand109\nset str rand109 x1\nobj set rand110 rand109 arg1\ndupe rand111 arg0\nset str rand112 attributes\nobj get arg0 rand113 rand112\nset str rand112 y1\nobj set rand113 rand112 arg2\ndupe rand114 arg0\nset str rand115 attributes\nobj get arg0 rand116 rand115\nset str rand115 x2\nobj set rand116 rand115 arg3\ndupe rand117 arg0\nset str rand118 attributes\nobj get arg0 rand119 rand118\nset str rand118 y2\nobj set rand119 rand118 arg4\n~"},"attributes":{}}
+set str rand103 methods
+obj get rand81 rand102 rand103
+set str rand103 .cns
+obj get rand102 rand102 rand103
+callvar rand102 rand75 rand81 rand82 rand88 rand94 rand98
+ret rand81
+~
+~ stateManager:terminal:init
+~
+~ stateManager:terminal:update
+set str rand143 methods
+obj get arg1 rand142 rand143
+set str rand143 clearSurfaces
+obj get rand142 rand142 rand143
+callvar rand142 rand130 arg1 
+~
+~ stateManager:state:getDefault
+set obj rand148 {"methods":{},"attributes":{"type":"terminal"}}
+ret rand148
+~
+~ stateManager:graphics:io:throw
+err arg0
+~
+~ stateManager:graphics:io:getScreenSize
+const screen_width rand154
+const screen_height rand155
+set obj rand156 []
+arr add rand156 rand154
+arr add rand156 rand155
+ret rand156
+~
+~ stateManager:graphics:getDefaultFrame
+callget rand160 stateManager:graphics:io:getScreenSize 
+set num rand165 0
+obj get rand160 rand163 rand165
+set num rand166 0.5
+set num rand167 0
+sub rand164 rand167 rand166
+mul rand162 rand163 rand164
+set num rand171 1
+obj get rand160 rand169 rand171
+set num rand172 0.5
+set num rand173 0
+sub rand170 rand173 rand172
+mul rand168 rand169 rand170
+set num rand177 0
+obj get rand160 rand175 rand177
+set num rand176 0.5
+mul rand174 rand175 rand176
+set num rand181 1
+obj get rand160 rand179 rand181
+set num rand180 0.5
+mul rand178 rand179 rand180
+set obj rand161 {"methods":{".cns":"~ rand158\ndupe rand188 arg0\nset str rand189 attributes\nobj get arg0 rand190 rand189\nset str rand189 x1\nobj set rand190 rand189 arg1\ndupe rand191 arg0\nset str rand192 attributes\nobj get arg0 rand193 rand192\nset str rand192 y1\nobj set rand193 rand192 arg2\ndupe rand194 arg0\nset str rand195 attributes\nobj get arg0 rand196 rand195\nset str rand195 x2\nobj set rand196 rand195 arg3\ndupe rand197 arg0\nset str rand198 attributes\nobj get arg0 rand199 rand198\nset str rand198 y2\nobj set rand199 rand198 arg4\n~"},"attributes":{}}
+set str rand183 methods
+obj get rand161 rand182 rand183
+set str rand183 .cns
+obj get rand182 rand182 rand183
+callvar rand182 rand158 rand161 rand162 rand168 rand174 rand178
+ret rand161
+~
+~ stateManager:updateState
+set str rand212 attributes
+obj get arg0 rand210 rand212
+set str rand212 type
+obj get rand210 rand210 rand212
+set str rand211 terminal
+eql rand209 rand210 rand211
+jn rand213 rand209
+call stateManager:terminal:update arg0 arg1
+: rand213
+~
+~ graphics:io:throw
+err arg0
+~
+~ graphics:io:getScreenSize
+const screen_width rand219
+const screen_height rand220
+set obj rand221 []
+arr add rand221 rand219
+arr add rand221 rand220
+ret rand221
+~
+~ graphics:getDefaultFrame
+callget rand224 graphics:io:getScreenSize 
+set num rand229 0
+obj get rand224 rand227 rand229
+set num rand230 0.5
+set num rand231 0
+sub rand228 rand231 rand230
+mul rand226 rand227 rand228
+set num rand235 1
+obj get rand224 rand233 rand235
+set num rand236 0.5
+set num rand237 0
+sub rand234 rand237 rand236
+mul rand232 rand233 rand234
+set num rand241 0
+obj get rand224 rand239 rand241
+set num rand240 0.5
+mul rand238 rand239 rand240
+set num rand245 1
+obj get rand224 rand243 rand245
+set num rand244 0.5
+mul rand242 rand243 rand244
+set obj rand225 {"methods":{".cns":"~ rand223\ndupe rand252 arg0\nset str rand253 attributes\nobj get arg0 rand254 rand253\nset str rand253 x1\nobj set rand254 rand253 arg1\ndupe rand255 arg0\nset str rand256 attributes\nobj get arg0 rand257 rand256\nset str rand256 y1\nobj set rand257 rand256 arg2\ndupe rand258 arg0\nset str rand259 attributes\nobj get arg0 rand260 rand259\nset str rand259 x2\nobj set rand260 rand259 arg3\ndupe rand261 arg0\nset str rand262 attributes\nobj get arg0 rand263 rand262\nset str rand262 y2\nobj set rand263 rand262 arg4\n~"},"attributes":{}}
+set str rand247 methods
+obj get rand225 rand246 rand247
+set str rand247 .cns
+obj get rand246 rand246 rand247
+callvar rand246 rand223 rand225 rand226 rand232 rand238 rand242
+ret rand225
 ~
 ~ main
-set obj rand5 {"methods":{},"attributes":{"type":"terminal"}}
-proc store rand5 rand5
-quitTo rand8
-: rand8
-proc get rand5 rand5
-set str rand12 attributes
-obj get rand5 rand10 rand12
-set str rand12 type
-obj get rand10 rand10 rand12
-set str rand11 terminal
-eql rand9 rand10 rand11
-jn rand13 rand9
-call terminal:update 
-: rand13
-quitTo rand8
+callget rand268 stateManager:state:getDefault 
+set obj rand269 {"methods":{".cns":"~ rand266\ndupe rand272 arg0\nset str rand274 pen\ncallget rand275 graphics:getDefaultFrame \nset obj rand273 {\"methods\":{\".cns\":\"~ rand264\\ndupe rand280 arg0\\nset str rand281 attributes\\nobj get arg0 rand282 rand281\\nset str rand281 type\\nobj set rand282 rand281 arg1\\ndupe rand283 arg0\\nset str rand284 attributes\\nobj get arg0 rand285 rand284\\nset str rand284 frame\\nobj set rand285 rand284 arg2\\n~\",\"clear\":\"~ rand265\\ndupe rand289 arg0\\nset str rand290 attributes\\nobj get rand289 rand287 rand290\\nset str rand290 type\\nobj get rand287 rand287 rand290\\nset str rand288 pen\\neql rand286 rand287 rand288\\njn rand291 rand286\\npen clear\\n: rand291\\nset str rand296 cannot use clear method on\\ndupe rand298 arg0\\nset str rand299 attributes\\nobj get rand298 rand297 rand299\\nset str rand299 type\\nobj get rand297 rand297 rand299\\nadd rand294 emptystring rand296 space rand297\\nset str rand295 surface\\nadd rand293 emptystring rand294 space rand295\\ncall graphics:io:throw rand293\\n~\"},\"attributes\":{\"type\":\"pen\"}}\nset str rand277 methods\nobj get rand273 rand276 rand277\nset str rand277 .cns\nobj get rand276 rand276 rand277\ncallvar rand276 rand264 rand273 rand274 rand275\nset str rand300 attributes\nobj get arg0 rand301 rand300\nset str rand300 drawSurface\nobj set rand301 rand300 rand273\n~","clearSurfaces":"~ rand267\ndupe rand302 arg0\nset null rand303\nset str rand304 attributes\nobj get arg0 rand305 rand304\nset str rand304 surfaces\nobj set rand305 rand304 rand303\n~"},"attributes":{}}
+set str rand271 methods
+obj get rand269 rand270 rand271
+set str rand271 .cns
+obj get rand270 rand270 rand271
+callvar rand270 rand266 rand269 
+quitTo rand306
+: rand306
+call stateManager:updateState rand268 rand269
+quitTo rand306
 ~

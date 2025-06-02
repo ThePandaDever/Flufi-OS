@@ -236,7 +236,7 @@ function fblExcape(text) {
         const char = text[i];
         
         if (char == "\n") {
-            current += "\\n"; i ++;
+            current += "\\n";
             continue;
         }
 
@@ -324,7 +324,12 @@ class Context {
                 "div": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `div ${target.id} ${aref} ${bref}` : null,
                 "pow": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `pow ${target.id} ${aref} ${bref}` : null,
                 "mod": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mod ${target.id} ${aref} ${bref}` : null,
-            
+
+                "inc": (_,target,aref,bref,atype,btype) => {
+                    const temp = randomStr();
+                    return `set num ${temp} 1\nadd ${target.id} ${target.id} ${temp}`;
+                },
+
                 "invert": (_,target,aref,bref,atype,btype) => `inv ${target.id} ${aref}`,
                 "boolify": (_,target,aref,bref,atype,btype) => `tobool ${target.id} ${aref}`,
                 "positive": (_,target,aref,bref,atype,btype) => {
@@ -349,6 +354,9 @@ class Context {
                 "pow": (_,a,b) => areNums(a,b) ? "num" : null,
                 "mod": (_,a,b) => areNums(a,b) ? "num" : null,
 
+                "inc": (_,a,b) => isTypeSafe(a,"num") ? "num": null,
+                "dec": (_,a,b) => isTypeSafe(a,"num") ? "num": null,
+
                 "invert": (_,a,b) => "bool",
                 "boolify": (_,a,b) => "bool",
                 "positive": (_,a,b) => isTypeSafe(a,new Union(["num","bool"])) ? "num" : null,
@@ -368,7 +376,7 @@ class Context {
         /* comparison */ {
             this.comparison_compilers = {
                 "equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
-                "not_equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? `eql ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} true`,
+                "not_equal": (_,target,aref,bref,atype,btype) => isTypeSafe(atype,btype) ? (this.neqlSupport ? `neql ${target.id} ${aref} ${bref}` : `eql ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}`) : `set bool ${target.id} true`,
                 "greater": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `gtr ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
                 "smaller": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}` : `set bool ${target.id} false`,
                 "greater_equal": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sml ${target.id} ${aref} ${bref}\ninv ${target.id} ${target.id}` : `set bool ${target.id} false`,
@@ -456,6 +464,7 @@ class CompileContext extends Context {
         this.variableSets = [];
         this.packages = {};
         this.sharesVariables = true;
+        this.neqlSupport = true;
 
         this.scope = new Scope({
             "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`)
@@ -570,9 +579,9 @@ function isTypeSafeStrict(type,compare) {
     if (type instanceof TypedValueType && compare instanceof TypedValueType) {
         return isTypeSafeStrict(type.baseType,compare.baseType) && isTypeSafeStrict(type.valueType,compare.valueType);
     }
-    if (type instanceof Type)
+    if (type instanceof Type || type instanceof Struct)
         type = type.name;
-    if (compare instanceof Type)
+    if (compare instanceof Type || compare instanceof Struct)
         compare = compare.name;
     if (compare instanceof Union)
         throw Error("attempt to use a union for a strict type check");
@@ -657,24 +666,33 @@ class Node {
 
         /* import */ {
             const spaceTokens = split(code, " ").filter(t => t != " ");
+            const tokens = split(spaceTokens.slice(1).join(" "),",").filter(t => t !== ",");
             let path;
-            if (spaceTokens.length >= 2 && spaceTokens.shift() == "import" && /^[A-Za-z0-9_/]+$/.test(path = spaceTokens.shift())) {
-                let name = path.split("/").pop();
-
-                let token;
-                while (token = spaceTokens.shift()) {
-                    switch (token) {
-                        case "as":
-                            name = spaceTokens.shift();
-                            break;
-                        default:
-                            throw Error("unexpected token " + token);
-                    }
-                }
-
+            if (spaceTokens.length >= 2 && spaceTokens.shift() == "import" && tokens.length > 0) {
                 this.kind = "import";
-                this.path = path;
-                this.name = name;
+                let imports = [];
+                for (let i = 0; i < tokens.length; i++) {
+                    const spaceTokens = split(tokens[i], " ").filter(t => t != " ");
+                    const path = spaceTokens.shift();
+
+                    let name = path.split("/").pop();
+
+                    let token;
+                    while (token = spaceTokens.shift()) {
+                        switch (token) {
+                            case "as":
+                                name = spaceTokens.shift();
+                                break;
+                            default:
+                                throw Error("unexpected token " + token);
+                        }
+                    }
+                    imports.push({
+                        path,
+                        name
+                    })
+                }
+                this.imports = imports;
                 return;
             }
         }
@@ -717,6 +735,33 @@ class Node {
                         if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
                             if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
                                 return new Node(elem, context);
+                            }
+                        }
+                    }
+                    /* auto function */ {
+                        const bracketTokens = split(code, "bracket");
+                        const arrowTokens = split(bracketTokens[0] ?? "", "arrow");
+                        const spaceTokens = split(arrowTokens[0] ?? "", " ", null, true).filter(t => t !== " ");
+                        if (bracketTokens.length == 3 && arrowTokens.length == 2 && spaceTokens.length == 2) {
+                            if (
+                                is(bracketTokens[1], "bracket") &&
+                                is(bracketTokens[2], "curly") &&
+                                is(arrowTokens[1], "arrow") &&
+                                spaceTokens[0] == "auto" &&
+                                /^[A-Za-z0-9_]+$/.test(spaceTokens[1]) &&
+                                /^[A-Za-z0-9_]+$/.test(arrowTokens[1].slice(1,-1))
+                            ) {
+                                return new Node(elem, context);
+                            }
+                        }
+                    }
+                    /* null attribute */ {
+                        const tokens = split(elem, " ").filter(t => t !== " ");
+                        if (tokens.length >= 2) {
+                            return {
+                                "kind": "null_attribute",
+                                "name": tokens.pop(),
+                                "type": new Node(tokens.join(" "), context)
                             }
                         }
                     }
@@ -805,11 +850,13 @@ class Node {
                 this.parent = new Node(keys.join(""), context);
             }
 
-            const attributes = split(key, ".").filter(t => t !== ".");
-            if (attributes.length > 1 && isValid) {
-                this.fullAttribute = new Node(key, context);
-                key = attributes.pop();
-                this.parent = new Node(attributes.join("."), context);
+            if (typeof key === "string") {
+                const attributes = split(key, ".").filter(t => t !== ".");
+                if (attributes.length > 1 && isValid) {
+                    this.fullAttribute = new Node(key, context);
+                    key = attributes.pop();
+                    this.parent = new Node(attributes.join("."), context);
+                }
             }
 
             if (isValid && (typeof key == "string" ? /^[A-Za-z0-9_|]+$/.test(key) : true)) {
@@ -823,18 +870,43 @@ class Node {
             }
         }
 
+        /* auto function */ {
+            const bracketTokens = split(code, "bracket");
+            const arrowTokens = split(bracketTokens[0] ?? "", "arrow");
+            const spaceTokens = split(arrowTokens[0] ?? "", " ", null, true).filter(t => t !== " ");
+            if (bracketTokens.length == 3 && arrowTokens.length == 2 && spaceTokens.length == 2) {
+                if (
+                    is(bracketTokens[1], "bracket") &&
+                    is(bracketTokens[2], "curly") &&
+                    is(arrowTokens[1], "arrow") &&
+                    spaceTokens[0] == "auto" &&
+                    /^[A-Za-z0-9_]+$/.test(spaceTokens[1]) &&
+                    /^[A-Za-z0-9_]+$/.test(arrowTokens[1].slice(1,-1))
+                ) {
+                    this.kind = "auto_function";
+                    this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
+                    this.key = spaceTokens.pop();
+                    context.functionArgLayers.push(this.params);
+                    this.content = new Node(bracketTokens[2].slice(1,-1), context);
+                    context.functionArgLayers.pop();
+                    this.type = arrowTokens[1].slice(1,-1);
+                    return
+                }
+            }
+        }
+
         /* function */ {
             const bracketTokens = split(code, "bracket");
             const spaceTokens = split(bracketTokens[0], " ", null, true).filter(t => t !== " ");
             if (bracketTokens.length == 3 && spaceTokens.length >= 2) {
-                if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly")) {
+                if (is(bracketTokens[1], "bracket"), is(bracketTokens[2], "curly") && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
                     this.kind = "function";
                     this.params = split(bracketTokens[1].slice(1,-1),",").filter(t => t != ",").map(p => new Parameter(p, context));
-                    this.key = spaceTokens[spaceTokens.length-1];
+                    this.key = spaceTokens.pop();
                     context.functionArgLayers.push(this.params);
                     this.content = new Node(bracketTokens[2].slice(1,-1), context);
                     context.functionArgLayers.pop();
-                    this.type = new Node(spaceTokens.slice(0,-1).join(" "), context);
+                    this.type = new Node(spaceTokens.join(" "), context);
                     return;
                 }
             } else if (bracketTokens.length == 3) {
@@ -845,7 +917,7 @@ class Node {
                     context.functionArgLayers.push(this.params);
                     this.content = new Node(bracketTokens[2].slice(1,-1), context);
                     context.functionArgLayers.pop();
-                    this.type = new Node(spaceTokens[0], context);
+                    this.type = new Node(spaceTokens.join(" "), context);
                     return;
                 }
             }
@@ -888,12 +960,47 @@ class Node {
             }
         }
 
-        /* typedValueType */ {
+        /* typed value type */ {
             const tokens = split(code, "arrow");
             if (tokens.length == 2 && is(tokens[1],"arrow") && /^[A-Za-z0-9_]+$/.test(tokens[0])) {
-                this.kind = "typedValueType";
+                this.kind = "typed_value_type";
                 this.baseType = new Node(tokens[0], context);
                 this.valueType = new Node(tokens[1].slice(1,-1), context);
+                return;
+            }
+        }
+
+        /* typed method */ {
+            const tokens = split(code, ".").filter(t => t !== ".");
+            const bracketTokens = split(tokens[tokens.length-1], "bracket");
+            const arrowTokens = split(bracketTokens[0] ?? "", "arrow");
+            if (
+                tokens.length > 1 && 
+                bracketTokens.length >= 2 &&
+                arrowTokens.length >= 2 &&
+                /^[A-Za-z0-9_]+$/.test(arrowTokens[0])
+            ) {
+                tokens.pop();
+                this.kind = "typed_method";
+                this.value = new Node(tokens.join("."), context);
+                this.args = split(bracketTokens[bracketTokens.length - 1].slice(1,-1),",").filter(t => t != ",").map(p => new Node(p, context));
+                this.type = new Node(arrowTokens.pop().slice(1,-1), context);
+                this.key = arrowTokens.join("");
+                return;
+            }
+        }
+
+        /* typed execution */ {
+            const bracketTokens = split(code, "bracket");
+            const arrowTokens = split(bracketTokens[0] ?? "", "arrow");
+            if (
+                bracketTokens.length >= 2 &&
+                arrowTokens.length >= 2
+            ) {
+                this.kind = "typed_execution";
+                this.args = split(bracketTokens[bracketTokens.length - 1].slice(1,-1),",").filter(t => t != ",").map(p => new Node(p, context));
+                this.type = new Node(arrowTokens.pop().slice(1,-1), context);
+                this.key = new Node(arrowTokens.join(""), context);
                 return;
             }
         }
@@ -965,6 +1072,44 @@ class Node {
                     this.a = new Node(newTokens.join(""), context);
                     return;
                 }
+            }
+        }
+
+        /* inc and dec */ {
+            const chars = ["=","+","-","*","/","^","%"];
+            const tokens = split(code,chars);
+            let key = tokens.shift();
+            let op = "";
+            let token;
+            while (chars.includes(token = tokens.shift())) op += token;
+            if (token) tokens.unshift(token);
+
+            const types = {
+                "++": "inc",
+                "--": "dec"
+            }
+
+            const isValid = Object.keys(types).includes(op);
+
+            const keys = split(key, "square");
+            if (keys.length > 1 && is(keys[keys.length-1], "square") && isValid) {
+                this.fullKey = new Node(key, context);
+                key = new Node(keys.pop().slice(1,-1), context);
+                this.parent = new Node(keys.join(""), context);
+            }
+
+            const attributes = split(key, ".").filter(t => t !== ".");
+            if (attributes.length > 1 && isValid) {
+                this.fullAttribute = new Node(key, context);
+                key = attributes.pop();
+                this.parent = new Node(attributes.join("."), context);
+            }
+
+            if (isValid && (typeof key == "string" ? /^[A-Za-z0-9_|]+$/.test(key) : true)) {
+                this.kind = "assignment";
+                this.key = key;
+                this.type = types[op];
+                return;
             }
         }
 
@@ -1074,7 +1219,8 @@ class Node {
                     "Obj",
                     "Arr",
                     
-                    "void"
+                    "void",
+                    "any"
                 ];
                 if (types.includes(code)) {
                     this.kind = "type";
@@ -1123,6 +1269,17 @@ class Node {
             }
         }
 
+        /* context flags */ {
+            const flags = {
+                "#noAnyWarn": "noAnyWarn"
+            }
+            if (flags[code]) {
+                this.kind = "context_flags";
+                this.key = flags[code];
+                return;
+            }
+        }
+
         if (!code.trim()) {
             this.kind = "empty";
             return;
@@ -1155,19 +1312,22 @@ class Node {
                     context.text += `set null ${target.id}\n`;
                 break;
             case "import": {
-                let current = context.fs;
-                const tokens = this.path.split("/");
-                for (let i = 0; i < tokens.length; i++) {
-                    const token = tokens[i];
-                    if (current == null)
-                        break;
-                    current = current[token];
+                for (let i = 0; i < this.imports.length; i++) {
+                    const imp = this.imports[i];
+                    let current = context.fs;
+                    const tokens = imp.path.split("/");
+                    for (let i = 0; i < tokens.length; i++) {
+                        const token = tokens[i];
+                        if (current == null)
+                            break;
+                        current = current[token];
+                    }
+                    if (!current)
+                        throw Error("unknown package " + imp.path + ".fcl")
+                    
+                    context.packages[imp.name] = current;
+                    current.node.import(context, imp.name);
                 }
-                if (!current)
-                    throw Error("unknown package " + this.path + ".fcl")
-                
-                context.packages[this.name] = current;
-                current.node.import(context, this.name);
 
                 break;
             }
@@ -1182,6 +1342,8 @@ class Node {
                     const argKeys = this.args.map(a => a.compileKey(context));
                     this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
                     context.text += func.compileFunc(argKeys, target) + "\n";
+                } else if (func instanceof AutoFunc) {
+                    throw Error("cannot execute generic function as typed function");
                 } else if (func instanceof DefinedFunc) {
                     let argKeys;
                     if (func.params) {
@@ -1216,6 +1378,57 @@ class Node {
                 
                 break;
             }
+            case "typed_execution": {
+                if (this.key.formattedCode === "raw") {
+                    context.text += (this.args.map(n => n.kind == "string" ? n.value : "").join("\n") + "\n").replace(".target", target?.id);
+                    return;
+                }
+                const func = this.key.getValue(context);
+                if (func instanceof AutoFunc) {
+                    let argKeys;
+                    if (func.params) {
+                        argKeys = [];
+                        for (let i = 0; i < func.params.length; i++) {
+                            const param = func.params[i];
+                            const arg = this.args[i];
+                            if (arg == null && param.default == null) {
+                                throw Error(`argument ${param.name} not supplied.`);
+                            } else if (!arg && param.default) {
+                                const key = param.default.compileKey(context);
+                                param.default.compile(context, new Target(key));
+                                argKeys.push(key);
+                            } else {
+                                const key = arg.compileKey(context);
+                                arg.compile(context, new Target(key));
+                                argKeys.push(key);
+                                const t = arg.getType(context);
+                                const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
+                                if (!isTypeSafe(t,pType)) {
+                                    throw Error("expected " + t.getName() + " got " + pType.getName())
+                                }
+                            }
+                        }
+                    }
+                    if (target) {
+                        context.text += `callget ${target.id} ${func.key} ${argKeys.join(" ")}\n`;
+                        
+                        let outType = this.type.getValue(context);
+                        outType = outType instanceof GenericType ? `.generic` : outType.getName();
+                        const condRef = randomStr();
+                        const typeRef = randomStr();
+                        const errRef1 = randomStr();
+                        const errRef2 = randomStr();
+                        const lblRef = randomStr();
+                        context.text += `set str ${typeRef} ${outType}\nistypeg ${condRef} ${target.id} ${typeRef}\n`;
+                        context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic function returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
+                    } else
+                        context.text += `call ${func.key} ${argKeys.join(" ")}\n`;
+                } else {
+                    throw Error(this.key.formattedCode + " is not a generic function");
+                }
+
+                break;
+            }
             case "statement": {
                 switch (this.key) {
                     case "return": {
@@ -1224,14 +1437,16 @@ class Node {
                             const key = this.value.compileKey(context);
                             this.value.compile(context, new Target(key));
                             const type = this.value.getType(context);
-                            if (topLayer && !isTypeSafe(type,topLayer.return_type)) {
-                                throw Error(`attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`)
+                            if (topLayer && !isTypeSafe(type,topLayer.return_type))
+                                throw Error(`attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`);
+                            if (topLayer.kind == "auto_function") {
+                                const typeRef = randomStr();
+                                context.text += `set str ${typeRef} ${type instanceof GenericType ? `.generic` : type.getName()}\nsettype ${key} ${typeRef}\n`;
                             }
                             context.text += `ret ${key}\n`;
                         } else {
-                            if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type)) {
-                                throw Error(`attempt to return null when the function should return ${topLayer.return_type.getName()}`)
-                            }
+                            if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type))
+                                throw Error(`attempt to return null when the function should return ${topLayer.return_type.getName()}`);
                         }
                         break;
                     }
@@ -1356,8 +1571,7 @@ class Node {
                 // obj[key] = value stuff
                 let parentKey;
                 let keyKey;
-
-                // variable
+                
                 if (this.fullAttribute) {
                     parentKey = this.parent.compileKey(context);
                     this.parent.compile(context, new Target(parentKey));
@@ -1365,7 +1579,7 @@ class Node {
                     targetType = this.fullAttribute.getType(context);
 
                     switch (this.type) {
-                        case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod":
+                        case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec":
                             targetRef = this.fullAttribute.compileKey(context);
                             this.fullAttribute.compile(context, new Target(targetRef));
                             break
@@ -1391,6 +1605,7 @@ class Node {
                                     if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType))
                                         throw Error("attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName())
                                     break;
+                                case "inc": case "dec": targetType = new Type("num"); err = null; break;
                                 default:
                                     throw e;
                             }
@@ -1400,7 +1615,7 @@ class Node {
                         try {
                             targetRef = context.scope.assign(this.key, this.value.getValue(context));
                         } catch {
-                            targetRef = context.scope.assign(this.key, new TypedValue(targetType?.name));
+                            targetRef = context.scope.assign(this.key, new TypedValue(targetType));
                         }
                         existingRef = targetRef;
                     } else { // obj[key]
@@ -1412,7 +1627,7 @@ class Node {
                         targetType = this.fullKey.getType(context);
 
                         switch (this.type) {
-                            case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod":
+                            case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec":
                                 existingRef = this.fullKey.compileKey(context);
                                 this.fullKey.compile(context, new Target(existingRef));
                                 break
@@ -1430,12 +1645,12 @@ class Node {
                         this.value.compile(context, new Target(targetRef));
                         break;
                     }
-                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": {
+                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec": {
                         const valueRef = randomStr();
-                        const valueType = this.value.getType(context);
+                        const valueType = this.value?.getType(context);
 
                         const operation = context.operation_compilers[this.type];
-                        this.value.compile(context, new Target(valueRef));
+                        this.value?.compile(context, new Target(valueRef));
                         const out = operation(context, new Target(targetRef), targetRef, valueRef, targetType, valueType);
                         if (!out)
                             throw Error(`cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`)
@@ -1450,7 +1665,7 @@ class Node {
                         try {
                             context.scope.assign(this.key, this.value.getValue(context));
                         } catch {
-                            context.scope.assign(this.key, new TypedValue(outType.name));
+                            context.scope.assign(this.key, new TypedValue(outType.name ?? outType));
                         }
                         break;
                     }
@@ -1486,22 +1701,46 @@ class Node {
                 const instVal = context.scope.get(this.name);
                 if (!instVal || !(instVal instanceof Struct))
                     throw Error("cannot instance " + this.name);
-                target ??= new Target(randomStr());
+                target ??= new Target(randomStr()); 
+                let argKeys;
+                const params = instVal.methods[".cns"]?.params;
+                if (params) {
+                    argKeys = [];
+                    for (let i = 0; i < params.length; i++) {
+                        const param = params[i];
+                        const arg = this.args[i];
+                        if (arg == null && param.default == null) {
+                            throw Error(`argument ${param.name} not supplied.`);
+                        } else if (!arg && param.default) {
+                            const key = param.default.compileKey(context);
+                            param.default.compile(context, new Target(key));
+                            argKeys.push(key);
+                        } else {
+                            const key = arg.compileKey(context);
+                            arg.compile(context, new Target(key));
+                            argKeys.push(key);
+                            const t = arg.getType(context);
+                            if (!isTypeSafe(t,param.type.getValue(context))) {
+                                throw Error("expected " + t.getName() + " got " + param.type.getValue(context).getName())
+                            }
+                        }
+                    }
+                }
                 const constructortemp1 = randomStr();
                 const constructortemp2 = randomStr();
                 if (instVal instanceof Struct) {
                     instVal.getObj(context, target);
                     if (instVal.methods[".cns"])
-                        context.text += `set str ${constructortemp2} methods\nobj get ${target.id} ${constructortemp1} ${constructortemp2}\nset str ${constructortemp2} .cns\nobj get ${constructortemp1} ${constructortemp1} ${constructortemp2}\ncallvar ${constructortemp1} main\n`;
+                        context.text += `set str ${constructortemp2} methods\nobj get ${target.id} ${constructortemp1} ${constructortemp2}\nset str ${constructortemp2} .cns\nobj get ${constructortemp1} ${constructortemp1} ${constructortemp2}\ncallvar ${constructortemp1} ${instVal.methods[".cns"].key} ${target.id} ${argKeys.join(" ")}\n`;
                 }
                 break;
             }
             case "method": {
                 const parentType = this.value.getType(context);
-                if (parentType instanceof Type) {
+                if (parentType instanceof Type || parentType instanceof Struct) {
                     const parent = context.scope.get(parentType.name);
                     const parentRef = this.value.compileKey(context);
-                    this.value.compile(new Target(parentRef));
+                    this.value.compile(context, new Target(parentRef));
                     if (parent instanceof Struct) {
                         if (Object.keys(parent.methods).includes(this.key)) {
                             const methodRef = randomStr();
@@ -1533,7 +1772,61 @@ class Node {
 
                             // get the method
                             context.text += `set str ${keyRef} methods\nobj get ${parentRef} ${methodRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${methodRef} ${methodRef} ${keyRef}\n`;
-                            context.text += target != null ? `callgetvar ${target.id} ${methodRef} main ${parentRef} ${argKeys.join(" ")}\n` : `callvar ${methodRef} main ${parentRef} ${argKeys.join(" ")}\n`;
+                            context.text += target != null ? `callgetvar ${target.id} ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n` : `callvar ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n`;
+                            return;
+                        }
+                    }
+                }
+                throw Error(`cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
+            }
+            case "typed_method": {
+                const parentType = this.value.getType(context);
+                if (parentType instanceof Type || parentType instanceof Struct) {
+                    const parent = context.scope.get(parentType.name);
+                    const parentRef = this.value.compileKey(context);
+                    this.value.compile(new Target(parentRef));
+                    if (parent instanceof Struct) {
+                        if (Object.keys(parent.genericMethods).includes(this.key)) {
+                            const methodRef = randomStr();
+                            const keyRef = randomStr();
+                            const func = parent.genericMethods[this.key];
+                            let argKeys = [];
+                            if (func.params) {
+                                for (let i = 0; i < func.params.length; i++) {
+                                    const param = func.params[i];
+                                    const arg = this.args[i];
+                                    if (arg == null && param.default == null) {
+                                        throw Error(`argument ${param.name} not supplied.`);
+                                    } else if (!arg && param.default) {
+                                        const key = param.default.compileKey(context);
+                                        param.default.compile(context, new Target(key));
+                                        argKeys.push(key);
+                                    } else {
+                                        const key = arg.compileKey(context);
+                                        arg.compile(context, new Target(key));
+                                        argKeys.push(key);
+                                        const t = arg.getType(context);
+                                        const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
+                                        if (!isTypeSafe(t,pType)) {
+                                            throw Error("expected " + t.getName() + " got " + pType.getValue(context))
+                                        }
+                                    }
+                                }
+                            }
+
+                            // get the method
+                            context.text += `set str ${keyRef} methods\nobj get ${parentRef} ${methodRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${methodRef} ${methodRef} ${keyRef}\n`;
+                            context.text += target != null ? `callgetvar ${target.id} ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n` : `callvar ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n`;
+                            
+                            let outType = this.type.getValue(context);
+                            outType = outType instanceof GenericType ? `.generic` : outType.getName();
+                            const condRef = randomStr();
+                            const typeRef = randomStr();
+                            const errRef1 = randomStr();
+                            const errRef2 = randomStr();
+                            const lblRef = randomStr();
+                            context.text += `set str ${typeRef} ${outType}\nistypeg ${condRef} ${target.id} ${typeRef}\n`;
+                            context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic method returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
                             return;
                         }
                     }
@@ -1581,7 +1874,7 @@ class Node {
             }
             case "attribute": {
                 const parentType = this.value.getType(context);
-                if (parentType instanceof Type) {
+                if (parentType instanceof Type || parentType instanceof Struct) {
                     const parent = context.scope.get(parentType.name);
                     const parentRef = this.value.compileKey(context);
                     this.value.compile(context, new Target(parentRef));
@@ -1590,6 +1883,14 @@ class Node {
                             if (target != null) {
                                 const keyRef = randomStr();
                                 context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${target.id} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${target.id} ${target.id} ${keyRef}\n`;
+                            }
+                            return;
+                        }
+                        if (Object.keys(parent.nullAttributes).includes(this.key)) {
+                            if (target != null) {
+                                const keyRef = randomStr();
+                                const txtRef = randomStr();
+                                context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${target.id} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${target.id} ${target.id} ${keyRef}\nset str ${txtRef} ${this.key} attribute is null\nerrnull ${target.id} ${txtRef}\n`;
                             }
                             return;
                         }
@@ -1662,19 +1963,18 @@ class Node {
                 if (!context.compiledFunctions.includes(this.key)) {
                     const saveText = context.text;
                     context.text = `~ ${this.key}\n`;
-                    context.functionDataLayers.push({"key":this.kind,"return_type":type,"branch":[],"args":this.params});
+                    context.functionDataLayers.push({"kind":this.kind,"return_type":type,"branch":[],"args":this.params});
                     if (type.name !== "null") {
                         const scanContext = new ScanContext();
                         this.content.scan(scanContext);
-                        if (!scanContext.returns) {
+                        if (!scanContext.returns)
                             throw Error("not all code paths return a value");
-                        }
                     }
                     context.scope.newLayer(Object.fromEntries(this.params.map((p,i) => [`.arg${i}`, p.type.getValue(context)])));
                     this.content.compile(context, null, ["noscope"]);
                     context.scope.exitLayer();
                     context.functionDataLayers.pop();
-                    context.text += "~\n";
+                    context.text += "~\n";  
                     context.functionText += context.text;
                     context.text = saveText;
                     context.compiledFunctions.push(this.key);
@@ -1689,36 +1989,76 @@ class Node {
                 }
                 break;
             }
+            case "auto_function": {
+                if (!context.compiledFunctions.includes(this.key)) {
+                    const saveText = context.text;
+                    context.text = `~ ${this.key}\n`;
+                    context.functionDataLayers.push({"kind":this.kind,"return_type":".any","branch":[],"args":this.params});
+                    const scanContext = new ScanContext();
+                    this.content.scan(scanContext);
+                    if (!scanContext.returns)
+                        throw Error("not all code paths return a value");
+                    context.scope.newLayer(Object.fromEntries([[this.type,new GenericType()]]));
+                    context.scope.newLayer(Object.fromEntries(this.params.map((p,i) => [`.arg${i}`, p.type.getValue(context)])));
+                    this.content.compile(context, null, ["noscope"]);
+                    context.scope.exitLayer();
+                    context.scope.exitLayer();
+                    context.functionDataLayers.pop();
+                    context.text += "~\n";
+                    context.functionText += context.text;
+                    context.text = saveText;
+                    context.compiledFunctions.push(this.key);
+                }
+                const value = new AutoFunc(this.key, this.params, this.type);
+                context.scope.assignTop(this.key.slice(this.key.lastIndexOf(":") + 1), value);
+                context.scope.assignTop(this.key, value);
+                context.scope.assignTop(this.key.split(":").slice(-2).join(":"), value);
+
+                if (target) {
+                    context.text += `set str ${target.id} ${value.stringify()}\n`;
+                }
+                break;
+            }
             case "struct_def": {
                 if (target != null)
                     throw Error("expected an output from struct definition");
                 //console.log(JSON.stringify(this, null, "  "));
                 const attributes = {};
+                const nullAttributes = {};
                 const methods = {};
+                const genericMethods = {};
                 for (let i = 0; i < this.content.length; i++) {
                     const elem = this.content[i];
                     if (elem["kind"] == "attribute")
                         attributes[elem["name"]] = elem;
+                    if (elem["kind"] == "null_attribute")
+                        nullAttributes[elem["name"]] = elem;
                     if (elem["kind"] == "function")
                         methods[elem.key.replace("constructor",".cns")] = new MethodFunc(elem.content,elem.type,elem.params);
-                        
+                    if (elem["kind"] == "auto_function")
+                        genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type);
+                    
+                    if (elem["kind"] == "auto_function" && elem.key === "constructor")
+                        throw Error("constructor cannot be a generic function");
                     if (elem["kind"] == "function" && elem.key === "constructor" && elem.type.formattedCode !== "void")
                         throw Error("constructor isnt of type void");
                 }
+                const args = [attributes,nullAttributes,methods,genericMethods];
                 context.scope.assignTop(this.name.slice(this.name.indexOf(":") + 1), new Struct(
                     this.name.slice(this.name.indexOf(":") + 1),
-                    attributes,
-                    methods
+                    ...args
                 ))
                 context.scope.assignTop(this.name, new Struct(
                     this.name,
-                    attributes,
-                    methods
+                    ...args
                 ))
                 context.scope.assignTop(this.name.split(":").slice(-2).join(":"), new Struct(
                     this.name,
-                    attributes,
-                    methods
+                    ...args
+                ))
+                context.scope.assignTop(this.name.split(":").slice(-1).join(":"), new Struct(
+                    this.name,
+                    ...args
                 ))
                 break;
             }
@@ -1750,22 +2090,32 @@ class Node {
     import(context, name) {
         switch (this.kind) {
             case "import": {
-                let current = context.fs;
-                const tokens = this.path.split("/");
-                for (let i = 0; i < tokens.length; i++) {
-                    const token = tokens[i];
-                    if (current == null)
-                        break;
-                    current = current[token];
+                for (let i = 0; i < this.imports.length; i++) {
+                    try {
+                        const imp = this.imports[i];
+                        let current = context.fs;
+                        const tokens = imp.path.split("/");
+                        for (let i = 0; i < tokens.length; i++) {
+                            const token = tokens[i];
+                            if (current == null)
+                                break;
+                            current = current[token];
+                        }
+                        if (!current)
+                            throw Error("unknown package " + imp.path + ".fcl")
+                        
+                        context.packages[imp.name] = current;
+                        const old = context.packageName;
+                        context.packageName = name + ":" + imp.name;
+                        current.node.import(context, name + ":" + imp.name);
+                        context.packageName = old;
+                    } catch (e) {
+                        if (e instanceof RangeError) {
+                            throw `range error while importing ${this.imports[i].path}`;
+                        } else
+                            throw e;
+                    }
                 }
-                if (!current)
-                    throw Error("unknown package " + this.path + ".fcl")
-                
-                context.packages[this.name] = current;
-                const old = context.packageName;
-                context.packageName = name + ":" + this.name;
-                current.node.import(context, name + ":" + this.name);
-                context.packageName = old;
                 break;
             }
             case "segment": {
@@ -1775,7 +2125,7 @@ class Node {
                 }
                 break;
             }
-            case "function": {
+            case "function": case "auto_function": {
                 const oldName = this.key;
                 this.key = name + ":" + this.key;
                 this.compile(context);
@@ -1826,7 +2176,8 @@ class Node {
                     "false": new TypedValue("bool"),
 
                     "null": new TypedValue("null"),
-                    "self": new TypedValue("self")
+                    "self": new TypedValue("self"),
+                    "any": new TypedValue(".any")
                 }[this.name];
             case "package_method":
                 return context.scope.get(`${context.packageName != null ? context.packageName + ":" : ""}${this.package}:${this.key}`);
@@ -1842,8 +2193,12 @@ class Node {
                 }
                 return new DefinedFunc(this.key, this.type.getValue(context), this.params);
             case "type":
+                if (this.name == "any" && context?.noAnyWarn != null)
+                    throw Error("usage of any, any is not recomended, if this is necessary, put #noAnyWarn before the usage")
+                if (this.name == "any")
+                    return new Type(".any");
                 return new Type(this.name);
-            case "typedValueType":
+            case "typed_value_type":
                 return new TypedValueType(this.baseType.getValue(), this.valueType.getValue());
             case "union":
                 return new Union(this.elements.map(e => e.getValue(context)));
@@ -1903,6 +2258,9 @@ class Node {
                 try {
                     return context.scope.get(this.value.getType(context).name).attributes[this.key].type.getValue(context);
                 } catch {}
+                try {
+                    return context.scope.get(this.value.getType(context).name).nullAttributes[this.key].type.getValue(context);
+                } catch {}
                 return new Type("null");
             
             case "key":
@@ -1915,13 +2273,17 @@ class Node {
             case "execution":
                 if (this.key.formattedCode == "raw") return new Type(".any");
                 return this.key.getValue(context)?.return_type;
+            case "typed_execution":
+                return this.type.getValue(context);
             case "operation":
                 const temp1 = context.operation_types[this.type];
                 if (temp1) {
-                    const out = temp1(context,this.a.getType(context),this.b.getType(context));
+                    const out = temp1(context,this.a.getType(context),this.b?.getType(context));
                     return typeof out == "string" ? new Type(out) : out;
                 }
                 break;
+            case "comparison":
+                return new Type("bool");
             case "instance":
                 const instVal = context.scope.get(this.name);
                 if (!instVal)
@@ -1929,9 +2291,12 @@ class Node {
                 return instVal;
             case "method":
                 try {
-                    return context.scope.get(this.value.getType(context).name).methods[this.key].return_type.getValue(context);
+                    const temp = context.scope.get(this.value.getType(context).name)
+                    return {...temp.methods,...temp.null_methods}[this.key].return_type.getValue(context);
                 } catch {}
                 return new Type("null");
+            case "typed_method":
+                return this.type.getValue(context);
 
             case "array": case "object": {
                 const val = this.getValue(context);
@@ -2043,6 +2408,11 @@ class TypedValue extends Value {
         super();
         this.type = type?.name ?? type;
     }
+
+    getType() {
+        const type = this.type;
+        return typeof type === "string" ? new Type(type) : type;
+    }
 }
 
 class Type {
@@ -2087,6 +2457,26 @@ class TypedValueType {
         return this.valueType;
     }
     getType() {
+        return new Type(this?.baseType);
+    }
+}
+class GenericType extends Type {
+    constructor() {
+        super(".any");
+    }
+    stringify() {
+        return `<type:${this.name}>`;
+    }
+    getName() {
+        return "<genericType>";
+    }
+    canGetKey() {
+        return false;
+    }
+    getKeyType() {
+        return null;
+    }
+    getType() {
         return new Type(this?.type);
     }
 }
@@ -2115,7 +2505,7 @@ class ClassValue extends Value {
 }
 
 class Struct extends TypedValueType {
-    constructor(name, attributes, methods) {
+    constructor(name, attributes, nullAttributes, methods, genericMethods) {
         super();
         delete this.baseType;
         delete this.valueType;
@@ -2123,7 +2513,9 @@ class Struct extends TypedValueType {
         this.type = "struct";
         this.name = name;
         this.attributes = attributes;
+        this.nullAttributes = nullAttributes;
         this.methods = methods;
+        this.genericMethods = genericMethods;
     }
     stringify() {
         return `<struct:${this.name}>`;
@@ -2133,52 +2525,64 @@ class Struct extends TypedValueType {
     }
     getObj(context, target) {
         const methods = {};
-        const e = Object.entries(this.methods);
+        const e = Object.entries({...this.methods, ...this.genericMethods});
+
         for (let i = 0; i < e.length; i++) {
             const method = e[i];
             const oldText = context.text;
-            const type = method[1].return_type.getValue(context);
-            if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode);
-            
-            if (type.name !== "null") {
-                const scanContext = new ScanContext();
-                method[1].content.scan(scanContext);
-                if (!scanContext.returns) {
-                    throw Error("not all code paths return a value");
+            let type;
+            if (method[1] instanceof MethodFunc && !(method[1] instanceof AutoMethodFunc)) {
+                type = method[1].return_type.getValue(context);
+                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw Error("invalid type " + this.type.formattedCode);
+                
+                if (type.name !== "null") {
+                    const scanContext = new ScanContext();
+                    method[1].content.scan(scanContext);
+                    if (!scanContext.returns)
+                        throw Error("not all code paths return a value");
                 }
             }
             const oldOffset = context.argOffset ?? 0;
             context.argOffset = 1;
-            context.text = "~ main\n";
-            context.functionDataLayers.push({"key":method[0],"return_type":type,"branch":[],"args":method[1].params,"hasSelf":true});
+            context.text = `~ ${method[1].key}\n`;
+            if (method[1] instanceof AutoMethodFunc)
+                context.functionDataLayers.push({"kind":"auto_function","return_type":".any","branch":[],"args":method[1].params,"hasSelf":true});
+            else
+                context.functionDataLayers.push({"kind":"function","return_type":type,"branch":[],"args":method[1].params,"hasSelf":true});
             context.selfDataLayers ??= [];
             context.selfDataLayers.push({"type":"struct","data":this});
+            if (method[1] instanceof AutoMethodFunc)
+                context.scope.newLayer(Object.fromEntries([[method[1].typeName,new GenericType()]]));
             context.scope.newLayer(Object.fromEntries(method[1].params.map((p,i) => [`.arg${i}`, p.type.getValue(context)])));
             method[1].content.compile(context);
             context.functionDataLayers.pop();
             context.selfDataLayers.pop();
             context.scope.exitLayer();
+            if (method[1] instanceof AutoMethodFunc)
+                context.scope.exitLayer();
             methods[method[0]] = context.text + "~";
             context.text = oldText;
             context.argOffset = oldOffset;
         }
         const attributes = {};
         const compiledAttributes = [];
-        const e2 = Object.entries(this.attributes);
+        const e2 = Object.entries({...this.attributes,...this.nullAttributes});
         for (let i = 0; i < e2.length; i++) {
             const attribute = e2[i];
-            const attribute_type = attribute[1]["type"]?.getValue(context) ?? attribute[1]["value"].getType(context);
-            const temp = attribute[1]["value"].getType(context);
-            if (!isTypeSafeStrict(temp, attribute_type))
-                throw Error("attribute type is " + temp.getName() + " while the attribute type is " + attribute_type.getName());
-            
-            switch (attribute[1]["value"].kind) {
-                case "string": case "number":
-                    attributes[attribute[0]] = attribute[1]["value"].value;
-                    break;
-                default:
-                    compiledAttributes.push(attribute);
-                    break;
+            if (attribute[1]["value"]) {
+                const attribute_type = attribute[1]["type"]?.getValue(context) ?? attribute[1]["value"].getType(context);
+                const temp = attribute[1]["value"].getType(context);
+                if (!isTypeSafeStrict(temp, attribute_type))
+                    throw Error("attribute type is " + temp.getName() + " while the attribute type is " + attribute_type.getName());
+                
+                switch (attribute[1]["value"].kind) {
+                    case "string": case "number":
+                        attributes[attribute[0]] = attribute[1]["value"].value;
+                        break;
+                    default:
+                        compiledAttributes.push(attribute);
+                        break;
+                }
             }
         }
         context.text += `set obj ${target.id} ${JSON.stringify({"methods": methods,"attributes": attributes})}\n`;
@@ -2242,6 +2646,21 @@ class MethodFunc extends Func {
         this.content = content;
         this.return_type = type;
         this.params = params;
+        this.key = randomStr();
+    }
+}
+class AutoFunc extends DefinedFunc {
+    constructor(key, params, typeName) {
+        super(key, ".any", params);
+        this.funcType = "auto";
+        this.typeName = typeName;
+    }
+}
+class AutoMethodFunc extends MethodFunc {
+    constructor(key, params, typeName) {
+        super(key, ".any", params);
+        this.funcType = "auto_method";
+        this.typeName = typeName;
     }
 }
 

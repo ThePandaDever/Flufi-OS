@@ -1,0 +1,8 @@
+import states/terminal;
+import state, graphics;
+
+void updateState(state:State state, graphics:GraphicsState graphicsState) {
+    if (state.type == "terminal") {
+        terminal:update(state, graphicsState);
+    }
+}

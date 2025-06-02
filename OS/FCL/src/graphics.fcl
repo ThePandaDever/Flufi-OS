@@ -1,0 +1,52 @@
+import io;
+
+struct Frame {
+    num x1;
+    num y1;
+    num x2;
+    num y2;
+
+    void constructor(num x1, num y1, num x2, num y2) {
+        self.x1 = x1;
+        self.y1 = y1;
+        self.x2 = x2;
+        self.y2 = y2;
+    }
+}
+
+Frame getDefaultFrame() {
+    screenSize = io:getScreenSize();
+    return new Frame(screenSize[0] * -.5, screenSize[1] * -.5, screenSize[0] * .5, screenSize[1] * .5);
+}
+
+struct Surface {
+    str type = "pen";
+    Frame frame;
+
+    void constructor(str type = "pen", Frame frame = getDefaultFrame()) {
+        self.type = type;
+        self.frame = frame;
+    }
+
+    void clear() {
+        if (self.type == "pen") {
+            raw("pen clear");
+            return;
+        }
+
+        io:throw("cannot use clear method on" + self.type + "surface");
+    }
+}
+
+struct GraphicsState {
+    Surface drawSurface;
+    Obj<Surface> surfaces;
+
+    void constructor() {
+        self.drawSurface = new Surface();
+    }
+
+    void clearSurfaces() {
+        self.surfaces = null;
+    }
+}

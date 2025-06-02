@@ -42,6 +42,8 @@ const FSF = {
     },
 
     parseValue(code) {
+        code = code.trim();
+
         /* path */ {
             const fileTypes = this.utils.split(code,".");
             const everyOther = arr => arr.reduce((acc,item,i) => {i % 2 == 0 ? acc.push(item) : null;return acc},[]);
@@ -79,7 +81,7 @@ const FSF = {
                 "true": true,
                 "false": false
             }
-            if (table[code])
+            if (Object.keys(table).includes(code))
                 return {
                     "type": "bool",
                     "data": table[code]
@@ -125,7 +127,8 @@ FSF.settings = {
     "main": { "type": "path", "desc": "the main file to start compilation from" },
     "export": { "type": "path", "desc": "the file path to export the compiled fbl to" },
 
-    "shareVariables": { "type": "bool", "desc": "a compiler setting for variables outside forever loops" }
+    "shareVariables": { "type": "bool", "desc": "a compiler setting for variables outside forever loops" },
+    "legacyNotEqual": { "type": "bool", "desc": "disables the use of the neql command" }
 }
 
 let config = null;
@@ -182,12 +185,33 @@ if (config && config["main"] && config["projectPath"]) {
     const exportPath = config["projectPath"] + "/" + config["export"];
     const exportFolder = getParent(exportPath);
 
+    console.time("in");
     console.log("starting compilation...");
     
-    const out = eval(compiler + `;const script = new Script(${JSON.stringify(code)});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")})});`);
+    const out = eval(compiler + `;const script = new Script(${JSON.stringify(code)});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")})});`);
     
     if (config["export"]) {
         let modOuts = null;
+
+        if (!fs.existsSync(exportFolder))
+            fs.mkdirSync(exportFolder);
+        else {
+            function delDir(dir,r = false) {
+                const files = fs.readdirSync(dir);
+                for (let i = 0; i < files.length; i++) {
+                    const f = files[i];
+                    if (fs.lstatSync(dir + "/" + f).isDirectory())
+                        delDir(dir + "/" + f);
+                    else
+                        fs.rmSync(dir + "/" + f);
+                }
+                if (!r)
+                    fs.rmdirSync(dir);
+                
+            }
+            delDir(exportFolder,true);
+        }
+
         if (fs.existsSync(config["projectPath"] + "/" + "modules") && doModules) {
             const modulesPath = config["projectPath"] + "/" + "modules";
             const modules = fs.readdirSync(modulesPath);
@@ -223,30 +247,9 @@ if (config && config["main"] && config["projectPath"]) {
                 modOuts.push("");
         }
 
-        if (!fs.existsSync(exportFolder))
-            fs.mkdirSync(exportFolder);
-        else {
-            function delDir(dir) {
-                console.log(dir);
-                fs.rm(dir);
-                /*
-                const files = fs.readdirSync(dir);
-                for (let i = 0; i < files.length; i++) {
-                    const f = files[i];
-                    console.log(f, dir + "/" + f);
-                    if (f.slice(".").length == 1)
-                        delDir(dir + "/" + f);
-                    else
-                        fs.rm(dir + "/" + f);
-                }
-                fs.rmdirSync(dir);
-                */
-            }
-            delDir(exportFolder);
-        }
-
         fs.writeFileSync(exportPath, out, 'utf8');
-        console.log(`compilation finished!${(modOuts ?? ["",""]).join("\n\n")}output (main) put in ${config["export"]}\n`)
+        console.log(`compilation finished!${(modOuts ?? ["",""]).join("\n\n")}output (main) put in ${config["export"]}`);
+        console.timeLog("in");
     } else {
         let modOuts = null;
         if (fs.existsSync(config["projectPath"] + "/" + "modules") && doModules) {
@@ -280,6 +283,7 @@ if (config && config["main"] && config["projectPath"]) {
         }
 
         console.log(`compilation finished!\n${(modOuts ?? ["",""]).join("\n")}compiled output (main):\n${out}`);
+        console.timeLog("in");
     }
     process.exit()
 }

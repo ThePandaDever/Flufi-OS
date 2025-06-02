@@ -1,3 +1,2 @@
 main: src/main.fcl;
 export: out/build.fbl;
-shareVariables: true;

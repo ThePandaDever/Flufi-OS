@@ -1,14 +1,9 @@
-import states/terminal;
-
-struct State {
-    str type = "terminal";
-}
+import process, clone, state, stateManager, graphics;
 
 void main() {
-    state = new State();
+    state = state:getDefault();
+    graphicsState = new graphics:GraphicsState();
     forever {
-        if (state.type == "terminal") {
-            terminal:update();
-        }
+        stateManager:updateState(state, graphicsState);
     }
 }

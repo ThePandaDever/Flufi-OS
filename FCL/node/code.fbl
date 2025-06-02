@@ -1,9 +1,6 @@
 ~ main
-set str rand1 hi
-proc store rand1 rand1
-quitTo rand2
-: rand2
-proc get rand1 rand1
-print rand1
-quitTo rand2
+set obj rand1 {"":""}
+set str rand2 sus
+set str rand3 wow
+obj set rand1 rand2 rand3
 ~

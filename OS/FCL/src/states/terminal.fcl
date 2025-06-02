@@ -1,4 +1,9 @@
+import state, graphics;
 
-void update() {
-    print("crazy");
+void init(State state, graphics:GraphicsState graphicsState) {
+
+}
+
+void update(State state, graphics:GraphicsState graphicsState) {
+    graphicsState.clearSurfaces();    
 }

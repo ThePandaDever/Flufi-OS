@@ -1,0 +1,22 @@
+import clone;
+
+struct process {
+    clone:clone clone;
+    bool active = true;
+
+    void constructor(str code, clone:cloneData data) {
+        self.clone = new clone:clone("fbl", code, data);
+    }
+
+    void kill() {
+        self.active = false;
+        self.clone.kill();
+    }
+    void continue() {
+        self.clone.continue();
+    }
+
+    auto getScope<t>() {
+        return clone:getCloneData<t>(self.clone.id);
+    }
+}

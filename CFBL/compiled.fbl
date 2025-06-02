@@ -1,41 +1,8 @@
 ~ main
-win create 6eUjDkq2e6
-set str nVPbdrvSmu winRef
-proc store nVPbdrvSmu 6eUjDkq2e6
-set str 1cQUXpjulz winRef
-proc get 1cQUXpjulz jPR4WlMWPX
-set str TWKBwnm5pj title
-set str XQbqrXhpwL My Window
-win setKey jPR4WlMWPX TWKBwnm5pj XQbqrXhpwL
-set str Fc268eJn1T winRef
-proc get Fc268eJn1T aktYJBSQED
-set str rZbAzyD0c7 size
-set obj lmrRO7eS7V [200, 150]
-win setKey aktYJBSQED rZbAzyD0c7 lmrRO7eS7V
-set str TGxQUBc2z2 winRef
-proc get TGxQUBc2z2 5vNhKSyrJQ
-set str CcchAiHMLn position
-set obj NdiVAv1fU7 [50, 50]
-win setKey 5vNhKSyrJQ CcchAiHMLn NdiVAv1fU7
-quitTo evo7C6mVtP
-: evo7C6mVtP
-set str ViETqH5tXK winRef
-proc get ViETqH5tXK 7wPHcZbHHW
-win timeout 7wPHcZbHHW
-set str b6kLw6NstD winRef
-proc get b6kLw6NstD ZNtf3uVapz
-win panel base ZNtf3uVapz
-set str JYxl7ou7MF Hello world!
-set num UINi3hnz8M 0
-set num Nm2GQ8MMsj 0
-set num rtRDEMG9cg 10
-panel centext UINi3hnz8M Nm2GQ8MMsj rtRDEMG9cg JYxl7ou7MF
-set str S0mwNODCsh winRef
-proc get S0mwNODCsh C9JymGNh3w
-win buttonsdefault bItjvPqQT0
-win topbar C9JymGNh3w bItjvPqQT0
-set str ybKvJJHuJ1 winRef
-proc get ybKvJJHuJ1 NL0f0nSugA
-win panel update NL0f0nSugA
-quitTo evo7C6mVtP
+set num 4tEJl320xD 5
+set num jmD0asia3S 3
+sml Uv2SQXAWkw 4tEJl320xD jmD0asia3S
+eql LHjbQ9n6uC 4tEJl320xD jmD0asia3S
+or 4rQvEqCB1u Uv2SQXAWkw LHjbQ9n6uC
+print 4rQvEqCB1u
 ~
