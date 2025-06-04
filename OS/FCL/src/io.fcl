@@ -3,8 +3,14 @@ void throw(str text) {
     raw("err arg0");
 }
 
+// graphics
 Arr<num> getScreenSize() {
     num width = raw("const screen_width .target");
     num height = raw("const screen_height .target");
     return [width, height];
+}
+
+// real world
+num getCurrentMs() {
+    return raw("const ms .target");
 }

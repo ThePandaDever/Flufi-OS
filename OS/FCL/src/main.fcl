@@ -3,6 +3,7 @@ import process, clone, state, stateManager, graphics;
 void main() {
     state = state:getDefault();
     graphicsState = new graphics:GraphicsState();
+    stateManager:initState(state, graphicsState);
     forever {
         stateManager:updateState(state, graphicsState);
     }

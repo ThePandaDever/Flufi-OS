@@ -1,0 +1,4 @@
+
+struct Config {
+    fontUrl = "https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff";
+}

@@ -259,7 +259,7 @@ function removeComments(text) {
         const char = text[i],
             nextChar = text[i+1];
         
-        if (char == "\\") { out += char + text[i+1]; i ++; continue; }
+        if (char == "\\" && (!inLineComment && !inMultiLineComment)) { out += char + text[i+1]; i ++; continue; }
 
         if (char == "'" && !(inDouble || inTick))
             inSingle = !inSingle;
@@ -447,7 +447,8 @@ class ParseContext extends Context {
         this.arg_branches = [
             "if",
             "while",
-            "until"
+            "until",
+            "for"
         ];
         this.functionArgLayers = [];
     }
@@ -481,6 +482,7 @@ class ScanContext extends Context {
 }
 
 memory = {};
+const structCache = {};
 
 class Scope {
     constructor(variables) {
@@ -706,7 +708,7 @@ class Node {
                 this.content = split(blockTokens[1].slice(1,-1),";",true).filter(t => t !== ";").map(elem => {
                     /* attribute */ {
                         const tokens = split(elem,"=");
-                        if (tokens.length == 3 && /^[A-Za-z0-9_ ]+$/.test(tokens[0]) && tokens[1] == "=") {
+                        if (tokens.length == 3 && /^[A-Za-z0-9_ :]+$/.test(tokens[0]) && tokens[1] == "=") {
                             const value = new Node(tokens[2], context);
                             let type = null;
                             let name;
@@ -820,6 +822,7 @@ class Node {
             let type;
             let op = "";
             let token;
+            let isVar = true;
             while (chars.includes(token = tokens.shift())) op += token;
             if (token) tokens.unshift(token);
 
@@ -839,6 +842,7 @@ class Node {
             if (op == "=" && spaceTokens.length >= 2 && /^[A-Za-z0-9_| <>]+$/.test(spaceTokens.slice(0,-1).join(" ")) && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
                 key = spaceTokens.pop();
                 type = new Node(spaceTokens.join(" "),context);
+                isVar = false;
             }
 
             const isValid = Object.keys(types).map(k => k + "=").includes(op);
@@ -848,6 +852,7 @@ class Node {
                 this.fullKey = new Node(key, context);
                 key = new Node(keys.pop().slice(1,-1), context);
                 this.parent = new Node(keys.join(""), context);
+                isVar = false;
             }
 
             if (typeof key === "string") {
@@ -856,6 +861,7 @@ class Node {
                     this.fullAttribute = new Node(key, context);
                     key = attributes.pop();
                     this.parent = new Node(attributes.join("."), context);
+                    isVar = false;
                 }
             }
 
@@ -864,6 +870,7 @@ class Node {
                 this.key = key;
                 this.type = types[op.slice(0,-1)];
                 this.value = new Node(tokens.join(""), context);
+                this.isVar = isVar;
                 if (type)
                     this.varType = type;
                 return;
@@ -1113,6 +1120,15 @@ class Node {
             }
         }
 
+        /* number */ {
+            const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
+            if (isNumeric(code)) {
+                this.kind = "number";
+                this.value = Number(code);
+                return;
+            }
+        }
+
         /* method */ {
             const tokens = split(code, ".").filter(t => t !== ".");
             const bracketTokens = split(tokens[tokens.length-1] ?? "","bracket");
@@ -1186,15 +1202,6 @@ class Node {
             ) {
                 this.kind = "string";
                 this.value = unExcape(code.slice(1,-1));
-                return;
-            }
-        }
-
-        /* number */ {
-            const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
-            if (isNumeric(code)) {
-                this.kind = "number";
-                this.value = Number(code);
                 return;
             }
         }
@@ -1447,6 +1454,8 @@ class Node {
                         } else {
                             if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type))
                                 throw Error(`attempt to return null when the function should return ${topLayer.return_type.getName()}`);
+                            else
+                                context.text += `ret\n`;
                         }
                         break;
                     }
@@ -1556,6 +1565,43 @@ class Node {
                         context.text += `${didJump} ${lbl} ${temp}\n: ${endLbl}\n`;
                         break;
                     }
+                    case "for": {
+                        if (
+                            this.args.length == 2 &&
+                            ["variable", "assignment"].includes(this.args[0].kind) &&
+                            (this.args[0].isVar ?? true)
+                        ) {
+                            context.scope.newLayer();
+                            const t = this.args[1].getType();
+                            this.args[0].compile(context);
+                            const valueKey = this.args[1].compileKey(context);
+                            const lbl = randomStr();
+                            const endLbl = randomStr();
+                            const oneRef = randomStr();
+                            context.text += `set num ${oneRef} 1\n`;
+                            if (this.args[0].kind == "variable")
+                                context.scope.assignTop(this.args[0].key, new NumberValue(0));
+                            const varRef = context.scope.get(this.args[0].key)?.ref;
+                            if (this.args[0].kind == "variable")
+                                context.text += `set num ${varRef} 0\n`;
+                            if (isTypeSafe(t, "num")) {
+                                this.args[1].compile(context, new Target(valueKey));
+                                const quitCondRef = randomStr();
+                                context.text += `: ${lbl}\nsml ${quitCondRef} ${valueKey} ${oneRef}\nji ${endLbl} ${quitCondRef}\n`;
+                                this.content.compile(context);
+                                context.text += `jsi ${lbl} ${varRef} ${valueKey}\n: ${endLbl}\n`;
+                            } else {
+                                context.text += `: ${lbl}\n`;
+                                this.args[1].compile(context, new Target(valueKey));
+                                context.text += `jn ${endLbl} ${valueKey}\n`;
+                                this.content.compile(context);
+                                context.text += `add ${varRef} ${varRef} ${oneRef}\njn ${lbl}\n: ${endLbl}\n`;
+                            }
+                            context.scope.exitLayer();
+                        } else
+                            throw Error("unknown for syntax, for; all possible combinations:\n  for(var, var < max)\n  for(var = start, var < max)\n  for(var, cond)\n  for(var = start, cond)");
+                        break;
+                    }
                     default:
                         throw Error("cannot compile branch with args of type " + this.key);
                 }
@@ -1575,7 +1621,7 @@ class Node {
                 if (this.fullAttribute) {
                     parentKey = this.parent.compileKey(context);
                     this.parent.compile(context, new Target(parentKey));
-                    targetRef = this.value.compileKey(context);
+                    targetRef = this.value?.compileKey(context);
                     targetType = this.fullAttribute.getType(context);
 
                     switch (this.type) {
@@ -1585,8 +1631,9 @@ class Node {
                             break
                     }
 
-                    const valueType = this.value.getType(context);
-                    if (!isTypeSafeStrict(targetType, valueType))
+                    const valueType = this.value?.getType(context);
+                    const nullAttribute = context.scope.get(this.fullAttribute.value.getType(context).name).nullAttributes[this.fullAttribute.key];
+                    if (this.value && !(valueType.getName() === "null" && nullAttribute) && !isTypeSafeStrict(targetType, valueType))
                         throw Error(`attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()}`)
                     
                 } else {
@@ -1764,7 +1811,7 @@ class Node {
                                         argKeys.push(key);
                                         const t = arg.getType(context);
                                         if (!isTypeSafe(t,param.type.getValue(context))) {
-                                            throw Error("expected " + t.getName() + " got " + param.type.getValue(context).getName())
+                                            throw Error("expected " + t?.getName() + " got " + param.type.getValue(context).getName())
                                         }
                                     }
                                 }
@@ -1843,11 +1890,13 @@ class Node {
             case "constant":
                 if (target == null) break;
                 if (this.name === "self") {
-                    const top = context.functionDataLayers[context.functionDataLayers.length - 1];
-                    if (top?.hasSelf) {
-                        context.text += `dupe ${target.id} arg0\n`;
-                    } else {
-                        throw Error("cannot access self");
+                    if (target.id !== "arg0") {
+                        const top = context.functionDataLayers[context.functionDataLayers.length - 1];
+                        if (top?.hasSelf) {
+                            context.text += `dupe ${target.id} arg0\n`;
+                        } else {
+                            throw Error("cannot access self");
+                        }
                     }
                     return;
                 }
@@ -1894,6 +1943,7 @@ class Node {
                             }
                             return;
                         }
+                        throw Error(`cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode},\nlist of attributes:\n  ${Object.keys({...parent.attributes, ...parent.nullAttributes}).join("\n  ")}`);
                     }
                 }
                 throw Error(`cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
@@ -2023,43 +2073,48 @@ class Node {
                 if (target != null)
                     throw Error("expected an output from struct definition");
                 //console.log(JSON.stringify(this, null, "  "));
-                const attributes = {};
-                const nullAttributes = {};
-                const methods = {};
-                const genericMethods = {};
-                for (let i = 0; i < this.content.length; i++) {
-                    const elem = this.content[i];
-                    if (elem["kind"] == "attribute")
-                        attributes[elem["name"]] = elem;
-                    if (elem["kind"] == "null_attribute")
-                        nullAttributes[elem["name"]] = elem;
-                    if (elem["kind"] == "function")
-                        methods[elem.key.replace("constructor",".cns")] = new MethodFunc(elem.content,elem.type,elem.params);
-                    if (elem["kind"] == "auto_function")
-                        genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type);
-                    
-                    if (elem["kind"] == "auto_function" && elem.key === "constructor")
-                        throw Error("constructor cannot be a generic function");
-                    if (elem["kind"] == "function" && elem.key === "constructor" && elem.type.formattedCode !== "void")
-                        throw Error("constructor isnt of type void");
+                let struct;
+                if (!structCache[this.name.slice(this.name.indexOf(":") + 1)]) {
+                    const attributes = {};
+                    const nullAttributes = {};
+                    const methods = {};
+                    const genericMethods = {};
+                    for (let i = 0; i < this.content.length; i++) {
+                        const elem = this.content[i];
+                        if (elem["kind"] == "attribute") {
+                            if (elem.type instanceof Node)
+                                elem.type = elem.type.getValue(context);
+                            elem.type ??= elem.value.getType(context);
+                            attributes[elem["name"]] = elem;
+                        }
+                        if (elem["kind"] == "null_attribute") {
+                            if (elem.type instanceof Node)
+                                elem.type = elem.type.getValue(context);
+                            nullAttributes[elem["name"]] = elem;
+                        }
+                        if (elem["kind"] == "function")
+                            methods[elem.key.replace("constructor",".cns")] = new MethodFunc(elem.content,elem.type,elem.params);
+                        if (elem["kind"] == "auto_function")
+                            genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type);
+                        
+                        if (elem["kind"] == "auto_function" && elem.key === "constructor")
+                            throw Error("constructor cannot be a generic function");
+                        if (elem["kind"] == "function" && elem.key === "constructor" && elem.type.formattedCode !== "void")
+                            throw Error("constructor isnt of type void");
+                    }
+                    const args = [attributes,nullAttributes,methods,genericMethods];
+                    struct = new Struct(
+                        this.name,
+                        ...args
+                    );
+                    structCache[this.name.slice(this.name.indexOf(":") + 1)] = struct;
+                } else {
+                    struct = structCache[this.name.slice(this.name.indexOf(":") + 1)];
                 }
-                const args = [attributes,nullAttributes,methods,genericMethods];
-                context.scope.assignTop(this.name.slice(this.name.indexOf(":") + 1), new Struct(
-                    this.name.slice(this.name.indexOf(":") + 1),
-                    ...args
-                ))
-                context.scope.assignTop(this.name, new Struct(
-                    this.name,
-                    ...args
-                ))
-                context.scope.assignTop(this.name.split(":").slice(-2).join(":"), new Struct(
-                    this.name,
-                    ...args
-                ))
-                context.scope.assignTop(this.name.split(":").slice(-1).join(":"), new Struct(
-                    this.name,
-                    ...args
-                ))
+                context.scope.assignTop(this.name.slice(this.name.indexOf(":") + 1), struct);
+                context.scope.assignTop(this.name, struct);
+                context.scope.assignTop(this.name.split(":").slice(-2).join(":"), struct);
+                context.scope.assignTop(this.name.split(":").slice(-1).join(":"), struct);
                 break;
             }
             
@@ -2145,14 +2200,20 @@ class Node {
     compileKey(context) {
         switch (this.kind) {
             case "variable":
-                if (!context.variableGrabs.includes(this.key))
-                    context.variableGrabs.push(this.key);
                 const val = context.scope.get(this.key);
                 if (!val)
                     throw Error(`${this.key} is not defined`);
                 return val.ref;
             case "argument":
                 return "arg" + (this.index + (context.argOffset ?? 0));
+            case "constant":
+                if (this.name === "self"){
+                    const top = context.selfDataLayers[context.selfDataLayers.length - 1];
+                    if (top["type"] == "struct") {
+                        return "arg0";
+                    }
+                }
+                break;
         }
         return randomStr();
     }
@@ -2163,8 +2224,6 @@ class Node {
             case "empty": return new TypedValue("null");
 
             case "variable": {
-                if (!context.variableGrabs.includes(this.key))
-                    context.variableGrabs.push(this.key);
                 const val = context.scope.get(this.key);
                 if (!val)
                     throw Error(`${this.key} is not defined`);
@@ -2199,7 +2258,7 @@ class Node {
                     return new Type(".any");
                 return new Type(this.name);
             case "typed_value_type":
-                return new TypedValueType(this.baseType.getValue(), this.valueType.getValue());
+                return new TypedValueType(this.baseType.getValue(context), this.valueType.getValue(context));
             case "union":
                 return new Union(this.elements.map(e => e.getValue(context)));
             case "array": {
@@ -2256,10 +2315,10 @@ class Node {
                 return new Type(this.getValue(context)?.type);
             case "attribute":
                 try {
-                    return context.scope.get(this.value.getType(context).name).attributes[this.key].type.getValue(context);
+                    return context.scope.get(this.value.getType(context).name).attributes[this.key].type;
                 } catch {}
                 try {
-                    return context.scope.get(this.value.getType(context).name).nullAttributes[this.key].type.getValue(context);
+                    return context.scope.get(this.value.getType(context).name).nullAttributes[this.key].type;
                 } catch {}
                 return new Type("null");
             
@@ -2493,17 +2552,6 @@ class Union extends Value {
     }
 }
 
-class Class {
-
-}
-class ClassValue extends Value {
-    constructor(name) {
-        super();
-        this.type = "Class";
-        this.name = name;
-    }
-}
-
 class Struct extends TypedValueType {
     constructor(name, attributes, nullAttributes, methods, genericMethods) {
         super();
@@ -2570,7 +2618,7 @@ class Struct extends TypedValueType {
         for (let i = 0; i < e2.length; i++) {
             const attribute = e2[i];
             if (attribute[1]["value"]) {
-                const attribute_type = attribute[1]["type"]?.getValue(context) ?? attribute[1]["value"].getType(context);
+                const attribute_type = attribute[1]["type"] ?? attribute[1]["value"].getType(context);
                 const temp = attribute[1]["value"].getType(context);
                 if (!isTypeSafeStrict(temp, attribute_type))
                     throw Error("attribute type is " + temp.getName() + " while the attribute type is " + attribute_type.getName());
@@ -2639,14 +2687,16 @@ class CompiledFunc extends Func {
         this.compileFunc = func;
     }
 }
+const methodfuncRefs = {};
 class MethodFunc extends Func {
     constructor(content, type, params) {
+        methodfuncRefs[content.formattedCode] ??= randomStr();
         super();
         this.funcType = "method";
         this.content = content;
         this.return_type = type;
         this.params = params;
-        this.key = randomStr();
+        this.key = methodfuncRefs[content.formattedCode];
     }
 }
 class AutoFunc extends DefinedFunc {

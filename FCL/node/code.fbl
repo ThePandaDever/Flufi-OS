@@ -1,6 +1,11 @@
 ~ main
-set obj rand1 {"":""}
-set str rand2 sus
-set str rand3 wow
-obj set rand1 rand2 rand3
+set num rand4 1
+set num rand5 0
+set num rand1 10
+: rand2
+sml rand6 rand1 rand4
+ji rand3 rand6
+print rand5
+jsi rand2 rand5 rand1
+: rand3
 ~

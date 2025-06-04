@@ -20,7 +20,7 @@ Frame getDefaultFrame() {
 }
 
 struct Surface {
-    str type = "pen";
+    str type;
     Frame frame;
 
     void constructor(str type = "pen", Frame frame = getDefaultFrame()) {
@@ -35,6 +35,88 @@ struct Surface {
         }
 
         io:throw("cannot use clear method on" + self.type + "surface");
+    }
+    void line(num x1, num y1, num x2, num y2, num w) {
+        if (self.type == "pen") {
+            raw("drawCursor goto arg1 arg2\npen size arg5\npen down\ndrawCursor goto arg3 arg4\npen up");
+            return;
+        }
+
+        io:throw("cannot use line method on" + self.type + "surface");
+    }
+    void tri(num x1, num y1, num x2, num y2, num x3, num y3, num border) {
+        if (self.type == "pen") {
+            raw("pen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7");
+            return;
+        }
+
+        io:throw("cannot use tri method on" + self.type + "surface");
+    }
+    void quad(num x1, num y1, num x2, num y2, num x3, num y3, num x4, num y4, num border) {
+        if (self.type == "pen") {
+            /*
+            2     4
+            |  \  |
+            1     3
+            */
+            self.tri(x1,y1, x2,y2, x3,y3, border);
+            self.tri(x2,y2, x3,y3, x4,y4, border);
+            return;
+        }
+
+        io:throw("cannot use quad method on" + self.type + "surface");
+    }
+    void rect(num x, num y, num w, num h, num border) {
+        halfW = w / 2;
+        halfH = h / 2;
+        self.quad(
+            x - halfW, y - halfH,
+            x - halfW, y + halfH,
+            x + halfW, y - halfH,
+            x + halfW, y + halfH,
+            border
+        );
+    }
+    void icon(str code, num size, num x, num y, num direction = 90, num boldness = 0) {
+        if (self.type == "pen") {
+            raw("pen icn arg1 arg2 arg3 arg4 arg5 arg6");
+            return;
+        }
+
+        io:throw("cannot use icon method on" + self.type + "surface");
+    }
+    void text(str txt, num size, num x, num y, num direction = 90, num boldness = 0) {
+        if (self.type == "pen") {
+            raw("pen text arg1 arg2 arg3 arg4 arg5 arg6");
+            return;
+        }
+
+        io:throw("cannot use text method on" + self.type + "surface");
+    }
+    void loadFontFromUrl(str url) {
+        if (self.type == "pen") {
+            raw("pen loadfonturl arg1");
+            return;
+        }
+
+        io:throw("cannot use loadFontFromUrl method on" + self.type + "surface");
+    }
+    void loadFontData(Obj<str> data) {
+        if (self.type == "pen") {
+            raw("pen loadfontdata arg1");
+            return;
+        }
+
+        io:throw("cannot use loadFontData method on" + self.type + "surface");
+    }
+    
+    void setColor(str color) {
+        if (self.type == "pen") {
+            raw("pen color arg1");
+            return;
+        }
+
+        io:throw("cannot use setColor method on" + self.type + "surface");
     }
 }
 

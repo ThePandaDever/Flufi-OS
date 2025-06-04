@@ -1,6 +1,29 @@
+import io, config;
+
+struct TimeState {
+    num frame = 0;
+
+    num uptime = 0;
+    num start = io:getCurrentMs();
+    num current = 0;
+
+    void update() {
+        self.current = io:getCurrentMs();
+        self.uptime = self.current - self.start;
+    }
+
+    void updateFrame() {
+        self.frame ++;
+        self.update();
+    }
+}
 
 struct State {
     str type = "terminal";
+
+    TimeState time = new TimeState();
+
+    config:Config config = new config:Config();
 }
 
 State getDefault() {

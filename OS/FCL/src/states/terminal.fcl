@@ -1,9 +1,9 @@
-import state, graphics;
+import state, graphics, math;
 
 void init(State state, graphics:GraphicsState graphicsState) {
-
+    graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
 }
 
 void update(State state, graphics:GraphicsState graphicsState) {
-    graphicsState.clearSurfaces();    
+    
 }

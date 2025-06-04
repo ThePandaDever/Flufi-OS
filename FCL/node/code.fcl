@@ -1,5 +1,6 @@
 
 void main() {
-    Obj<str> hi = {"":""};
-    hi["sus"] = "wow";
+    for (i, 10) {
+        print(i);
+    }
 }

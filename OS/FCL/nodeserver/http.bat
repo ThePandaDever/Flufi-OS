@@ -1,0 +1,1 @@
+http-server D:/Flufi-OS/OS/FCL/out --cors
