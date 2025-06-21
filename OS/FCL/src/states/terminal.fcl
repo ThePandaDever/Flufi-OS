@@ -1,9 +1,61 @@
-import state, graphics, math;
+import state, graphics, globals, process;
 
-void init(State state, graphics:GraphicsState graphicsState) {
-    graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
+struct TerminalContext {
+    str text = "> ";
+    Process process;
 }
 
-void update(State state, graphics:GraphicsState graphicsState) {
+void init(State state, GraphicsState graphicsState) {
+    graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
+    globals:setGlobal<TerminalContext>("termData", new TerminalContext());
+}
+
+void handleInput(State state) {
+    TerminalContext termData = globals:getGlobal<TerminalContext>("termData");
     
+    bool inControl = true;
+    if (termData?.process) {
+        proc = termData!.process;
+    }
+
+    Arr<str> keys = state.inputState.map.keys;
+    while (keys.length > 0) {
+        str key = keys.pop();
+        if (inControl) {
+            termData.text ++= key;
+        }
+    }
+
+    Arr<str> special = state.inputState.map.special;
+    while (special.length > 0) {
+        str key = special.pop();
+        if (inControl) {
+            print(key);
+            if (key == "Enter") {
+                termData.process = 
+            }
+        }
+    }
+    globals:setGlobal<TerminalContext>("termData", termData);
+}
+
+void drawMain(State state, GraphicsState graphicsState) {
+    Surface drawSurf = graphicsState.drawSurface;
+    Frame drawFrame = drawSurf.frame;
+    TerminalContext termData = globals:getGlobal<TerminalContext>("termData");
+    
+    /* draw background */ {
+        drawSurf.setColor("#0e0d10");
+        drawSurf.rect(drawFrame.getX(), drawFrame.getY(), drawFrame.getW(), drawFrame.getH(), 0);
+    }
+
+    /* textbox */ {
+        drawSurf.setColor("#fff");
+        drawSurf.text(termData.text, 10, 0, 0);
+    }
+}
+
+void update(State state, GraphicsState graphicsState) {
+    handleInput(state, graphicsState);
+    drawMain(state, graphicsState)
 }

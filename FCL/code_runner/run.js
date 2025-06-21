@@ -128,7 +128,8 @@ FSF.settings = {
     "export": { "type": "path", "desc": "the file path to export the compiled fbl to" },
 
     "shareVariables": { "type": "bool", "desc": "a compiler setting for variables outside forever loops" },
-    "legacyNotEqual": { "type": "bool", "desc": "disables the use of the neql command" }
+    "legacyNotEqual": { "type": "bool", "desc": "disables the use of the neql command" },
+    "unsafe": { "type": "bool", "desc": "removes runtime type checks" },
 }
 
 let config = null;
@@ -188,7 +189,16 @@ if (config && config["main"] && config["projectPath"]) {
     console.time("in");
     console.log("starting compilation...");
     
-    const out = eval(compiler + `;const script = new Script(${JSON.stringify(code)});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")})});`);
+    const out = eval(compiler + `;
+    const script = new Script(${JSON.stringify(code)});
+    const context = new CompileContext();
+
+    context.sharesVariables = ${config["shareVariables"] ?? false};
+    context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};
+    context.unsafe = ${config["unsafe"] ?? false};
+
+    script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")})});
+    `);
     
     if (config["export"]) {
         let modOuts = null;

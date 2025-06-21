@@ -4,3 +4,6 @@ num tan(num deg) { return raw("tan .target arg0") }
 num round(num deg) { return raw("round .target arg0") }
 num floor(num deg) { return raw("floor .target arg0") }
 num ceiling(num deg) { return raw("ceiling .target arg0") }
+
+num lerp(num a, num b, num t) { return b - a * t + a }
+num mid(num a, num b) { return a + b / 2 }

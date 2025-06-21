@@ -1,4 +1,4 @@
-import io;
+import io, math;
 
 struct Frame {
     num x1;
@@ -11,6 +11,25 @@ struct Frame {
         self.y1 = y1;
         self.x2 = x2;
         self.y2 = y2;
+    }
+
+    num getX() { return math:mid(self.x1,self.x2) }
+    num getY() { return math:mid(self.y1,self.y2) }
+    num getW() { return self.x2 - self.x1 }
+    num getH() { return self.y2 - self.y1 }
+
+    Arr<num:2> getTL() { return [self.x1,self.y1] }
+    Arr<num:2> getT() { return [self.getX(),self.y1] }
+    Arr<num:2> getTR() { return [self.x2,self.y1] }
+    Arr<num:2> getL() { return [self.x1,self.getY()] }
+    Arr<num:2> getM() { return [self.getX(),self.getY()] }
+    Arr<num:2> getR() { return [self.x2,self.getY()] }
+    Arr<num:2> getBL() { return [self.x1,self.y2] }
+    Arr<num:2> getB() { return [self.getX(),self.y2] }
+    Arr<num:2> getBR() { return [self.x2,self.y2] }
+
+    str stringify() {
+        return "Frame{" ++ self.x1 ~++ self.y1 + "to" + self.x2 ~++ self.y2 ++ "}"
     }
 }
 

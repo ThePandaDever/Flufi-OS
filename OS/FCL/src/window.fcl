@@ -1,0 +1,11 @@
+import graphics;
+
+struct Window {
+    Surface surface;
+    Frame frame;
+
+    void constructor(Frame frame, str surfaceType = "pen") {
+        self.frame = frame;
+        self.surface = new Surface(surfaceType, self!.frame);
+    }
+}

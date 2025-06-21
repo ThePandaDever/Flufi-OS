@@ -1,7 +1,4 @@
-import pluh as guh;
 
-
-void shock() {
-    guh:c();
-    noWay();
+void main() {
+    t = 0;
 }

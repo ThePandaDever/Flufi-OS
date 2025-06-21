@@ -1,4 +1,4 @@
-import io, config;
+import io, config, input;
 
 struct TimeState {
     num frame = 0;
@@ -23,7 +23,9 @@ struct State {
 
     TimeState time = new TimeState();
 
-    config:Config config = new config:Config();
+    Config config = new Config();
+
+    InputState inputState = new InputState();
 }
 
 State getDefault() {

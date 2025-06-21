@@ -1,13 +1,13 @@
 import states/terminal;
 import state, graphics;
 
-void initState(state:State state, graphics:GraphicsState graphicsState) {
+void initState(State state, GraphicsState graphicsState) {
     if (state.type == "terminal") {
         terminal:init(state, graphicsState);
     }
 }
 
-void updateState(state:State state, graphics:GraphicsState graphicsState) {
+void updateState(State state, GraphicsState graphicsState) {
     state.time.updateFrame();
     if (state.type == "terminal") {
         terminal:update(state, graphicsState);

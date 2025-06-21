@@ -5,6 +5,7 @@ void main() {
     graphicsState = new graphics:GraphicsState();
     stateManager:initState(state, graphicsState);
     forever {
+        state.inputState.update();
         stateManager:updateState(state, graphicsState);
     }
 }

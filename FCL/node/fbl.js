@@ -1,9 +1,35 @@
 
 /* todo */ {
     /* sequenced arrays */ {
-        /* syntax {
-        Seq<num,str,Arr<num>> = Seq[5, "hi", [3,6]]
-        } */
+        /* syntax */ {
+            /*
+                Seq<num,str,Arr<num>> = Seq[5, "hi", [3,6]]
+            */
+        }
+    }
+    /* in */ {
+        /* syntax */ {
+            /*
+                value in [array]
+            */
+        } 
+    }
+    /* is */ {
+        /* syntax */ {
+            /*
+                value is a or b or c
+            */
+        }
+    }
+    /* scope managing */ {
+        /* syntax */ {
+            /*
+                isolate {
+                    code
+                }
+                (removes the scope for the containing stuff)
+            */
+        }
     }
 }
 
@@ -319,6 +345,8 @@ class Context {
                         return `add ${target.id} emptystring ${aref} space ${bref}`;
                 },
                 "join": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} ${bref}` : null,
+                "list_join": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} comma space ${bref}` : null,
+                "list_concat": (_,target,aref,bref,atype,btype) => areTypes(atype,btype,["str","num"]) ? `add ${target.id} emptystring ${aref} comma ${bref}` : null,
                 "sub": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `sub ${target.id} ${aref} ${bref}` : null,
                 "mul": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `mul ${target.id} ${aref} ${bref}` : null,
                 "div": (_,target,aref,bref,atype,btype) => areNums(atype,btype) ? `div ${target.id} ${aref} ${bref}` : null,
@@ -348,6 +376,8 @@ class Context {
             this.operation_types = {
                 "add": (_,a,b) => areNums(a,b) ? "num" : areTypes(a,b,["str","num"]) ? "str" : null,
                 "join": (_,a,b) => "str",
+                "list_join": (_,a,b) => "str",
+                "list_concat": (_,a,b) => "str",
                 "sub": (_,a,b) => areNums(a,b) ? "num" : null,
                 "mul": (_,a,b) => areNums(a,b) ? "num" : null,
                 "div": (_,a,b) => areNums(a,b) ? "num" : null,
@@ -365,12 +395,18 @@ class Context {
             this.operation_names = {
                 "+": "add",
                 "++": "join",
+                "~+": "list_join",
+                "~++": "list_concat",
                 "-": "sub",
                 "*": "mul",
                 "/": "div",
                 "^": "pow",
                 "%": "mod"
             };
+
+            this.operator_tokens = [
+                "+","~","-","*","/","^","%","="
+            ]
         }
 
         /* comparison */ {
@@ -427,6 +463,22 @@ class Context {
             }
         }
 
+        /* statements */ {
+            this.statements = [
+                "return"
+            ];
+            this.lowStatements = [
+                "typeof"
+            ]
+            this.standalone_statements = [
+                "return"
+            ];
+
+            this.statementTypes = {
+                "typeof": (value) => new Type("Type")
+            }
+        }
+
         this.operation_compilers = {...this.operation_compilers, ...this.worded_operation_compilers, ...this.logic_compilers};
         this.operation_types = {...this.operation_types, ...this.worded_operation_types, ...this.logic_types};
     }
@@ -435,20 +487,16 @@ class ParseContext extends Context {
     constructor() {
         super();
 
-        this.statements = [
-            "return"
-        ];
-        this.standalone_statements = [
-            "return"
-        ];
         this.branches = [
-            "forever"
+            "forever",
+            "else"
         ];
         this.arg_branches = [
             "if",
             "while",
             "until",
-            "for"
+            "for",
+            "else"
         ];
         this.functionArgLayers = [];
     }
@@ -464,11 +512,14 @@ class CompileContext extends Context {
         this.variableGrabs = [];
         this.variableSets = [];
         this.packages = {};
+
         this.sharesVariables = true;
         this.neqlSupport = true;
+        this.unsafe = true;
 
         this.scope = new Scope({
-            "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`)
+            "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`),
+            "log": new CompiledFunc("log",(args) => `printwt ${args.join(" ")}`)
         });
     }
 }
@@ -579,6 +630,13 @@ function isTypeSafe(type,compare) {
 
 function isTypeSafeStrict(type,compare) {
     if (type instanceof TypedValueType && compare instanceof TypedValueType) {
+        if (type.amount == null && compare.amount)
+            throw Error("unambiguous type amount");
+        if (type.amount && compare.amount) {
+            if (compare.amount != type.amount) {
+                throw Error(`wanted ${type.amount} elements but got ${compare.amount} elements`);
+            }
+        }
         return isTypeSafeStrict(type.baseType,compare.baseType) && isTypeSafeStrict(type.valueType,compare.valueType);
     }
     if (type instanceof Type || type instanceof Struct)
@@ -591,6 +649,8 @@ function isTypeSafeStrict(type,compare) {
         return true;
     if (compare == "void")
         compare = "null";
+    if (compare instanceof TypedValueType)
+        return isTypeSafeStrict(type, compare.baseType);
     return type === compare;
 }
 
@@ -708,7 +768,7 @@ class Node {
                 this.content = split(blockTokens[1].slice(1,-1),";",true).filter(t => t !== ";").map(elem => {
                     /* attribute */ {
                         const tokens = split(elem,"=");
-                        if (tokens.length == 3 && /^[A-Za-z0-9_ :]+$/.test(tokens[0]) && tokens[1] == "=") {
+                        if (tokens.length == 3 && /^[A-Za-z0-9_ :<>]+$/.test(tokens[0]) && tokens[1] == "=") {
                             const value = new Node(tokens[2], context);
                             let type = null;
                             let name;
@@ -816,7 +876,7 @@ class Node {
         }
         
         /* assignment */ {
-            const chars = ["=","+","-","*","/","^","%"];
+            const chars = context.operator_tokens;
             const tokens = split(code,chars);
             let key = tokens.shift();
             let type;
@@ -826,20 +886,10 @@ class Node {
             while (chars.includes(token = tokens.shift())) op += token;
             if (token) tokens.unshift(token);
 
-            const types = {
-                "": "default",
-
-                "+": "add",
-                "++": "join",
-                "-": "sub",
-                "*": "mul",
-                "/": "div",
-                "^": "pow",
-                "%": "mod"
-            }
+            const types = {"": "default", ...context.operation_names};
 
             const spaceTokens = split(key, " ").filter(t => t != " ");
-            if (op == "=" && spaceTokens.length >= 2 && /^[A-Za-z0-9_| <>]+$/.test(spaceTokens.slice(0,-1).join(" ")) && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
+            if (op == "=" && spaceTokens.length >= 2 && /^[A-Za-z0-9_| <>:]+$/.test(spaceTokens.slice(0,-1).join(" ")) && /^[A-Za-z0-9_]+$/.test(spaceTokens[spaceTokens.length-1])) {
                 key = spaceTokens.pop();
                 type = new Node(spaceTokens.join(" "),context);
                 isVar = false;
@@ -968,11 +1018,18 @@ class Node {
         }
 
         /* typed value type */ {
+            const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
             const tokens = split(code, "arrow");
             if (tokens.length == 2 && is(tokens[1],"arrow") && /^[A-Za-z0-9_]+$/.test(tokens[0])) {
                 this.kind = "typed_value_type";
                 this.baseType = new Node(tokens[0], context);
-                this.valueType = new Node(tokens[1].slice(1,-1), context);
+                let amt = null;
+                const amtTokens = split(tokens[1].slice(1,-1), ":");
+                if (amtTokens.length >= 3 && amtTokens[amtTokens.length - 2] == ":" && isNumeric(amtTokens[amtTokens.length - 1])) {
+                    amt = Number(amtTokens.pop()); amtTokens.pop();
+                }
+                this.valueType = new Node(amtTokens.join(""), context);
+                this.amt = amt;
                 return;
             }
         }
@@ -1056,7 +1113,7 @@ class Node {
 
         /* math */ {
             const operations = context.operation_names;
-            const ops = Object.keys(operations);
+            const ops = context.operator_tokens;
             const tokens = split(code, ops);
             const newTokens = [];
             for (let i = 0; i < tokens.length; i++) {
@@ -1077,6 +1134,18 @@ class Node {
                     this.b = new Node(newTokens.pop(), context);
                     this.type = operations[newTokens.pop()];
                     this.a = new Node(newTokens.join(""), context);
+                    return;
+                }
+            }
+        }
+
+        /* statement */ {
+            const spaceTokens = split(code, " ").filter(t => t !== " ");
+            /* has a value */ {
+                if (context.lowStatements.includes(spaceTokens[0]) && spaceTokens.length > 1) {
+                    this.kind = "statement";
+                    this.key = spaceTokens[0];
+                    this.value = new Node(spaceTokens.slice(1).join(" "), context);
                     return;
                 }
             }
@@ -1142,12 +1211,39 @@ class Node {
             }
         }
 
+        /* check attribute */ {
+            const tokens = split(code, ["?","."]);
+            if (tokens.length > 3 && /^[A-Za-z0-9_]+$/.test(tokens[tokens.length - 1]) && (tokens[tokens.length - 3] + tokens[tokens.length - 2]) == "?.") {
+                this.kind = "attribute_check";
+                this.key = tokens.pop();
+                tokens.pop();
+                tokens.pop();
+                this.value = new Node(tokens.join(""), context);
+                this.attribute = new Node(tokens.join("") + "." + this.key, context);
+                return;
+            }
+        }
+
+        /* not null attribute */ {
+            const tokens = split(code, ["!","."]);
+            if (tokens.length > 3 && /^[A-Za-z0-9_]+$/.test(tokens[tokens.length - 1]) && (tokens[tokens.length - 3] + tokens[tokens.length - 2]) == "!.") {
+                this.kind = "attribute";
+                this.key = tokens.pop();
+                tokens.pop();
+                tokens.pop();
+                this.value = new Node(tokens.join(""), context);
+                this.alwaysDefined = true;
+                return;
+            }
+        }
+
         /* attribute */ {
             const tokens = split(code, ".").filter(t => t !== ".");
-            if (tokens.length > 1 && /^[A-Za-z0-9_]+$/.test(tokens[0])) {
+            if (tokens.length > 1 && /^[A-Za-z0-9_]+$/.test(tokens[tokens.length - 1])) {
                 this.kind = "attribute";
                 this.key = tokens.pop();
                 this.value = new Node(tokens.join("."), context);
+                this.alwaysDefined = false;
                 return;
             }
         }
@@ -1176,7 +1272,7 @@ class Node {
 
         /* key */ {
             const tokens = split(code, "square");
-            if (tokens.length > 1 && is(tokens[tokens.length-1],"square")) {
+            if (tokens.length > 1 && tokens[0].length > 0 && is(tokens[tokens.length-1],"square")) {
                 this.kind = "key";
                 this.key = new Node(tokens.pop().slice(1,-1), context);
                 this.value = new Node(tokens.join(""), context);
@@ -1227,7 +1323,8 @@ class Node {
                     "Arr",
                     
                     "void",
-                    "any"
+                    "any",
+                    "Type"
                 ];
                 if (types.includes(code)) {
                     this.kind = "type";
@@ -1270,8 +1367,8 @@ class Node {
         }
 
         /* parentheses */ {
-            if (is(code, "bracket")) {
-                this.parse(code.slice(1,-1),context);
+            if (is(code.trim(), "bracket")) {
+                this.parse(code.trim().slice(1,-1),context);
                 return;
             }
         }
@@ -1295,17 +1392,17 @@ class Node {
         throw Error("unexpected tokens: " + this.formattedCode);
     }
 
-    compile(context, target, flags) {
+    compile(context, target, flags, extra) {
         if (!context) throw Error("no context");
         if (target && !(target instanceof Target)) throw Error("no valid target");
-
+        //console.log(this);
         switch (this.kind) {
             case "segment": {
                 if (!flags?.includes("noscope"))
                     context.scope.newLayer(null, true);
                 for (let i = 0; i < this.elements.length; i++) {
                     const element = this.elements[i];
-                    element.compile(context);
+                    element.compile(context, null, null, {"segment": this.elements, i});
                 }
                 if (!flags?.includes("noscope"))
                     context.scope.exitLayer();
@@ -1410,26 +1507,32 @@ class Node {
                                 argKeys.push(key);
                                 const t = arg.getType(context);
                                 const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
-                                if (!isTypeSafe(t,pType)) {
-                                    throw Error("expected " + t.getName() + " got " + pType.getName())
+                                if (!isTypeSafe(t,pType))
+                                    throw Error("expected " + t.getName() + " got " + pType.getName());
+                                if (param.type.formattedCode === func.typeName && !context.unsafe) {
+                                    const typeRef = randomStr();
+                                    context.text += `set str ${typeRef} ${arg.getType(context).getName()}\nsettype ${key} ${typeRef}\n`;
                                 }
                             }
                         }
                     }
+                    let outType = this.type.getValue(context);
+                    outType = outType instanceof GenericType ? `.generic` : outType.getName();
+                    const typeRef = randomStr();
+                    context.text += `set type ${typeRef} ${outType}\n`;
                     if (target) {
-                        context.text += `callget ${target.id} ${func.key} ${argKeys.join(" ")}\n`;
+                        context.text += `callget ${target.id} ${func.key} ${typeRef} ${argKeys.join(" ")}\n`;
                         
-                        let outType = this.type.getValue(context);
-                        outType = outType instanceof GenericType ? `.generic` : outType.getName();
-                        const condRef = randomStr();
-                        const typeRef = randomStr();
-                        const errRef1 = randomStr();
-                        const errRef2 = randomStr();
-                        const lblRef = randomStr();
-                        context.text += `set str ${typeRef} ${outType}\nistypeg ${condRef} ${target.id} ${typeRef}\n`;
-                        context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic function returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
+                        if (!context.unsafe) {
+                            const condRef = randomStr();
+                            const errRef1 = randomStr();
+                            const errRef2 = randomStr();
+                            const lblRef = randomStr();
+                            context.text += `istypeg ${condRef} ${target.id} ${typeRef}\n`;
+                            context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic function returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
+                        }
                     } else
-                        context.text += `call ${func.key} ${argKeys.join(" ")}\n`;
+                        context.text += `call ${func.key} ${typeRef} ${argKeys.join(" ")}\n`;
                 } else {
                     throw Error(this.key.formattedCode + " is not a generic function");
                 }
@@ -1444,9 +1547,9 @@ class Node {
                             const key = this.value.compileKey(context);
                             this.value.compile(context, new Target(key));
                             const type = this.value.getType(context);
-                            if (topLayer && !isTypeSafe(type,topLayer.return_type))
+                            if (topLayer && !isTypeSafe(topLayer.return_type, type))
                                 throw Error(`attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`);
-                            if (topLayer.kind == "auto_function") {
+                            if (topLayer.kind == "auto_function" && !context.unsafe) {
                                 const typeRef = randomStr();
                                 context.text += `set str ${typeRef} ${type instanceof GenericType ? `.generic` : type.getName()}\nsettype ${key} ${typeRef}\n`;
                             }
@@ -1457,6 +1560,13 @@ class Node {
                             else
                                 context.text += `ret\n`;
                         }
+                        break;
+                    }
+                    case "typeof": {
+                        const key = this.value.compileKey(context);
+                        this.value.compile(context, new Target(key));
+                        let type = this.value.getType(context).getName();
+                        context.text += target != null ? (type.startsWith(".") ? `gettype ${target.id} ${key}\n` : `set str ${target.id} ${type}\n`) : "";
                         break;
                     }
                     default:
@@ -1519,6 +1629,37 @@ class Node {
                         context.text += `quitTo ${lbl}\n`;
                         break;
                     }
+                    case "else": {
+                        let last;
+                        if (
+                            extra && extra["segment"] && 
+                            (
+                                ((last = extra["segment"][extra["i"]-1])["kind"] == "arg_branch" && 
+                                (
+                                    (last["key"] == "if" && last["didCompile"]) ||
+                                    (last["key"] == "else" && last["didCompile"])
+                                ))
+                            )
+                        ) {
+                            const lbl = last["lbl"];
+                            let endLbl = last["endLbl"];
+                            const newLbl = randomStr();
+                            if (lbl == endLbl) endLbl = randomStr();
+                            context.text = context.text.split("\n").slice(0,-2).join("\n") + "\n";
+                            context.text += `jp ${endLbl}\n`;
+                            context.text += `: ${lbl}\n`;
+                            this.content.compile(context);
+                            context.text += `: ${endLbl}\n`;
+
+                            this.hasEnd = true;
+                            this.didCompile = true;
+                            this.lbl = newLbl;
+                            this.endLbl = endLbl;
+                        } else {
+                            throw Error("invalid else placement");
+                        }
+                        break;
+                    }
                     default:
                         throw Error("cannot compile branch of type " + this.key);
                 }
@@ -1526,10 +1667,20 @@ class Node {
             }
             case "arg_branch": {
                 let argKeys;
+                const compileArgKeys = () => {
+                    argKeys = this.args.map(a => a.compileKey(context));
+                }
+                const compileArgValues = () => {
+                    this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
+                }
+                const compileArgs = () => {
+                    compileArgKeys();
+                    compileArgValues();
+                }
                 switch (this.key) {
-                    case "if": case "while": case "until":
-                        argKeys = this.args.map(a => a.compileKey(context));
-                        this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
+                    case "if":
+                        compileArgs();
+                        break;
                 }
                 switch (this.key) {
                     case "if": {
@@ -1541,28 +1692,77 @@ class Node {
                             context.text += `jn ${lbl} ${argKeys[0]}\n`;
                         else
                             break;
+                        this.didCompile = true;
+                        this.lbl = lbl;
+                        this.endLbl = lbl;
                         this.content.compile(context);
                         context.text += `: ${lbl}\n`;
+                        break;
+                    }
+                    case "else": {
+                        let last;
+                        if (
+                            extra && extra["segment"] && 
+                            (
+                                ((last = extra["segment"][extra["i"]-1])["kind"] == "arg_branch" && 
+                                (
+                                    (last["key"] == "if" && last["didCompile"]) ||
+                                    (last["key"] == "else" && last["didCompile"])
+                                ))
+                            )
+                        ) {
+                            const next = extra["segment"][extra["i"]+1];
+                            const nextIsElse = next && (next["kind"] == "arg_branch" || next["kind"] == "branch") && next["key"] == "else";
+                            const lbl = last["lbl"];
+                            let endLbl = last["endLbl"];
+                            let newLbl;
+                            if (nextIsElse) {
+                                if (lbl == endLbl) endLbl = randomStr();
+                                newLbl = randomStr();
+                            } else {
+                                endLbl = randomStr();
+                                newLbl = endLbl;
+                            }
+                            context.text = context.text.split("\n").slice(0,-2).join("\n") + "\n";
+                            context.text += `jp ${endLbl}\n`;
+                            context.text += `: ${lbl}\n`;
+
+                            compileArgs();
+
+                            const temp = randomStr();
+                            if (this.args.length > 1)
+                                context.text += `and ${temp} ${argKeys.join(" ")}\njn ${lbl} ${temp}\n`;
+                            else if (this.args.length == 1)
+                                context.text += `jn ${newLbl} ${argKeys[0]}\n`;
+
+                            this.content.compile(context);
+                            context.text += `: ${newLbl}\n`;
+                            this.didCompile = true;
+                            this.lbl = newLbl;
+                            this.endLbl = endLbl;
+                        } else {
+                            throw Error("invalid else placement");
+                        }
                         break;
                     }
                     case "while": case "until": {
                         const lbl = randomStr();
                         const endLbl = randomStr();
                         const temp = randomStr();
-                        const didntJump = this.key == "while" ? "jn" : "je";
-                        const didJump = this.key == "while" ? "je" : "jn";
+                        const didntJump = this.key == "while" ? "jn" : "ji";
+                        context.text += `: ${lbl}\n`;
+                        compileArgs();
                         if (this.args.length > 1)
-                            context.text += `: ${lbl}\nand ${temp} ${argKeys.join(" ")}\n${didntJump} ${endLbl} ${temp}\n`;
+                            context.text += `and ${temp} ${argKeys.join(" ")}\n${didntJump} ${endLbl} ${temp}\n`;
                         else if (this.args.length == 1)
-                            context.text += `: ${lbl}\n${didntJump} ${endLbl} ${argKeys[0]}\n`;
+                            context.text += `${didntJump} ${endLbl} ${argKeys[0]}\n`;
                         else {
-                            context.text += `: ${lbl}\n`;
                             this.content.compile(context);
                             context.text += `jp ${lbl}\n`;
                             break;
                         }
                         this.content.compile(context);
-                        context.text += `${didJump} ${lbl} ${temp}\n: ${endLbl}\n`;
+                        context.text += `jp ${lbl}\n: ${endLbl}\n`;
                         break;
                     }
                     case "for": {
@@ -1572,7 +1772,7 @@ class Node {
                             (this.args[0].isVar ?? true)
                         ) {
                             context.scope.newLayer();
-                            const t = this.args[1].getType();
+                            const t = this.args[1].getType(context);
                             this.args[0].compile(context);
                             const valueKey = this.args[1].compileKey(context);
                             const lbl = randomStr();
@@ -1625,17 +1825,20 @@ class Node {
                     targetType = this.fullAttribute.getType(context);
 
                     switch (this.type) {
-                        case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec":
+                        case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec": case "list_join": case "list_concat":
                             targetRef = this.fullAttribute.compileKey(context);
                             this.fullAttribute.compile(context, new Target(targetRef));
-                            break
+                            break;
+                        case "default":
+                            targetRef = this.fullAttribute.compileKey(context);
+                            this.fullAttribute.compile(context, new Target(targetRef), ["noAttrError"]);
+                            break;
                     }
 
                     const valueType = this.value?.getType(context);
                     const nullAttribute = context.scope.get(this.fullAttribute.value.getType(context).name).nullAttributes[this.fullAttribute.key];
                     if (this.value && !(valueType.getName() === "null" && nullAttribute) && !isTypeSafeStrict(targetType, valueType))
-                        throw Error(`attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()}`)
-                    
+                        throw Error(`attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()} in ${this.formattedCode}`);
                 } else {
                     if (typeof this.key == "string") {
                         let err;
@@ -1651,6 +1854,8 @@ class Node {
                                     const wantedType = this?.varType?.getValue(context);
                                     if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType))
                                         throw Error("attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName())
+                                    if (wantedType)
+                                        targetType = wantedType;
                                     break;
                                 case "inc": case "dec": targetType = new Type("num"); err = null; break;
                                 default:
@@ -1674,7 +1879,7 @@ class Node {
                         targetType = this.fullKey.getType(context);
 
                         switch (this.type) {
-                            case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec":
+                            case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec": case "list_join": case "list_concat":
                                 existingRef = this.fullKey.compileKey(context);
                                 this.fullKey.compile(context, new Target(existingRef));
                                 break
@@ -1692,7 +1897,7 @@ class Node {
                         this.value.compile(context, new Target(targetRef));
                         break;
                     }
-                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec": {
+                    case "add": case "join": case "sub": case "mul": case "div": case "pow": case "mod": case "inc": case "dec": case "list_join": case "list_concat": {
                         const valueRef = randomStr();
                         const valueType = this.value?.getType(context);
 
@@ -1721,9 +1926,14 @@ class Node {
                 if (typeof this.key != "string")
                     context.text += `obj set ${parentKey} ${keyKey} ${targetRef}\n`;
                 if (this.fullAttribute) {
-                    const keyRef = randomStr();
-                    const temp = randomStr();
-                    context.text += `set str ${keyRef} attributes\nobj get arg0 ${temp} ${keyRef}\nset str ${keyRef} ${this.key}\nobj set ${temp} ${keyRef} ${targetRef}\n`
+                    /*
+                    if (this.fullAttribute.value.formattedCode === "self") {
+                        const keyRef = randomStr();
+                        const temp = randomStr();
+                        context.text += `set str ${keyRef} attributes\nobj get arg0 ${temp} ${keyRef}\nset str ${keyRef} ${this.key}\nobj set ${temp} ${keyRef} ${targetRef}\n`
+                    } else { */
+                        context.text += `obj set ${this.fullAttribute.attributesRef} ${this.fullAttribute.keyRef} ${targetRef}\n`;
+                    //}
                 }
             }
             case "comparison": {
@@ -1824,6 +2034,60 @@ class Node {
                         }
                     }
                 }
+                const type = this.value.getType(context);
+                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "append") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        for (let i = 0; i < this.args.length; i++) {
+                            const element = this.args[i];
+                            const t = element.getType(context);
+                            if (!isTypeSafeStrict(t, type.getValueType()))
+                                throw Error(`attempt to add a ${t.getName()} to a ${type.getValueType().getName()} array`);
+                            const ref = randomStr();
+                            element.compile(context, new Target(ref));
+                            context.text += `arr add ${parentRef} ${ref}\n`;
+                        }
+                        if (target)
+                            context.text += `dupe ${target.id} ${parentRef}\n`;
+                        return;
+                    }
+                    if (this.key == "pop") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (target)
+                            context.text += `arr pop ${parentRef} ${target.id}\n`;
+                        else
+                            context.text += `arr popnv ${parentRef}\n`;
+                        return;
+                    }
+                    if (this.key == "shift") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (target)
+                            context.text += `arr shift ${parentRef} ${target.id}\n`;
+                        else
+                            context.text += `arr shiftnv ${parentRef}\n`;
+                        return;
+                    }
+                    if (this.key == "contains") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (this.args.length != 1)
+                            throw Error("invalid amount of args for contains");
+                        const valueRef = this.args[0].compileKey(context);
+                        this.args[0].compile(context, new Target(valueRef));
+                        if (target)
+                            context.text += `arr has ${target.id} ${parentRef} ${valueRef}\n`;
+                        return;
+                    }
+                }
+                if (this.key === "toString") {
+                    const parentRef = this.value.compileKey(context);
+                    this.value.compile(context, new Target(parentRef));
+                    this.value.getValue(context).stringifyTo(context, target, parentRef);
+                    return;
+                }
                 throw Error(`cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
             }
             case "typed_method": {
@@ -1865,20 +2129,28 @@ class Node {
                             context.text += `set str ${keyRef} methods\nobj get ${parentRef} ${methodRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${methodRef} ${methodRef} ${keyRef}\n`;
                             context.text += target != null ? `callgetvar ${target.id} ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n` : `callvar ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n`;
                             
-                            let outType = this.type.getValue(context);
-                            outType = outType instanceof GenericType ? `.generic` : outType.getName();
-                            const condRef = randomStr();
-                            const typeRef = randomStr();
-                            const errRef1 = randomStr();
-                            const errRef2 = randomStr();
-                            const lblRef = randomStr();
-                            context.text += `set str ${typeRef} ${outType}\nistypeg ${condRef} ${target.id} ${typeRef}\n`;
-                            context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic method returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
+                            if (!context.unsafe) {
+                                let outType = this.type.getValue(context);
+                                outType = outType instanceof GenericType ? `.generic` : outType.getName();
+                                const condRef = randomStr();
+                                const typeRef = randomStr();
+                                const errRef1 = randomStr();
+                                const errRef2 = randomStr();
+                                const lblRef = randomStr();
+                                context.text += `set str ${typeRef} ${outType}\nistypeg ${condRef} ${target.id} ${typeRef}\n`;
+                                context.text += `ji ${lblRef} ${condRef}\nset str ${errRef1} generic method returned \nset str ${errRef2}  not the specified type \nadd ${errRef1} ${errRef1} .typechecktype ${errRef2}\nadd ${errRef1} ${errRef1} ${typeRef}\nerr ${errRef1}\n: ${lblRef}\n`;
+                            }
                             return;
                         }
                     }
                 }
                 throw Error(`cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
+            }
+            case "attribute_check": {
+                const ref = this.attribute.compileKey(context);
+                this.attribute.compile(context, new Target(ref), ["noAttrError"]);
+                context.text += `eql ${target.id} ${ref} null\ninv ${target.id} ${target.id}\n`;
+                break;
             }
 
             case "variable":
@@ -1910,12 +2182,15 @@ class Node {
             case "key": {
                 if (target != null) {
                     const valueType = this.value.getType(context);
-                    if (valueType.canGetKey()) {
+                    if (valueType.canGetKey && valueType.canGetKey()) {
                         const keyRef = this.key.compileKey(context);
                         this.key.compile(context, new Target(keyRef));
                         const valueRef = this.value.compileKey(context);
                         this.value.compile(context, new Target(valueRef));
+                        let txtRef;
                         context.text += `obj get ${valueRef} ${target.id} ${keyRef}\n`;
+                        if (!context.unsafe)
+                            context.text += `set str ${txtRef = randomStr()}  doesnt exist on ${JSON.stringify(this.value.formattedCode).slice(1,-1)}\nadd ${txtRef} ${keyRef} ${txtRef}\nernull ${target.id} ${txtRef}\n`;
                     } else
                         throw Error("cannot get a key from a " + valueType.getName());
                 }
@@ -1926,28 +2201,46 @@ class Node {
                 if (parentType instanceof Type || parentType instanceof Struct) {
                     const parent = context.scope.get(parentType.name);
                     const parentRef = this.value.compileKey(context);
+                    const attributesRef = randomStr();
+                    this.attributesRef = attributesRef;
+                    this.parentRef = parentRef;
                     this.value.compile(context, new Target(parentRef));
                     if (parent instanceof Struct) {
-                        if (Object.keys(parent.attributes).includes(this.key)) {
+                        if (Object.keys(parent.attributes).includes(this.key) || (flags ?? []).includes("noAttrError") || this.alwaysDefined) {
                             if (target != null) {
                                 const keyRef = randomStr();
-                                context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${target.id} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${target.id} ${target.id} ${keyRef}\n`;
+                                this.keyRef = keyRef;
+                                context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${attributesRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${attributesRef} ${target.id} ${keyRef}\n`;
                             }
                             return;
                         }
                         if (Object.keys(parent.nullAttributes).includes(this.key)) {
                             if (target != null) {
                                 const keyRef = randomStr();
-                                const txtRef = randomStr();
-                                context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${target.id} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${target.id} ${target.id} ${keyRef}\nset str ${txtRef} ${this.key} attribute is null\nerrnull ${target.id} ${txtRef}\n`;
+                                this.keyRef = keyRef;
+                                context.text += `set str ${keyRef} attributes\nobj get ${parentRef} ${attributesRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${attributesRef} ${target.id} ${keyRef}\n`
+                                let txtRef;
+                                if (!context.unsafe)
+                                    context.text += `set str ${txtRef = randomStr()} ${this.key} attribute is null\nerrnull ${target.id} ${txtRef}\n`;
                             }
                             return;
                         }
                         throw Error(`cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode},\nlist of attributes:\n  ${Object.keys({...parent.attributes, ...parent.nullAttributes}).join("\n  ")}`);
                     }
                 }
+                const type = this.value.getType(context);
+                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "length") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        context.text += `len ${target.id} ${parentRef}\n`;
+                        return;
+                    }
+                }
                 throw Error(`cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
             }
+            case "type":
+                context.text += target != null ? `set str ${target.id} ${this.name}\n` : "";
 
             case "string":
                 context.text += target != null ? `set str ${target.id} ${fblExcape(this.value)}\n` : "";
@@ -1962,12 +2255,17 @@ class Node {
                     let staticIndexes = [];
                     for (let i = 0; i < this.elements.length; i++) {
                         const element = this.elements[i];
+                        let isStatic = true;
                         switch (element.kind) {
                             case "string": case "number":
                                 staticArr.push(element.value);
                                 staticIndexes.push(i);
                                 break;
+                            default:
+                                isStatic = false;
                         }
+                        if (!isStatic)
+                            break
                     }
                     context.text += `set obj ${target.id} ${JSON.stringify(staticArr)}\n`;
                     for (let i = 0; i < this.elements.length; i++) {
@@ -2024,7 +2322,9 @@ class Node {
                     this.content.compile(context, null, ["noscope"]);
                     context.scope.exitLayer();
                     context.functionDataLayers.pop();
-                    context.text += "~\n";  
+                    if (type.name === "null")
+                        context.text += `ret\n`;
+                    context.text += "~\n";
                     context.functionText += context.text;
                     context.text = saveText;
                     context.compiledFunctions.push(this.key);
@@ -2048,16 +2348,20 @@ class Node {
                     this.content.scan(scanContext);
                     if (!scanContext.returns)
                         throw Error("not all code paths return a value");
+                    const oldOffset = context.argOffset ?? 0;
+                    context.argOffset = 1;
                     context.scope.newLayer(Object.fromEntries([[this.type,new GenericType()]]));
                     context.scope.newLayer(Object.fromEntries(this.params.map((p,i) => [`.arg${i}`, p.type.getValue(context)])));
+                    context.text += `dupe ${context.scope.get(this.type).ref} arg0\n`;
                     this.content.compile(context, null, ["noscope"]);
                     context.scope.exitLayer();
                     context.scope.exitLayer();
                     context.functionDataLayers.pop();
-                    context.text += "~\n";
+                    context.text += `~\n`;
                     context.functionText += context.text;
                     context.text = saveText;
                     context.compiledFunctions.push(this.key);
+                    context.argOffset = oldOffset;
                 }
                 const value = new AutoFunc(this.key, this.params, this.type);
                 context.scope.assignTop(this.key.slice(this.key.lastIndexOf(":") + 1), value);
@@ -2072,7 +2376,6 @@ class Node {
             case "struct_def": {
                 if (target != null)
                     throw Error("expected an output from struct definition");
-                //console.log(JSON.stringify(this, null, "  "));
                 let struct;
                 if (!structCache[this.name.slice(this.name.indexOf(":") + 1)]) {
                     const attributes = {};
@@ -2215,7 +2518,7 @@ class Node {
                 }
                 break;
         }
-        return randomStr();
+        return randomStr();`1`
     }
 
     getValue(context) {
@@ -2229,6 +2532,8 @@ class Node {
                     throw Error(`${this.key} is not defined`);
                 return val;
             }
+            case "argument":
+                return new TypedValue(context.scope.get(`.arg${this.index}`));
             case "constant":
                 return {
                     "true": new TypedValue("bool"),
@@ -2240,6 +2545,11 @@ class Node {
                 }[this.name];
             case "package_method":
                 return context.scope.get(`${context.packageName != null ? context.packageName + ":" : ""}${this.package}:${this.key}`);
+
+            case "assignment":
+                if (["inc", "dec"].includes(this.type))
+                    return new TypedValue("num");
+                return this.value.getValue();
 
             case "string":
                 return new StringValue(this.value);
@@ -2258,7 +2568,7 @@ class Node {
                     return new Type(".any");
                 return new Type(this.name);
             case "typed_value_type":
-                return new TypedValueType(this.baseType.getValue(context), this.valueType.getValue(context));
+                return new TypedValueType(this.baseType.getValue(context), this.valueType.getValue(context), this.amt);
             case "union":
                 return new Union(this.elements.map(e => e.getValue(context)));
             case "array": {
@@ -2269,11 +2579,14 @@ class Node {
                     const elementType = element.getType(context);
                     if (items.type == null || isTypeSafeStrict(elementType,items.type)) {
                         items.type = elementType;
+                        items.push(element);
                     } else {
                         throw Error(`attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} array`);
                     }
                 }
-                return new ArrayValue(items.type ?? new Type("null"));
+                if (items.type == null)
+                    return new TypedValue("Arr");
+                return new ArrayValue(items.type ?? new Type("null"), items.length);
             }
             case "object": {
                 const items = {};
@@ -2320,18 +2633,24 @@ class Node {
                 try {
                     return context.scope.get(this.value.getType(context).name).nullAttributes[this.key].type;
                 } catch {}
+                const type = this.value.getType(context);
+                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "length") {
+                        return new Type("num");
+                    }
+                }
                 return new Type("null");
             
             case "key":
                 const valueType = this.value.getType(context);
-                if (valueType.canGetKey())
-                    return valueType.getKeyType(this.key);
+                if (valueType.canGetKey && valueType.canGetKey())
+                    return valueType.getValueType(this.key);
                 else
                     throw Error("cannot get a key from a " + valueType.getName());
             
             case "execution":
                 if (this.key.formattedCode == "raw") return new Type(".any");
-                return this.key.getValue(context)?.return_type;
+                return this.key.getValue(context)?.return_type ?? new Type("null");
             case "typed_execution":
                 return this.type.getValue(context);
             case "operation":
@@ -2348,18 +2667,58 @@ class Node {
                 if (!instVal)
                     throw Error("cannot instance " + this.name);
                 return instVal;
-            case "method":
+            case "method": {
                 try {
                     const temp = context.scope.get(this.value.getType(context).name)
                     return {...temp.methods,...temp.null_methods}[this.key].return_type.getValue(context);
                 } catch {}
+                if (this.key === "toString") {
+                    return new Type("str");
+                }
+                const type = this.value.getType(context);
+                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "append") {
+                        return this.value.getType(context);
+                    }
+                    if (this.key == "pop") {
+                        try {
+                            return this.value.getType(context).getPopValue(context);
+                        } catch {
+                            return this.value.getType(context).getValueType(context);
+                        }
+                    }
+                    if (this.key == "shift") {
+                        try {
+                            return this.value.getType(context).getShiftValue(context);
+                        } catch {
+                            return this.value.getType(context).getValueType(context);
+                        }
+                    }
+                    if (this.key == "contains") {
+                        return new Type("bool");
+                    }
+                }
                 return new Type("null");
+            }
             case "typed_method":
                 return this.type.getValue(context);
+            case "statement": {
+                const func = context.statementTypes[this.key];
+                if (func) {
+                    const out = func(context, this.value);
+                    if (out)
+                        return out;
+                }
+                break;
+            }
+            case "attribute_check":
+                return new Type("bool");
 
             case "array": case "object": {
                 const val = this.getValue(context);
-                return new TypedValueType(new Type(val.type), val.valueType);
+                if (val instanceof TypedValue)
+                    return new Type(val.type);
+                return new TypedValueType(new Type(val.type), val.valueType, val.amount);
             }
         }
         return new Type(this.getValue(context)?.type);
@@ -2403,6 +2762,14 @@ class Value {
     stringify() {
         return `<${this.type}>`;
     }
+    stringifyTo(context, target, ref) {
+        if (this.type == "Type") {
+            const a = randomStr();
+            context.text += `set str ${a} <Type:\nadd ${target.id} ${a} ${ref}\nset str ${a} >\nadd ${target.id} ${target.id} ${a}\n`;
+            return;
+        }
+        context.text += `set str ${target.id} ${this.stringify(context)}\n`;
+    }
     getType() {
         return new Type(this?.type);
     }
@@ -2434,10 +2801,11 @@ class NumberValue extends Value {
 }
 
 class ArrayValue extends Value {
-    constructor(type) {
+    constructor(type, amount) {
         super();
         this.type = "Arr";
         this.valueType = type;
+        this.amount = amount;
     }
 
     getValueType(context) {
@@ -2476,12 +2844,20 @@ class TypedValue extends Value {
 
 class Type {
     constructor(name) {
-        this.type = "type";
+        this.type = "Type";
         name = name == "void" ? "null" : name;
         this.name = name;
     }
     stringify() {
-        return `<type:${this.name}>`;
+        return `<Type:${this.name}>`;
+    }
+    stringifyTo(context, target) {
+        if (this.type == ".any") {
+            const a = randomStr();
+            context.text += `set str ${a} <Type:\nadd ${target.id} ${a} ${ref}\nset str ${a} >\nadd ${target.id} ${target.id} ${a}\n`;
+            return;
+        }
+        context.text += `set str ${target.id} ${this.stringify(context)}\n`;
     }
     getName() {
         return this.name;
@@ -2489,7 +2865,7 @@ class Type {
     canGetKey() {
         return false;
     }
-    getKeyType() {
+    getValueType() {
         return null;
     }
     getType() {
@@ -2497,12 +2873,22 @@ class Type {
     }
 }
 class TypedValueType {
-    constructor(baseType, valueType) {
+    constructor(baseType, valueType, amount) {
         this.baseType = baseType;
         this.valueType = valueType;
+        if (amount) {
+            if (baseType.getName() == "Arr") {
+                this.amount = amount;
+            } else {
+                throw Error(`${this.baseType?.getName()} cannot have an attached amount`);
+            }
+        }
     }
     stringify() {
-        return `<type:${this.baseType?.getName()}<${this.valueType?.getName()}>>`;
+        return `<Type:${this.baseType?.getName()}<${this.valueType?.getName()}>>`;
+    }
+    stringifyTo(context, target) {
+        context.text += `set str ${target.id} ${this.stringify(context)}\n`;
     }
     getName() {
         return `${this.baseType?.getName()}<${this.valueType?.getName()}>`;
@@ -2512,7 +2898,7 @@ class TypedValueType {
             return true;
         return false;
     }
-    getKeyType() {
+    getValueType() {
         return this.valueType;
     }
     getType() {
@@ -2524,15 +2910,19 @@ class GenericType extends Type {
         super(".any");
     }
     stringify() {
-        return `<type:${this.name}>`;
+        return `<Type:generic>`;
+    }
+    stringifyTo(context, target, ref) {
+        const a = randomStr();
+        context.text += `set str ${a} <Generic:\nadd ${target.id} ${a} ${ref}\nset str ${a} >\nadd ${target.id} ${target.id} ${a}\n`;
     }
     getName() {
-        return "<genericType>";
+        return "<Generic>";
     }
     canGetKey() {
         return false;
     }
-    getKeyType() {
+    getValueType() {
         return null;
     }
     getType() {
@@ -2745,11 +3135,11 @@ function importFs(path) {
 // NODE JS
 
 const fs = require('fs');
+const { off } = require('process');
 
 const c = fs.readFileSync('node/code.fcl', 'utf8');
 console.time("parse");
 const script = new Script(c);
-//console.log(JSON.stringify(script, null, "  "));
 console.timeEnd("parse");
 const fclfs = getDefaultFs();
 console.time("compile");

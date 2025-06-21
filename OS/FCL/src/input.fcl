@@ -1,0 +1,61 @@
+
+Arr<Obj<str>> getKeys() {
+    return raw("keyhistory getkeys .target");
+}
+
+Obj<str> shiftKeys() {
+    return raw("keyhistory shift .target");
+}
+
+void clearKeys() {
+    raw("keyhistory delkeys");
+}
+
+bool isSpecialKey(str key) {
+    specialChars = [
+        'Backspace', 'Tab', 'Enter', 'Shift', 'Control', 'Alt', 'CapsLock',
+        'Escape', 'Space', 'PageUp', 'PageDown', 'End', 'Home',
+        'ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown',
+        'Insert', 'Delete', 'Meta', 'ContextMenu',
+        'AltGraph', 'ScrollLock', 'NumLock', 'Pause', 'Clear',
+        'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
+    ];
+
+    if (specialChars.contains(key)) {
+        return true;
+    }
+    return false;
+}
+
+struct KeyMap {
+    Arr<str> keys = [];
+    Arr<str> special = [];
+
+    void update() {
+        Arr<Obj<str>> keys = getKeys();
+
+        for(i, keys.length) {
+            Obj<str> key = shiftKeys();
+
+            str type = key["type"];
+            str data = key["data"];
+            if (!isSpecialKey(data)) {
+                self.keys.append(data);
+            } else {
+                self.special.append(data);
+            }
+        }
+    }
+}
+
+struct InputState {
+    KeyMap map = new KeyMap();
+
+    void constructor() {
+        clearKeys();
+    }
+
+    void update() {
+        self.map.update();
+    }
+}

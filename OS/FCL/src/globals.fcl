@@ -1,0 +1,23 @@
+import io;
+
+auto getGlobal<type>(str id) {
+    type data = raw("globalget .target arg1");
+    if (data == null) {
+        io:throw("global" + id + "doesnt exist");
+    }
+    Type dataType = typeof data;
+    if (dataType != type) {
+        io:throw("global is" + dataType.toString() + "not" + type.toString());
+    }
+    return data;
+}
+
+auto setGlobal<type>(str id, type data) {
+    raw("globalset arg1 arg2");
+    return data;
+}
+
+bool hasGlobal(str id) {
+    data = raw("globalget .target arg1");
+    return data != null;
+}

@@ -4,7 +4,7 @@ void throw(str text) {
 }
 
 // graphics
-Arr<num> getScreenSize() {
+Arr<num:2> getScreenSize() {
     num width = raw("const screen_width .target");
     num height = raw("const screen_height .target");
     return [width, height];
