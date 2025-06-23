@@ -1,0 +1,25 @@
+{
+  "name": "fsf",
+  "displayName": "fsfLang",
+  "description": "flufi storage format language support",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "fsf",
+      "aliases": ["FSF", "fsf"],
+      "extensions": [".fsf"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "fsf",
+      "scopeName": "source.fsf",
+      "path": "./syntaxes/fsf.tmLanguage.json"
+    }]
+  }
+}

@@ -1,0 +1,49 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "FSF",
+	"patterns": [
+		{ "include": "#keywords" },
+		{ "include": "#paths" },
+		{ "include": "#strings" },
+		{ "include": "#numbers" },
+		{ "include": "#setting" }
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "constant",
+				"match": "\\b(true|false)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape",
+					"match": "\\\\."
+				}
+			]
+		},
+		"numbers": {
+			"name": "constant.numeric",
+			"match": "[+-]?(\\d+)"
+		},
+		"paths": {
+			"match": "([\\w/]+)((\\.)(\\w+))",
+			"captures": {
+				"1": { "name": "entity" },
+				"3": { "name": "entity" },
+				"4": { "name": "entity" }
+			}
+		},
+		"setting": {
+			"match": "(\\w+)(:)",
+			"captures": {
+				"1": { "name": "support" }
+			}
+		}
+	},
+	"scopeName": "source.fsf"
+}

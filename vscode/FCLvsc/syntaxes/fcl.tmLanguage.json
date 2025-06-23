@@ -1,0 +1,216 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "fcl",
+	"patterns": [
+		{ "include": "#comments1" },
+		{ "include": "#comments2" },
+		{ "include": "#keywords" },
+		{ "include": "#operators" },
+		{ "include": "#strings" },
+		{ "include": "#literals" },
+		{ "include": "#types" },
+		{ "include": "#struct-def" },
+		{ "include": "#type-brackets" },
+		{ "include": "#properties" },
+		{ "include": "#assign-key" },
+		{ "include": "#assign-type" },
+		{ "include": "#function" },
+		{ "include": "#function-type" },
+		{ "include": "#function-calls" },
+		{ "include": "#import" },
+		{ "include": "#variables" },
+		{ "include": "#null-assignment" }
+	],
+	"repository": {
+		"comments1": {
+			"begin": "(\\/\\/)",
+			"end": "\n",
+			"name": "comment",
+			"patterns": []
+		},
+		"comments2": {
+			"begin": "(\\/\\*)",
+			"end": "(\\*\\/)",
+			"name": "comment",
+			"patterns": []
+		},
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.fcl",
+				"match": "\\b(if|while|until|for|return|else|forever|auto)\\b"
+			}]
+		},
+		"type-brackets": {
+			"name": "keyword.other.unit",
+			"begin": "<",
+			"beginCaptures": {
+				"0": { "name": "keyword.other.unit" }
+			},
+			"end": ">",
+			"endCaptures": {
+				"0": { "name": "keyword.other.unit" }
+			},
+			"patterns": [
+				{ "include": "#types" },
+				{ "include": "#type-brackets" },
+				{ "match": "[^<>]+", "name": "support.type" }
+			]
+		},
+		"null-assignment": {
+			"match": "([\\w:]+) (\\w+)",
+			"captures": {
+				"1": { "name": "support.type" },
+				"2": { "name": "meta" }
+			}
+		},
+		"operators": {
+			"name": "keyword.operator",
+			"patterns": [{
+				"name": "keyword.operator.new",
+				"match": "\\bnew\\b\\s+"
+			},{
+				"name": "keyword.operator",
+				"match": "[!?](?!\\.)"
+			},{
+				"match": "(?<=\\d|\\w)(?<![+\\-*/^%~=])\\s*(~\\+{1,2}|\\+{1,2}|-|\\*|\\/|\\^|%)(=?)\\s*(?![+\\-*/^%~=])",
+				"captures": {
+					"1": { "name": "keyword.operator" },
+					"2": { "name": "keyword.operator" }
+				}
+			},{
+				"match": "(?<=\\d|\\w)(?<![<>=!?])\\s*(>=|<=|>|<|==|!=|\\?=)\\s*(?![<>=!?])",
+				"captures": {
+					"1": { "name": "keyword.operator" }
+				}
+			},{
+				"name": "keyword.operator",
+				"match": "(?<![|&])(\\|{2,3}|\\&{2,3})(?![|&])"
+			}]
+		},
+		"function-type": {
+			"match": "(\\w+) (\\w+)\\(",
+			"captures": {
+				"1": { "name": "support" },
+				"2": { "name": "entity" }
+			}
+		},
+		"assign-key": {
+			"name": "variable.other.constant",
+			"match": "([\\w]+)((\\.)(\\w+))?(?<![=])\\s*(=)\\s*(?![=])",
+			"captures": {
+				"1": { "name": "meta" },
+				"3": { "name": "punctuation" },
+				"4": { "name": "entity" },
+				"5": { "name": "keyword.operator.assign" }
+			}
+		},
+		"assign-type": {
+			"name": "variable.other.constant",
+			"match": "([\\w.:]+)\\s+([\\w.]+)\\s+(=)",
+			"captures": {
+				"1": { "name": "support.type" },
+				"2": { "name": "meta" },
+				"0": { "name": "keyword.operator.assign" }
+			}
+		},
+		"properties": {
+			"match": "([?!]?[.]|(:))([a-zA-Z_])(\\w+)",
+			"captures": {
+				"1": { "name": "punctuation" },
+				"2": { "name": "keyword.operator.property" },
+				"3": { "name": "entity.name" },
+				"4": { "name": "entity.name" }
+			}
+		},
+		"struct-def": {
+			"begin": "(struct)\\s+(\\w+)\\s*{",
+			"beginCaptures": {
+				"1": { "name": "storage.type.struct" },
+				"0": { "name": "entity.name.type.class.js" }
+			},
+			"end": "}",
+			"patterns": [
+				{"include":"#comments1"},{"include":"#comments2"},{"include": "#function-type"},{"include":"#null-assignment"},{"include":"#keywords"},{"include":"#strings"},{"include":"#literals"},{"include":"#types"},{"include":"#operators"},{"include":"#struct-def"},{"include":"#properties"},{"include":"#assign-key"},{"include":"#assign-type"},{"include":"#type-brackets"},{"include":"#function-types"},{"include":"#function-calls"},{"include":"#import"},{"include":"#variables"},{"include":"#comparisons"}
+			]
+		},
+		"functions": {
+			"patterns": [{
+				"name": "keyword.control.function",
+				"begin": "\\w+ \\w+\\(",
+				"end": ")"
+			}]
+		},
+		"literals": {
+			"patterns": [{
+				"name": "constant.numeric.fcl",
+				"match": "[+-]?(\\d+(\\.\\d*)?|\\.\\d+)(?!\\d)"
+			},{
+				"name": "constant.fcl",
+				"match": "\\b(true|false)\\b"
+			},{
+				"name": "variable.language",
+				"match": "\\b(self)\\b"
+			}]
+		},
+		"types": {
+			"patterns": [{
+				"name": "support.type",
+				"match": "\\b(str|num|bool|null|Arr|Obj|Type|void|any)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.fcl",
+			"begin": "\"|'|`",
+			"end": "\"|'|`",
+			"patterns": [
+				{
+					"name": "constant.character.escape.fcl",
+					"match": "\\\\."
+				}
+			]
+		},
+		"function-calls": {
+			"patterns": [
+				{
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"name": "entity.name.function.call.fcl"
+				}
+			]
+		},
+		"import": {
+            "name": "keyword.operator.import",
+            "begin": "\\bimport\\b\\s+",
+            "end": "$",
+            "patterns": [
+                {
+                    "match": "(\\w+)\\s*(as)\\s*(\\w+)",
+					"captures": {
+						"1": { "name": "support.module" },
+						"2": { "name": "keyword.operator.as" },
+						"3": { "name": "meta" }
+					}
+                },
+                {
+                    "name": "support.module",
+                    "match": "\\b\\w+\\b"
+                },
+                {
+                    "name": "keyword.operator.import.comma",
+                    "match": ","
+                },
+                {
+                    "name": "variable.imported.fcl",
+                    "match": "\\b\\w+\\b"
+                },
+                {
+                    "match": "\\s+"
+                }
+            ]
+		},
+		"variables": {
+			"name": "meta",
+			"match": "\\w+"
+		}
+	},
+	"scopeName": "source.fcl"
+}

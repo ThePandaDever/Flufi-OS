@@ -33,7 +33,6 @@
     }
 }
 
-
 function split(text, type, useendbracket, arrow) {
     text = text ?? "";
     text = text.trim();
@@ -535,6 +534,8 @@ class ScanContext extends Context {
 memory = {};
 const structCache = {};
 
+let grah = 2;
+
 class Scope {
     constructor(variables) {
         this.layers = [];
@@ -630,8 +631,13 @@ function isTypeSafe(type,compare) {
 
 function isTypeSafeStrict(type,compare) {
     if (type instanceof TypedValueType && compare instanceof TypedValueType) {
-        if (type.amount == null && compare.amount)
-            throw Error("unambiguous type amount");
+        //if (type.amount == null && compare.amount)
+        //    throw Error("unambiguous type amount");
+        if (type.valueType?.getName() == "null")
+            type.valueType = compare.valueType;
+        if (type.amount == 0) {
+            return isTypeSafeStrict(type.baseType,compare.baseType);
+        }
         if (type.amount && compare.amount) {
             if (compare.amount != type.amount) {
                 throw Error(`wanted ${type.amount} elements but got ${compare.amount} elements`);
@@ -665,6 +671,15 @@ class Node {
     parse(code, context) {
         if (!context) throw Error("no context");
         code = removeComments(code);
+
+        /* number */ {
+            const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
+            if (isNumeric(code)) {
+                this.kind = "number";
+                this.value = Number(code);
+                return;
+            }
+        }
 
         /* prefixes */ {
             this.kind = "operation";
@@ -1185,15 +1200,6 @@ class Node {
                 this.kind = "assignment";
                 this.key = key;
                 this.type = types[op];
-                return;
-            }
-        }
-
-        /* number */ {
-            const isNumeric = (t) => /^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t);
-            if (isNumeric(code)) {
-                this.kind = "number";
-                this.value = Number(code);
                 return;
             }
         }
@@ -1837,7 +1843,7 @@ class Node {
 
                     const valueType = this.value?.getType(context);
                     const nullAttribute = context.scope.get(this.fullAttribute.value.getType(context).name).nullAttributes[this.fullAttribute.key];
-                    if (this.value && !(valueType.getName() === "null" && nullAttribute) && !isTypeSafeStrict(targetType, valueType))
+                    if (this.value && !(valueType.getName() === "null" && nullAttribute) && !isTypeSafeStrict(valueType, targetType))
                         throw Error(`attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()} in ${this.formattedCode}`);
                 } else {
                     if (typeof this.key == "string") {
@@ -1978,7 +1984,7 @@ class Node {
                             argKeys.push(key);
                             const t = arg.getType(context);
                             if (!isTypeSafe(t,param.type.getValue(context))) {
-                                throw Error("expected " + t.getName() + " got " + param.type.getValue(context).getName())
+                                throw Error("expected " + param.type.getValue(context).getName() + " got " + t.getName())
                             }
                         }
                     }
@@ -1996,9 +2002,9 @@ class Node {
                 const parentType = this.value.getType(context);
                 if (parentType instanceof Type || parentType instanceof Struct) {
                     const parent = context.scope.get(parentType.name);
-                    const parentRef = this.value.compileKey(context);
-                    this.value.compile(context, new Target(parentRef));
                     if (parent instanceof Struct) {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
                         if (Object.keys(parent.methods).includes(this.key)) {
                             const methodRef = randomStr();
                             const keyRef = randomStr();
@@ -2035,6 +2041,24 @@ class Node {
                     }
                 }
                 const type = this.value.getType(context);
+                if (isTypeSafeStrict(type, "str")) {
+                    if (this.key == "slice" && target) {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if ([1,2].includes(this.args.length)) {
+                            const startRef = this.args[0].compileKey(context);
+                            this.args[0].compile(context, new Target(startRef));
+                            if (this.args.length == 2) {
+                                const endRef = this.args[1].compileKey(context);
+                                this.args[1].compile(context, new Target(endRef));
+                                context.text += `slice ${target.id} ${parentRef} ${startRef} ${endRef}\n`;
+                            } else
+                                context.text += `slice ${target.id} ${parentRef} ${startRef}\n`;
+                        } else
+                            throw Error("unexpected amount of args in slice, string.slice(start,end?)")
+                        return;
+                    }
+                }
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
                     if (this.key == "append") {
                         const parentRef = this.value.compileKey(context);
@@ -2149,7 +2173,7 @@ class Node {
             case "attribute_check": {
                 const ref = this.attribute.compileKey(context);
                 this.attribute.compile(context, new Target(ref), ["noAttrError"]);
-                context.text += `eql ${target.id} ${ref} null\ninv ${target.id} ${target.id}\n`;
+                context.text += `isnull ${target.id} ${ref}\ninv ${target.id} ${target.id}\n`;
                 break;
             }
 
@@ -2200,12 +2224,12 @@ class Node {
                 const parentType = this.value.getType(context);
                 if (parentType instanceof Type || parentType instanceof Struct) {
                     const parent = context.scope.get(parentType.name);
-                    const parentRef = this.value.compileKey(context);
-                    const attributesRef = randomStr();
-                    this.attributesRef = attributesRef;
-                    this.parentRef = parentRef;
-                    this.value.compile(context, new Target(parentRef));
                     if (parent instanceof Struct) {
+                        const parentRef = this.value.compileKey(context);
+                        const attributesRef = randomStr();
+                        this.attributesRef = attributesRef;
+                        this.parentRef = parentRef;
+                        this.value.compile(context, new Target(parentRef));
                         if (Object.keys(parent.attributes).includes(this.key) || (flags ?? []).includes("noAttrError") || this.alwaysDefined) {
                             if (target != null) {
                                 const keyRef = randomStr();
@@ -2230,6 +2254,14 @@ class Node {
                 }
                 const type = this.value.getType(context);
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "length") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        context.text += `len ${target.id} ${parentRef}\n`;
+                        return;
+                    }
+                }
+                if (isTypeSafeStrict(type, "str")) {
                     if (this.key == "length") {
                         const parentRef = this.value.compileKey(context);
                         this.value.compile(context, new Target(parentRef));
@@ -2585,7 +2617,7 @@ class Node {
                     }
                 }
                 if (items.type == null)
-                    return new TypedValue("Arr");
+                    return new ArrayValue(new Type("null"), 0);
                 return new ArrayValue(items.type ?? new Type("null"), items.length);
             }
             case "object": {
@@ -2634,10 +2666,13 @@ class Node {
                     return context.scope.get(this.value.getType(context).name).nullAttributes[this.key].type;
                 } catch {}
                 const type = this.value.getType(context);
-                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
-                    if (this.key == "length") {
+                if (isTypeSafeStrict(type, "str")) {
+                    if (this.key == "length")
                         return new Type("num");
-                    }
+                }
+                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                    if (this.key == "length")
+                        return new Type("num");
                 }
                 return new Type("null");
             
@@ -2676,6 +2711,10 @@ class Node {
                     return new Type("str");
                 }
                 const type = this.value.getType(context);
+                if (isTypeSafeStrict(type, "str")) {
+                    if (this.key == "slice")
+                        return new Type("str");
+                }
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
                     if (this.key == "append") {
                         return this.value.getType(context);
@@ -3011,7 +3050,7 @@ class Struct extends TypedValueType {
                 const attribute_type = attribute[1]["type"] ?? attribute[1]["value"].getType(context);
                 const temp = attribute[1]["value"].getType(context);
                 if (!isTypeSafeStrict(temp, attribute_type))
-                    throw Error("attribute type is " + temp.getName() + " while the attribute type is " + attribute_type.getName());
+                    throw Error("attribute value is " + temp.getName() + " while the attribute type is " + attribute_type.getName());
                 
                 switch (attribute[1]["value"].kind) {
                     case "string": case "number":

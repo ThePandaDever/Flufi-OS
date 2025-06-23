@@ -1,15 +1,12 @@
 ~ main
-set obj rand4 {"methods":{"test":"~ rand2\nset str rand9 attributes\nobj get arg0 rand8 rand9\nset str rand9 w\nobj get rand8 rand7 rand9\nprint rand7\n~"},"attributes":{}}
-set str rand12 attributes
-obj get rand4 rand11 rand12
-set str rand12 w
-obj get rand11 rand10 rand12
-print rand10
-set str rand15 methods
-obj get rand4 rand14 rand15
-set str rand15 test
-obj get rand14 rand14 rand15
-callgetvar rand13 rand14 rand2 rand4 
-print rand13
+set str rand3 hi wow
+set num rand4 1
+set num rand5 -2
+slice rand2 rand4 rand5
+print rand2
+set str rand7 hi wow
+set num rand8 2
+slice rand6 rand8
+print rand6
 ret
 ~

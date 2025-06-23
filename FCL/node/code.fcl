@@ -1,14 +1,4 @@
-
-struct g {
-    str w;
-
-    void test() {
-        print(self!.w);
-    }
-}
-
 void main() {
-    t = new g();
-    print(t!.w);
-    print(t.test());
+    print("hi wow".slice(1,-2));
+    print("hi wow".slice(2));
 }

@@ -139,15 +139,31 @@ struct Surface {
     }
 }
 
+struct Display {
+    Surface surface;
+
+    void constructor(Frame frame) {
+        self.surface = new Surface("pen", frame);
+    }
+}
+
 struct GraphicsState {
     Surface drawSurface;
-    Obj<Surface> surfaces;
+    Arr<Display> displays;
 
     void constructor() {
+        self.newDisplay(getDefaultFrame());
         self.drawSurface = new Surface();
     }
 
-    void clearSurfaces() {
-        self.surfaces = null;
+    void newDisplay(Frame frame) {
+        if (self?.displays) {
+            self!.displays.append(new Display(frame));
+        } else {
+            self.displays = [new Display(frame)];
+        }
+    }
+    void clearDisplays() {
+        self.displays = [];
     }
 }

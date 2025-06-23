@@ -2,27 +2,33 @@ import state, graphics, globals, process;
 
 struct TerminalContext {
     str text = "> ";
+    str currentCmd = "";
     Process process;
 }
 
 void init(State state, GraphicsState graphicsState) {
     graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
-    globals:setGlobal<TerminalContext>("termData", new TerminalContext());
+    globals:setGlobal<TerminalContext>("termContext", new TerminalContext());
+}
+
+void runCommand(str cmd, TerminalContext termContext) {
+    print("run cmd:" + cmd);
 }
 
 void handleInput(State state) {
-    TerminalContext termData = globals:getGlobal<TerminalContext>("termData");
+    TerminalContext termContext = globals:getGlobal<TerminalContext>("termContext");
     
     bool inControl = true;
-    if (termData?.process) {
-        proc = termData!.process;
+    if (termContext?.process) {
+        proc = termContext!.process;
     }
 
     Arr<str> keys = state.inputState.map.keys;
     while (keys.length > 0) {
         str key = keys.pop();
         if (inControl) {
-            termData.text ++= key;
+            termContext.text ++= key;
+            termContext.currentCmd ++= key;
         }
     }
 
@@ -30,32 +36,37 @@ void handleInput(State state) {
     while (special.length > 0) {
         str key = special.pop();
         if (inControl) {
-            print(key);
-            if (key == "Enter") {
-                termData.process = 
+            if (key == "Enter" && termContext.currentCmd.length > 0) {
+                termContext.text ++= "\n> ";
+                runCommand(termContext.currentCmd, termContext);
+                termContext.currentCmd = "";
+            }
+            if (key == "Backspace" && termContext.currentCmd.length > 0) {
+                termContext.text = termContext.text.slice(0,-1);
+                termContext.currentCmd = termContext.currentCmd.slice(0,-1);
             }
         }
     }
-    globals:setGlobal<TerminalContext>("termData", termData);
+    globals:setGlobal<TerminalContext>("termContext", termContext);
 }
 
 void drawMain(State state, GraphicsState graphicsState) {
     Surface drawSurf = graphicsState.drawSurface;
     Frame drawFrame = drawSurf.frame;
-    TerminalContext termData = globals:getGlobal<TerminalContext>("termData");
+    TerminalContext termContext = globals:getGlobal<TerminalContext>("termContext");
     
     /* draw background */ {
         drawSurf.setColor("#0e0d10");
         drawSurf.rect(drawFrame.getX(), drawFrame.getY(), drawFrame.getW(), drawFrame.getH(), 0);
     }
-
+    // what
     /* textbox */ {
         drawSurf.setColor("#fff");
-        drawSurf.text(termData.text, 10, 0, 0);
+        drawSurf.text(termContext.text, 10, 0, 0);
     }
 }
 
 void update(State state, GraphicsState graphicsState) {
     handleInput(state, graphicsState);
-    drawMain(state, graphicsState)
+    drawMain(state, graphicsState);
 }
