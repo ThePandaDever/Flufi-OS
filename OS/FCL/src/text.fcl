@@ -1,0 +1,34 @@
+import state;
+
+str _padNum(str string) {
+    v = string;
+    if (v.length == 1) {
+        v = "0" ++ v;
+    }
+    return v;
+}
+
+str embedCommand(State state, str command, str data = "") {
+    str char = state.config.embeddedCommandChar;
+    return char ++ _padNum(command.length.toString()) ++ command ++ _padNum(data.length.toString()) ++ data;
+}
+
+str embedColor(State state, str color) {
+    return embedCommand(state, "color", color);
+}
+str embedBoldness(State state, num boldness) {
+    return embedCommand(state, "boldness", boldness.toString());
+}
+str embedLocalDirection(State state, num direction) {
+    return embedCommand(state, "ldirection", direction.toString());
+}
+
+str embedResetBoldness(State state) {
+    return embedCommand(state, "rboldness");
+}
+str embedResetBoldness(State state) {
+    return embedCommand(state, "rdirection");
+}
+str embedReset(State state) {
+    return embedCommand(state, "r");
+}

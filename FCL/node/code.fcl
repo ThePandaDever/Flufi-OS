@@ -1,4 +1,9 @@
+
+struct something {
+    str property; // a null attribute, can be set tho
+}
+
 void main() {
-    print("hi wow".slice(1,-2));
-    print("hi wow".slice(2));
+    inst = new something();
+    print(inst.property);
 }

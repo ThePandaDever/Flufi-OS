@@ -1,0 +1,36 @@
+
+Arr<str> splitChar(str text, str splitter, Arr<str> rules) {
+    Arr<str> tokens = [""];
+
+    // state
+    bool inDoubleQuotes = false;
+    
+    // rules
+    bool intactQuotes = rules.contains("intactQuotes");
+
+    for (i, text.length) {
+        str char = text[i];
+
+        if (char == "\\") {
+            tokens[tokens.length-1] ++= char;
+            continue;
+        }
+
+        if (intactQuotes) {
+            if (char == "\"") {
+                inDoubleQuotes = !inDoubleQuotes;
+            }
+        }
+
+        if (!inDoubleQuotes) {
+            if (char == splitter) {
+                tokens.append("");
+                continue;
+            }
+        }
+
+        tokens[tokens.length-1] = tokens[tokens.length-1] ++ char;
+    }
+
+    return tokens;
+}

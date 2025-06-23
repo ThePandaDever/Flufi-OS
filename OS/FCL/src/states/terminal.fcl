@@ -1,34 +1,108 @@
-import state, graphics, globals, process;
+import state, graphics, globals, process, utils, text;
+
+struct TerminalResult {
+    bool successful;
+    str text;
+
+    void constructor(bool successful, str text) {
+        self.successful = successful;
+        self.text = text;
+    }
+}
+
+struct TerminalCommand {
+    str path;
+
+    void constructor(str path = "") {
+        self.path = path;
+    }
+}
+
+struct TerminalTheme {
+    str text = "#fff";
+    str warn = "#e37900";
+    str error = "#bf0000";
+}
 
 struct TerminalContext {
+    State state;
+
+    Obj<TerminalCommand> commands;
+
+    void constructor(State state, Obj<TerminalCommand> commands = {}) {
+        self.state = state;
+        self.commands = commands;
+    }
+
+    void registerCommand(str id, TerminalCommand command) {
+        self!.commands[id] = command;
+    }
+}
+
+struct TerminalInstance {
     str text = "> ";
     str currentCmd = "";
+
     Process process;
+    TerminalContext context;
+    TerminalTheme theme = new TerminalTheme();
+
+    void constructor(TerminalContext context) {
+        self.context = context;
+    }
+
+    TerminalResult runCommand(str cmd) {
+        Arr<str> tokens = utils:splitChar(cmd, " ", ["intactQuotes"]);
+
+        Arr<str> k = context.commands.keys();
+        if (k.contains(cmd)) {
+
+        }
+
+        return new TerminalResult(false, "unknown command \'" ++ tokens[0] ++ "\'");
+    }
 }
 
 void init(State state, GraphicsState graphicsState) {
     graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
-    globals:setGlobal<TerminalContext>("termContext", new TerminalContext());
+    globals:setGlobal<TerminalContext>("terminalContext", new TerminalContext(state, {
+        "echo": new TerminalCommand("echo")
+    }));
+
+    TerminalContext context = globals:getGlobal<TerminalContext>("terminalContext");
+    globals:setGlobal<TerminalInstance>("terminalInstance", new TerminalInstance(context));
 }
 
-void runCommand(str cmd, TerminalContext termContext) {
-    print("run cmd:" + cmd);
+void runCommand(str cmd, TerminalInstance termInstance) {
+    TerminalResult result = termInstance.runCommand(cmd);
+
+    if (!result.successful) {
+        termInstance.text ++= text:embedColor(termInstance.context.state, termInstance.theme.warn);
+    }
+    termInstance.text ++= result.text;
+}
+void newLine(TerminalInstance termInstance) {
+    if (termInstance.text.length > 0) {
+        termInstance.text ++= "\n";
+    }
+    termInstance.text ++= text:embedReset(termInstance.context.state);
+    termInstance.text ++= "> ";
 }
 
 void handleInput(State state) {
-    TerminalContext termContext = globals:getGlobal<TerminalContext>("termContext");
+    TerminalInstance termInstance = globals:getGlobal<TerminalInstance>("terminalInstance");
     
     bool inControl = true;
-    if (termContext?.process) {
-        proc = termContext!.process;
+    if (termInstance?.process) {
+        proc = termInstance!.process;
     }
 
     Arr<str> keys = state.inputState.map.keys;
     while (keys.length > 0) {
         str key = keys.pop();
         if (inControl) {
-            termContext.text ++= key;
-            termContext.currentCmd ++= key;
+            termInstance.text ++= key;
+            termInstance.currentCmd ++= key;
         }
     }
 
@@ -36,24 +110,25 @@ void handleInput(State state) {
     while (special.length > 0) {
         str key = special.pop();
         if (inControl) {
-            if (key == "Enter" && termContext.currentCmd.length > 0) {
-                termContext.text ++= "\n> ";
-                runCommand(termContext.currentCmd, termContext);
-                termContext.currentCmd = "";
+            if (key == "Enter" && termInstance.currentCmd.length > 0) {
+                termInstance.text ++= "\n";
+                runCommand(termInstance.currentCmd, termInstance);
+                newLine(termInstance);
+                termInstance.currentCmd = "";
             }
-            if (key == "Backspace" && termContext.currentCmd.length > 0) {
-                termContext.text = termContext.text.slice(0,-1);
-                termContext.currentCmd = termContext.currentCmd.slice(0,-1);
+            if (key == "Backspace" && termInstance.currentCmd.length > 0) {
+                termInstance.text = termInstance.text.slice(0,-1);
+                termInstance.currentCmd = termInstance.currentCmd.slice(0,-1);
             }
         }
     }
-    globals:setGlobal<TerminalContext>("termContext", termContext);
+    globals:setGlobal<TerminalInstance>("terminalInstance", termInstance);
 }
 
 void drawMain(State state, GraphicsState graphicsState) {
     Surface drawSurf = graphicsState.drawSurface;
     Frame drawFrame = drawSurf.frame;
-    TerminalContext termContext = globals:getGlobal<TerminalContext>("termContext");
+    TerminalInstance termInstance = globals:getGlobal<TerminalInstance>("terminalInstance");
     
     /* draw background */ {
         drawSurf.setColor("#0e0d10");
@@ -62,7 +137,8 @@ void drawMain(State state, GraphicsState graphicsState) {
     // what
     /* textbox */ {
         drawSurf.setColor("#fff");
-        drawSurf.text(termContext.text, 10, 0, 0);
+        Arr<num> pos = drawFrame.getTL();
+        drawSurf.text(termInstance.text, 10, pos[0] + 5, pos[1] - 17.5);
     }
 }
 

@@ -264,6 +264,10 @@ function fblExcape(text) {
             current += "\\n";
             continue;
         }
+        if (char == "\\") {
+            current += "\\\\";
+            continue;
+        }
 
         current += char;
     }
@@ -470,7 +474,9 @@ class Context {
                 "typeof"
             ]
             this.standalone_statements = [
-                "return"
+                "return",
+                "continue",
+                "break"
             ];
 
             this.statementTypes = {
@@ -511,10 +517,13 @@ class CompileContext extends Context {
         this.variableGrabs = [];
         this.variableSets = [];
         this.packages = {};
+        this.continueLayers = [];
+        this.breakLayers = [];
 
         this.sharesVariables = true;
         this.neqlSupport = true;
-        this.unsafe = true;
+        this.unsafe = false;
+        this.jaiSupport = true;
 
         this.scope = new Scope({
             "print": new CompiledFunc("print",(args) => `print ${args.join(" ")}`),
@@ -533,8 +542,6 @@ class ScanContext extends Context {
 
 memory = {};
 const structCache = {};
-
-let grah = 2;
 
 class Scope {
     constructor(variables) {
@@ -1553,7 +1560,7 @@ class Node {
                             const key = this.value.compileKey(context);
                             this.value.compile(context, new Target(key));
                             const type = this.value.getType(context);
-                            if (topLayer && !isTypeSafe(topLayer.return_type, type))
+                            if (topLayer && !isTypeSafe(type, topLayer.return_type))
                                 throw Error(`attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`);
                             if (topLayer.kind == "auto_function" && !context.unsafe) {
                                 const typeRef = randomStr();
@@ -1574,6 +1581,22 @@ class Node {
                         let type = this.value.getType(context).getName();
                         context.text += target != null ? (type.startsWith(".") ? `gettype ${target.id} ${key}\n` : `set str ${target.id} ${type}\n`) : "";
                         break;
+                    }
+                    case "continue": {
+                        const top = context.continueLayers[context.continueLayers.length-1];
+                        if (top) {
+                            context.text += `${top[1] ?? "jp"} ${top[0]}${top[2]}\n`;
+                            break;
+                        }
+                        throw Error("cannot continue outside of loop");
+                    }
+                    case "break": {
+                        const top = context.breakLayers[context.breakLayers.length-1];
+                        if (top) {
+                            context.text += `jp ${top}\n`;
+                            break;
+                        }
+                        throw Error("cannot break outside of loop");
                     }
                     default:
                         throw Error("cannot compile statement of type " + this.key);
@@ -1756,6 +1779,8 @@ class Node {
                         const endLbl = randomStr();
                         const temp = randomStr();
                         const didntJump = this.key == "while" ? "jn" : "ji";
+                        context.continueLayers.push([lbl]);
+                        context.breakLayers.push(endLbl);
                         context.text += `: ${lbl}\n`;
                         compileArgs();
                         if (this.args.length > 1)
@@ -1764,10 +1789,14 @@ class Node {
                             context.text += `${didntJump} ${endLbl} ${argKeys[0]}\n`;
                         else {
                             this.content.compile(context);
+                            context.continueLayers.pop();
+                            context.breakLayers.pop();
                             context.text += `jp ${lbl}\n`;
                             break;
                         }
                         this.content.compile(context);
+                        context.continueLayers.pop();
+                        context.breakLayers.pop();
                         context.text += `jp ${lbl}\n: ${endLbl}\n`;
                         break;
                     }
@@ -1784,6 +1813,7 @@ class Node {
                             const lbl = randomStr();
                             const endLbl = randomStr();
                             const oneRef = randomStr();
+                            context.breakLayers.push(endLbl);
                             context.text += `set num ${oneRef} 1\n`;
                             if (this.args[0].kind == "variable")
                                 context.scope.assignTop(this.args[0].key, new NumberValue(0));
@@ -1793,16 +1823,19 @@ class Node {
                             if (isTypeSafe(t, "num")) {
                                 this.args[1].compile(context, new Target(valueKey));
                                 const quitCondRef = randomStr();
-                                context.text += `: ${lbl}\nsml ${quitCondRef} ${valueKey} ${oneRef}\nji ${endLbl} ${quitCondRef}\n`;
+                                context.continueLayers.push([lbl, "jai", " " + varRef]);
+                                context.text += `: ${lbl}\nsml ${quitCondRef} ${varRef} ${valueKey}\njn ${endLbl} ${quitCondRef}\n`;
                                 this.content.compile(context);
-                                context.text += `jsi ${lbl} ${varRef} ${valueKey}\n: ${endLbl}\n`;
                             } else {
                                 context.text += `: ${lbl}\n`;
                                 this.args[1].compile(context, new Target(valueKey));
+                                context.continueLayers.push([lbl, "jai", " " + varRef]);
                                 context.text += `jn ${endLbl} ${valueKey}\n`;
                                 this.content.compile(context);
-                                context.text += `add ${varRef} ${varRef} ${oneRef}\njn ${lbl}\n: ${endLbl}\n`;
                             }
+                            context.text += (context.jaiSupport ? `jai ${lbl} ${varRef}\n` : `add ${varRef} ${varRef} ${oneRef}\njp ${lbl}\n`) + `: ${endLbl}\n`;
+                            context.continueLayers.pop();
+                            context.breakLayers.pop();
                             context.scope.exitLayer();
                         } else
                             throw Error("unknown for syntax, for; all possible combinations:\n  for(var, var < max)\n  for(var = start, var < max)\n  for(var, cond)\n  for(var = start, cond)");
@@ -1851,7 +1884,7 @@ class Node {
                         try {
                             targetType = new Node(this.key,new ParseContext()).getType(context);
                             const valueType = this.value.getType(context);
-                            if (targetType == null ? false : !isTypeSafeStrict(targetType,valueType))
+                            if (targetType == null ? false : !isTypeSafeStrict(valueType, targetType))
                                 err = Error("attempt to assign variable to " + valueType.getName() + " while the variable should be a " + targetType.getName());
                         } catch (e) {
                             switch (this.type) {
@@ -1892,7 +1925,7 @@ class Node {
                         }
 
                         const valueType = this.value.getType(context);
-                        if (!isTypeSafeStrict(targetType, valueType))
+                        if (!isTypeSafeStrict(valueType, targetType))
                             throw Error(`attempt to assign a key which is ${targetType.getName()} to a ${valueType.getName()}`)
                     }
                 }
@@ -2059,6 +2092,22 @@ class Node {
                         return;
                     }
                 }
+                if (type instanceof TypedValueType && type.baseType.name == "Obj") {
+                    if (this.key == "keys") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (target)
+                            context.text += `obj keys ${target.id} ${parentRef}\n`;
+                        return;
+                    }
+                    if (this.key == "values") {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (target)
+                            context.text += `obj values ${target.id} ${parentRef}\n`;
+                        return;
+                    }
+                }
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
                     if (this.key == "append") {
                         const parentRef = this.value.compileKey(context);
@@ -2109,7 +2158,11 @@ class Node {
                 if (this.key === "toString") {
                     const parentRef = this.value.compileKey(context);
                     this.value.compile(context, new Target(parentRef));
-                    this.value.getValue(context).stringifyTo(context, target, parentRef);
+                    try {
+                        this.value.getValue(context).stringifyTo(context, target, parentRef)
+                    } catch {
+                        context.text += `add ${target.id} emptystring ${parentRef}\n`;
+                    }
                     return;
                 }
                 throw Error(`cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`);
@@ -2670,7 +2723,7 @@ class Node {
                     if (this.key == "length")
                         return new Type("num");
                 }
-                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                if ((type instanceof TypedValueType && !(type instanceof Struct)) && type.baseType.name == "Arr") {
                     if (this.key == "length")
                         return new Type("num");
                 }
@@ -2715,10 +2768,15 @@ class Node {
                     if (this.key == "slice")
                         return new Type("str");
                 }
+                if (type instanceof TypedValueType && type.baseType.name == "Obj") {
+                    if (this.key == "keys")
+                        return new TypedValueType("Arr", new Type("str"));
+                    if (this.key == "values")
+                        return new TypedValueType("Arr", type.valueType.name);
+                }
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
-                    if (this.key == "append") {
+                    if (this.key == "append")
                         return this.value.getType(context);
-                    }
                     if (this.key == "pop") {
                         try {
                             return this.value.getType(context).getPopValue(context);
@@ -2733,9 +2791,8 @@ class Node {
                             return this.value.getType(context).getValueType(context);
                         }
                     }
-                    if (this.key == "contains") {
+                    if (this.key == "contains")
                         return new Type("bool");
-                    }
                 }
                 return new Type("null");
             }
@@ -2902,9 +2959,15 @@ class Type {
         return this.name;
     }
     canGetKey() {
+        if (this.name == "str") {
+            return true;
+        }
         return false;
     }
     getValueType() {
+        if (this.name == "str") {
+            return new Type("str");
+        }
         return null;
     }
     getType() {

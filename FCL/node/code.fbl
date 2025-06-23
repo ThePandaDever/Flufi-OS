@@ -1,12 +1,11 @@
 ~ main
-set str rand3 hi wow
-set num rand4 1
-set num rand5 -2
-slice rand2 rand4 rand5
-print rand2
-set str rand7 hi wow
-set num rand8 2
-slice rand6 rand8
+set obj rand3 {"methods":{},"attributes":{}}
+set str rand8 attributes
+obj get rand3 rand7 rand8
+set str rand8 property
+obj get rand7 rand6 rand8
+set str rand9 property attribute is null
+errnull rand6 rand9
 print rand6
 ret
 ~

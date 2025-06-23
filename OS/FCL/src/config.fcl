@@ -1,4 +1,14 @@
 
 struct Config {
-    fontUrl = "https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff";
+    // a link to a ojff file / any font format that whatever is running flufi os can draw
+    str fontUrl = "https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff";
+
+    /*
+        embedded command character is a character that allows flufi os to for example color or control text,
+        so lets say £ is the embedded command char,
+        £r = red £g = green £b = blue
+        £r im red! £g im green! £b im blue!
+        obviously this is an oversimiplification but thats the base of it
+    */
+    str embeddedCommandChar = "";
 }

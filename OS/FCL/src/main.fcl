@@ -1,9 +1,10 @@
-import process, clone, state, stateManager, graphics;
+import process, clone, state, stateManager, graphics, utils;
 
 void main() {
     state = state:getDefault();
     graphicsState = new graphics:GraphicsState();
     stateManager:initState(state, graphicsState);
+
     forever {
         state.inputState.update();
         stateManager:updateState(state, graphicsState);
