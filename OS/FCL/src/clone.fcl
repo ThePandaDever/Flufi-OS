@@ -1,9 +1,11 @@
 
 #noAnyWarn;
 
+// TODO: finish this
+
 struct CloneData {
     auto set<t>(str key, t value) {
-        raw("str attrkey attributes\nobj get arg0 ")
+        raw("str attrkey attributes\nobj get arg0\n")
     }
 
     Obj<any> getData() {

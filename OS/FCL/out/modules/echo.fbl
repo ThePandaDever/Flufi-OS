@@ -1,0 +1,11 @@
+~ main
+set bool rand6 true
+set str rand7 
+set obj rand5 {"methods":{".cns":"~ rand2\nset str rand14 attributes\nobj get arg0 rand13 rand14\nset str rand14 successful\nobj get rand13 rand12 rand14\ndupe rand12 arg1\nobj set rand13 rand14 rand12\nset str rand17 attributes\nobj get arg0 rand16 rand17\nset str rand17 text\nobj get rand16 rand15 rand17\ndupe rand15 arg2\nobj set rand16 rand17 rand15\n~"},"attributes":{}}
+set str rand9 methods
+obj get rand5 rand8 rand9
+set str rand9 .cns
+obj get rand8 rand8 rand9
+callvar rand8 rand2 rand5 rand6 rand7
+ret rand5
+~

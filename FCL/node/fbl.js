@@ -1904,6 +1904,7 @@ class Node {
                         if (err)
                             throw err;
                         try {
+                            if (targetType instanceof TypedValueType && !(targetType instanceof Struct) && targetType.baseType.getName() == "Arr" && targetType.valueType.getName() == "null") throw "";
                             targetRef = context.scope.assign(this.key, this.value.getValue(context));
                         } catch {
                             targetRef = context.scope.assign(this.key, new TypedValue(targetType));
@@ -2115,7 +2116,7 @@ class Node {
                         for (let i = 0; i < this.args.length; i++) {
                             const element = this.args[i];
                             const t = element.getType(context);
-                            if (!isTypeSafeStrict(t, type.getValueType()))
+                            if (!isTypeSafeStrict(type, new TypedValueType(new Type("Arr"), t)))
                                 throw `attempt to add a ${t.getName()} to a ${type.getValueType().getName()} array`;
                             const ref = randomStr();
                             element.compile(context, new Target(ref));
@@ -3216,6 +3217,7 @@ function getDefaultFs() {
 }
 
 function importFs(path) {
+    if (!fs.existsSync(path)) return {};
     return Object.fromEntries(fs.readdirSync(path).map(f => {
         if (f.split(".").length == 2 && f.split(".")[1] == "fcl")
             return [f.split(".")[0],new Script(fs.readFileSync(path+"/"+f,"utf-8"))];

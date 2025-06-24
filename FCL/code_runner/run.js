@@ -136,7 +136,7 @@ let config = null;
 let projectPath;
 for (let i = path.length-1; i > 0; i--) {
     const element = path[i];
-    if (element == "src") {
+    if (element == "src" || element == "modules") {
         projectPath = path.slice(0,i).join("/");
         if (fs.existsSync(projectPath + "\\fclconfig.fsf")) {
             config = FSF.parse(fs.readFileSync(projectPath + "\\fclconfig.fsf", 'utf8'));
@@ -197,7 +197,7 @@ if (config && config["main"] && config["projectPath"]) {
     context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};
     context.unsafe = ${config["unsafe"] ?? false};
 
-    script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")})});
+    script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")}),"apis":{...importFs(${JSON.stringify(config["projectPath"] + "/src")})}});
     `);
     
     if (config["export"]) {
@@ -242,7 +242,7 @@ if (config && config["main"] && config["projectPath"]) {
                 
                 let out = "";
                 if (fs.existsSync(main))
-                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(modulePath)})});`);
+                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});`);
                 else
                     console.warn(`module ${moduleName} is empty or has no main.fcl; and hasnt been compiled.`);
                 
@@ -281,7 +281,7 @@ if (config && config["main"] && config["projectPath"]) {
                 
                 let out = "";
                 if (fs.existsSync(main))
-                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(modulePath)})});`);
+                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});`);
                 else
                     console.warn(`module ${moduleName} is empty or has no main.fcl; and hasnt been compiled.`);
 

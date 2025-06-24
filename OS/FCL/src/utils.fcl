@@ -34,3 +34,20 @@ Arr<str> splitChar(str text, str splitter, Arr<str> rules) {
 
     return tokens;
 }
+
+str deEscape(str text) {
+    str newStr = "";
+    for (i, text.length) {
+        str char = text[i];
+        if (char == "\\") {
+            char = text[i++];
+            if (char == "n") {
+                newStr ++= "\n";
+                continue;
+            }
+            newStr ++= char;
+            continue;
+        }
+    }
+    return newStr;
+}

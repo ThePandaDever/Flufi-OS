@@ -1,0 +1,3 @@
+void throw(str text) {
+    raw("err arg0");
+}

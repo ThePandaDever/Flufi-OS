@@ -413,564 +413,600 @@ jai rand669 rand672
 : rand670
 ret rand664
 ~
+~ stateManager:terminal:utils:deEscape
+set str rand716 
+set num rand720 1
+set num rand721 0
+len rand717 arg0
+: rand718
+sml rand722 rand721 rand717
+jn rand719 rand722
+obj get arg0 rand723 rand721
+set str rand724  doesnt exist on text
+add rand724 rand721 rand724
+ernull rand723 rand724
+set str rand726 \\
+eql rand725 rand723 rand726
+jn rand727 rand725
+set num rand731 1
+add rand721 rand721 rand731
+obj get arg0 rand723 rand729
+set str rand732  doesnt exist on text
+add rand732 rand729 rand732
+ernull rand723 rand732
+set str rand734 n
+eql rand733 rand723 rand734
+jn rand735 rand733
+set str rand737 \n
+add rand716 emptystring rand716 rand737
+jai rand718 rand721
+: rand735
+dupe rand738 rand723
+add rand716 emptystring rand716 rand738
+jai rand718 rand721
+: rand727
+jai rand718 rand721
+: rand719
+ret rand716
+~
 ~ stateManager:terminal:text:state:io:throw
 err arg0
 ret
 ~
 ~ stateManager:terminal:text:state:io:getScreenSize
-const screen_width rand717
-const screen_height rand718
-set obj rand719 []
-arr add rand719 rand717
-arr add rand719 rand718
-ret rand719
+const screen_width rand744
+const screen_height rand745
+set obj rand746 []
+arr add rand746 rand744
+arr add rand746 rand745
+ret rand746
 ~
 ~ stateManager:terminal:text:state:io:getCurrentMs
-const ms rand721
-ret rand721
+const ms rand748
+ret rand748
 ~
 ~ stateManager:terminal:text:state:input:getKeys
-keyhistory getkeys rand725
-ret rand725
+keyhistory getkeys rand752
+ret rand752
 ~
 ~ stateManager:terminal:text:state:input:shiftKeys
-keyhistory shift rand727
-ret rand727
+keyhistory shift rand754
+ret rand754
 ~
 ~ stateManager:terminal:text:state:input:clearKeys
 keyhistory delkeys
 ret
 ~
 ~ stateManager:terminal:text:state:input:isSpecialKey
-set obj rand731 ["Backspace","Tab","Enter","Shift","Control","Alt","CapsLock","Escape","Space","PageUp","PageDown","End","Home","ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Insert","Delete","Meta","ContextMenu","AltGraph","ScrollLock","NumLock","Pause","Clear","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]
-arr has rand732 rand731 arg0
-jn rand733 rand732
-set bool rand735 true
-ret rand735
-: rand733
-set bool rand736 false
-ret rand736
+set obj rand758 ["Backspace","Tab","Enter","Shift","Control","Alt","CapsLock","Escape","Space","PageUp","PageDown","End","Home","ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Insert","Delete","Meta","ContextMenu","AltGraph","ScrollLock","NumLock","Pause","Clear","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]
+arr has rand759 rand758 arg0
+jn rand760 rand759
+set bool rand762 true
+ret rand762
+: rand760
+set bool rand763 false
+ret rand763
 ~
 ~ stateManager:terminal:text:state:getDefault
-set obj rand746 {"methods":{},"attributes":{"type":"terminal"}}
-set str rand749 attributes
-obj get rand746 rand750 rand749
-set obj rand751 {"methods":{"update":"~ rand96\nset str rand757 attributes\nobj get arg0 rand756 rand757\nset str rand757 current\nobj get rand756 rand755 rand757\ncallget rand755 stateManager:terminal:text:state:io:getCurrentMs \nobj set rand756 rand757 rand755\nset str rand761 attributes\nobj get arg0 rand760 rand761\nset str rand761 uptime\nobj get rand760 rand759 rand761\nset str rand765 attributes\nobj get arg0 rand764 rand765\nset str rand765 current\nobj get rand764 rand762 rand765\nset str rand767 attributes\nobj get arg0 rand766 rand767\nset str rand767 start\nobj get rand766 rand763 rand767\nsub rand759 rand762 rand763\nobj set rand760 rand761 rand759\n~","updateFrame":"~ rand97\nset str rand770 attributes\nobj get arg0 rand769 rand770\nset str rand770 frame\nobj get rand769 rand768 rand770\nset num rand772 1\nadd rand768 rand768 rand772\nobj set rand769 rand770 rand768\nset str rand775 methods\nobj get arg0 rand774 rand775\nset str rand775 update\nobj get rand774 rand774 rand775\ncallvar rand774 rand96 arg0 \n~"},"attributes":{"frame":0,"uptime":0,"current":0}}
+set obj rand773 {"methods":{},"attributes":{"type":"terminal"}}
 set str rand776 attributes
-obj get rand751 rand777 rand776
-callget rand778 stateManager:terminal:text:state:io:getCurrentMs 
-set str rand779 start
-obj set rand777 rand779 rand778
-set str rand780 time
-obj set rand750 rand780 rand751
-set obj rand781 {"methods":{},"attributes":{"fontUrl":"https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff","embeddedCommandChar":""}}
-set str rand784 config
-obj set rand750 rand784 rand781
-set obj rand785 {"methods":{".cns":"~ rand91\ncall stateManager:terminal:text:state:input:clearKeys \n~","update":"~ rand92\nset str rand790 attributes\nobj get arg0 rand789 rand790\nset str rand790 map\nobj get rand789 rand788 rand790\nset str rand792 methods\nobj get rand788 rand791 rand792\nset str rand792 update\nobj get rand791 rand791 rand792\ncallvar rand791 rand87 rand788 \n~"},"attributes":{}}
-set str rand793 attributes
-obj get rand785 rand794 rand793
-set obj rand795 {"methods":{"update":"~ rand87\ncallget rand798 stateManager:terminal:text:state:input:getKeys \nset num rand802 1\nset num rand803 0\nlen rand799 rand798\n: rand800\nsml rand804 rand803 rand799\njn rand801 rand804\ncallget rand805 stateManager:terminal:text:state:input:shiftKeys \nset str rand807 type\nobj get rand805 rand806 rand807\nset str rand808  doesnt exist on key\nadd rand808 rand807 rand808\nernull rand806 rand808\nset str rand810 data\nobj get rand805 rand809 rand810\nset str rand811  doesnt exist on key\nadd rand811 rand810 rand811\nernull rand809 rand811\ncallget rand813 stateManager:terminal:text:state:input:isSpecialKey rand809\ninv rand812 rand813\njn rand814 rand812\nset str rand818 attributes\nobj get arg0 rand817 rand818\nset str rand818 keys\nobj get rand817 rand816 rand818\ndupe rand819 rand809\narr add rand816 rand819\njp rand821\n: rand814\nset str rand824 attributes\nobj get arg0 rand823 rand824\nset str rand824 special\nobj get rand823 rand822 rand824\ndupe rand825 rand809\narr add rand822 rand825\n: rand821\njai rand800 rand803\n: rand801\n~"},"attributes":{}}
-set str rand826 attributes
-obj get rand795 rand827 rand826
-set obj rand828 []
-set str rand829 keys
-obj set rand827 rand829 rand828
-set obj rand830 []
-set str rand831 special
-obj set rand827 rand831 rand830
-set str rand832 map
-obj set rand794 rand832 rand795
-set str rand787 methods
-obj get rand785 rand786 rand787
-set str rand787 .cns
-obj get rand786 rand786 rand787
-callvar rand786 rand91 rand785 
-set str rand833 inputState
-obj set rand750 rand833 rand785
-ret rand746
+obj get rand773 rand777 rand776
+set obj rand778 {"methods":{"update":"~ rand96\nset str rand784 attributes\nobj get arg0 rand783 rand784\nset str rand784 current\nobj get rand783 rand782 rand784\ncallget rand782 stateManager:terminal:text:state:io:getCurrentMs \nobj set rand783 rand784 rand782\nset str rand788 attributes\nobj get arg0 rand787 rand788\nset str rand788 uptime\nobj get rand787 rand786 rand788\nset str rand792 attributes\nobj get arg0 rand791 rand792\nset str rand792 current\nobj get rand791 rand789 rand792\nset str rand794 attributes\nobj get arg0 rand793 rand794\nset str rand794 start\nobj get rand793 rand790 rand794\nsub rand786 rand789 rand790\nobj set rand787 rand788 rand786\n~","updateFrame":"~ rand97\nset str rand797 attributes\nobj get arg0 rand796 rand797\nset str rand797 frame\nobj get rand796 rand795 rand797\nset num rand799 1\nadd rand795 rand795 rand799\nobj set rand796 rand797 rand795\nset str rand802 methods\nobj get arg0 rand801 rand802\nset str rand802 update\nobj get rand801 rand801 rand802\ncallvar rand801 rand96 arg0 \n~"},"attributes":{"frame":0,"uptime":0,"current":0}}
+set str rand803 attributes
+obj get rand778 rand804 rand803
+callget rand805 stateManager:terminal:text:state:io:getCurrentMs 
+set str rand806 start
+obj set rand804 rand806 rand805
+set str rand807 time
+obj set rand777 rand807 rand778
+set obj rand808 {"methods":{},"attributes":{"fontUrl":"https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff","embeddedCommandChar":""}}
+set str rand811 config
+obj set rand777 rand811 rand808
+set obj rand812 {"methods":{".cns":"~ rand91\ncall stateManager:terminal:text:state:input:clearKeys \n~","update":"~ rand92\nset str rand817 attributes\nobj get arg0 rand816 rand817\nset str rand817 map\nobj get rand816 rand815 rand817\nset str rand819 methods\nobj get rand815 rand818 rand819\nset str rand819 update\nobj get rand818 rand818 rand819\ncallvar rand818 rand87 rand815 \n~"},"attributes":{}}
+set str rand820 attributes
+obj get rand812 rand821 rand820
+set obj rand822 {"methods":{"update":"~ rand87\ncallget rand825 stateManager:terminal:text:state:input:getKeys \nset num rand829 1\nset num rand830 0\nlen rand826 rand825\n: rand827\nsml rand831 rand830 rand826\njn rand828 rand831\ncallget rand832 stateManager:terminal:text:state:input:shiftKeys \nset str rand834 type\nobj get rand832 rand833 rand834\nset str rand835  doesnt exist on key\nadd rand835 rand834 rand835\nernull rand833 rand835\nset str rand837 data\nobj get rand832 rand836 rand837\nset str rand838  doesnt exist on key\nadd rand838 rand837 rand838\nernull rand836 rand838\ncallget rand840 stateManager:terminal:text:state:input:isSpecialKey rand836\ninv rand839 rand840\njn rand841 rand839\nset str rand845 attributes\nobj get arg0 rand844 rand845\nset str rand845 keys\nobj get rand844 rand843 rand845\ndupe rand846 rand836\narr add rand843 rand846\njp rand848\n: rand841\nset str rand851 attributes\nobj get arg0 rand850 rand851\nset str rand851 special\nobj get rand850 rand849 rand851\ndupe rand852 rand836\narr add rand849 rand852\n: rand848\njai rand827 rand830\n: rand828\n~"},"attributes":{}}
+set str rand853 attributes
+obj get rand822 rand854 rand853
+set obj rand855 []
+set str rand856 keys
+obj set rand854 rand856 rand855
+set obj rand857 []
+set str rand858 special
+obj set rand854 rand858 rand857
+set str rand859 map
+obj set rand821 rand859 rand822
+set str rand814 methods
+obj get rand812 rand813 rand814
+set str rand814 .cns
+obj get rand813 rand813 rand814
+callvar rand813 rand91 rand812 
+set str rand860 inputState
+obj set rand777 rand860 rand812
+ret rand773
 ~
 ~ stateManager:terminal:text:_padNum
-dupe rand836 arg0
-len rand838 rand836
-set num rand839 1
-eql rand837 rand838 rand839
-jn rand840 rand837
-set str rand842 0
-add rand836 emptystring rand842 rand836
-: rand840
-ret rand836
+dupe rand863 arg0
+len rand865 rand863
+set num rand866 1
+eql rand864 rand865 rand866
+jn rand867 rand864
+set str rand869 0
+add rand863 emptystring rand869 rand863
+: rand867
+ret rand863
 ~
 ~ stateManager:terminal:text:embedCommand
-set str rand853 attributes
-obj get arg0 rand852 rand853
-set str rand853 config
-obj get rand852 rand850 rand853
-set str rand854 attributes
-obj get rand850 rand851 rand854
-set str rand854 embeddedCommandChar
-obj get rand851 rand849 rand854
-len rand862 arg1
-add rand861 emptystring rand862
-callget rand860 stateManager:terminal:text:_padNum rand861
-add rand859 emptystring rand849 rand860
-add rand857 emptystring rand859 arg1
-len rand864 arg2
-add rand863 emptystring rand864
-callget rand858 stateManager:terminal:text:_padNum rand863
-add rand856 emptystring rand857 rand858
-add rand855 emptystring rand856 arg2
-ret rand855
+set str rand880 attributes
+obj get arg0 rand879 rand880
+set str rand880 config
+obj get rand879 rand877 rand880
+set str rand881 attributes
+obj get rand877 rand878 rand881
+set str rand881 embeddedCommandChar
+obj get rand878 rand876 rand881
+len rand889 arg1
+add rand888 emptystring rand889
+callget rand887 stateManager:terminal:text:_padNum rand888
+add rand886 emptystring rand876 rand887
+add rand884 emptystring rand886 arg1
+len rand891 arg2
+add rand890 emptystring rand891
+callget rand885 stateManager:terminal:text:_padNum rand890
+add rand883 emptystring rand884 rand885
+add rand882 emptystring rand883 arg2
+ret rand882
 ~
 ~ stateManager:terminal:text:embedColor
-set str rand871 color
-callget rand870 stateManager:terminal:text:embedCommand arg0 rand871 arg1
-ret rand870
+set str rand898 color
+callget rand897 stateManager:terminal:text:embedCommand arg0 rand898 arg1
+ret rand897
 ~
 ~ stateManager:terminal:text:embedBoldness
-set str rand878 boldness
-set str rand879 <num>
-callget rand877 stateManager:terminal:text:embedCommand arg0 rand878 rand879
-ret rand877
+set str rand905 boldness
+set str rand906 <num>
+callget rand904 stateManager:terminal:text:embedCommand arg0 rand905 rand906
+ret rand904
 ~
 ~ stateManager:terminal:text:embedLocalDirection
-set str rand886 ldirection
-set str rand887 <num>
-callget rand885 stateManager:terminal:text:embedCommand arg0 rand886 rand887
-ret rand885
+set str rand913 ldirection
+set str rand914 <num>
+callget rand912 stateManager:terminal:text:embedCommand arg0 rand913 rand914
+ret rand912
 ~
 ~ stateManager:terminal:text:embedResetBoldness
-set str rand893 rboldness
-set str rand894 
-callget rand892 stateManager:terminal:text:embedCommand arg0 rand893 rand894
-ret rand892
+set str rand920 rboldness
+set str rand921 
+callget rand919 stateManager:terminal:text:embedCommand arg0 rand920 rand921
+ret rand919
 ~
 ~ stateManager:terminal:text:embedReset
-set str rand900 r
-set str rand901 
-callget rand899 stateManager:terminal:text:embedCommand arg0 rand900 rand901
-ret rand899
+set str rand927 r
+set str rand928 
+callget rand926 stateManager:terminal:text:embedCommand arg0 rand927 rand928
+ret rand926
 ~
 ~ stateManager:terminal:init
-set str rand930 attributes
-obj get arg1 rand929 rand930
-set str rand930 drawSurface
-obj get rand929 rand928 rand930
-set str rand931 drawSurface attribute is null
-errnull rand928 rand931
-set str rand938 attributes
-obj get arg0 rand937 rand938
-set str rand938 config
-obj get rand937 rand935 rand938
-set str rand939 attributes
-obj get rand935 rand936 rand939
-set str rand939 fontUrl
-obj get rand936 rand934 rand939
-set str rand933 methods
-obj get rand928 rand932 rand933
-set str rand933 loadFontFromUrl
-obj get rand932 rand932 rand933
-callvar rand932 rand573 rand928 rand934
-set str rand940 terminalContext
-set obj rand942 {}
-set str rand945 echo
-set obj rand943 {"methods":{".cns":"~ rand909\nset str rand951 attributes\nobj get arg0 rand950 rand951\nset str rand951 path\nobj get rand950 rand949 rand951\ndupe rand949 arg1\nobj set rand950 rand951 rand949\n~"},"attributes":{}}
-set str rand947 methods
-obj get rand943 rand946 rand947
-set str rand947 .cns
-obj get rand946 rand946 rand947
-callvar rand946 rand909 rand943 rand945
-set str rand944 echo
-obj set rand942 rand944 rand943
-set obj rand941 {"methods":{".cns":"~ rand916\nset str rand958 attributes\nobj get arg0 rand957 rand958\nset str rand958 state\nobj get rand957 rand956 rand958\ndupe rand956 arg1\nobj set rand957 rand958 rand956\nset str rand961 attributes\nobj get arg0 rand960 rand961\nset str rand961 commands\nobj get rand960 rand959 rand961\ndupe rand959 arg2\nobj set rand960 rand961 rand959\n~","registerCommand":"~ rand917\nset str rand966 attributes\nobj get arg0 rand965 rand966\nset str rand966 commands\nobj get rand965 rand964 rand966\nobj set rand964 arg1 arg2\n~"},"attributes":{}}
-set str rand953 methods
-obj get rand941 rand952 rand953
-set str rand953 .cns
-obj get rand952 rand952 rand953
-callvar rand952 rand916 rand941 arg0 rand942
-set str rand967 stateManager:terminal:TerminalContext
-settype rand941 rand967
-set type rand968 stateManager:terminal:TerminalContext
-call stateManager:terminal:globals:setGlobal rand968 rand940 rand941
-set str rand970 terminalContext
-set type rand971 stateManager:terminal:TerminalContext
-callget rand969 stateManager:terminal:globals:getGlobal rand971 rand970
-istypeg rand972 rand969 rand971
-ji rand975 rand972
-set str rand973 generic function returned 
-set str rand974  not the specified type 
-add rand973 rand973 .typechecktype rand974
-add rand973 rand973 rand971
-err rand973
-: rand975
-set str rand976 terminalInstance
-set obj rand977 {"methods":{".cns":"~ rand921\nset str rand983 attributes\nobj get arg0 rand982 rand983\nset str rand983 context\nobj get rand982 rand981 rand983\ndupe rand981 arg1\nobj set rand982 rand983 rand981\n~","runCommand":"~ rand922\nset str rand986  \nset obj rand987 [\"intactQuotes\"]\ncallget rand985 stateManager:terminal:utils:splitChar arg1 rand986 rand987\nset str rand991 attributes\nobj get rand969 rand990 rand991\nset str rand991 commands\nobj get rand990 rand989 rand991\nset str rand992 commands attribute is null\nerrnull rand989 rand992\nobj keys rand988 rand989\narr has rand993 rand988 arg1\njn rand994 rand993\n: rand994\nset bool rand997 false\nset str rand1001 unknown command '\nset num rand1003 0\nobj get rand985 rand1002 rand1003\nset str rand1004  doesnt exist on tokens\nadd rand1004 rand1003 rand1004\nernull rand1002 rand1004\nadd rand999 emptystring rand1001 rand1002\nset str rand1000 '\nadd rand998 emptystring rand999 rand1000\nset obj rand996 {\"methods\":{\".cns\":\"~ rand905\\nset str rand1011 attributes\\nobj get arg0 rand1010 rand1011\\nset str rand1011 successful\\nobj get rand1010 rand1009 rand1011\\ndupe rand1009 arg1\\nobj set rand1010 rand1011 rand1009\\nset str rand1014 attributes\\nobj get arg0 rand1013 rand1014\\nset str rand1014 text\\nobj get rand1013 rand1012 rand1014\\ndupe rand1012 arg2\\nobj set rand1013 rand1014 rand1012\\n~\"},\"attributes\":{}}\nset str rand1006 methods\nobj get rand996 rand1005 rand1006\nset str rand1006 .cns\nobj get rand1005 rand1005 rand1006\ncallvar rand1005 rand905 rand996 rand997 rand998\nret rand996\n~"},"attributes":{"text":"> ","currentCmd":""}}
-set str rand1015 attributes
-obj get rand977 rand1016 rand1015
-set obj rand1017 {"methods":{},"attributes":{"text":"#fff","warn":"#e37900","error":"#bf0000"}}
-set str rand1020 theme
-obj set rand1016 rand1020 rand1017
-set str rand979 methods
-obj get rand977 rand978 rand979
-set str rand979 .cns
-obj get rand978 rand978 rand979
-callvar rand978 rand921 rand977 rand969
-set str rand1021 stateManager:terminal:TerminalInstance
-settype rand977 rand1021
-set type rand1022 stateManager:terminal:TerminalInstance
-call stateManager:terminal:globals:setGlobal rand1022 rand976 rand977
+set str rand959 attributes
+obj get arg1 rand958 rand959
+set str rand959 drawSurface
+obj get rand958 rand957 rand959
+set str rand960 drawSurface attribute is null
+errnull rand957 rand960
+set str rand967 attributes
+obj get arg0 rand966 rand967
+set str rand967 config
+obj get rand966 rand964 rand967
+set str rand968 attributes
+obj get rand964 rand965 rand968
+set str rand968 fontUrl
+obj get rand965 rand963 rand968
+set str rand962 methods
+obj get rand957 rand961 rand962
+set str rand962 loadFontFromUrl
+obj get rand961 rand961 rand962
+callvar rand961 rand573 rand957 rand963
+set str rand969 terminalContext
+set obj rand971 {}
+set str rand974 echo
+set obj rand972 {"methods":{".cns":"~ rand936\nset str rand980 attributes\nobj get arg0 rand979 rand980\nset str rand980 path\nobj get rand979 rand978 rand980\ndupe rand978 arg1\nobj set rand979 rand980 rand978\n~","execute":"~ rand937\nset bool rand983 true\nset str rand984 \nset obj rand982 {\"methods\":{\".cns\":\"~ rand932\\nset str rand991 attributes\\nobj get arg0 rand990 rand991\\nset str rand991 successful\\nobj get rand990 rand989 rand991\\ndupe rand989 arg1\\nobj set rand990 rand991 rand989\\nset str rand994 attributes\\nobj get arg0 rand993 rand994\\nset str rand994 text\\nobj get rand993 rand992 rand994\\ndupe rand992 arg2\\nobj set rand993 rand994 rand992\\n~\"},\"attributes\":{}}\nset str rand986 methods\nobj get rand982 rand985 rand986\nset str rand986 .cns\nobj get rand985 rand985 rand986\ncallvar rand985 rand932 rand982 rand983 rand984\nret rand982\n~"},"attributes":{}}
+set str rand976 methods
+obj get rand972 rand975 rand976
+set str rand976 .cns
+obj get rand975 rand975 rand976
+callvar rand975 rand936 rand972 rand974
+set str rand973 echo
+obj set rand971 rand973 rand972
+set obj rand970 {"methods":{".cns":"~ rand944\nset str rand1001 attributes\nobj get arg0 rand1000 rand1001\nset str rand1001 state\nobj get rand1000 rand999 rand1001\ndupe rand999 arg1\nobj set rand1000 rand1001 rand999\nset str rand1004 attributes\nobj get arg0 rand1003 rand1004\nset str rand1004 commands\nobj get rand1003 rand1002 rand1004\ndupe rand1002 arg2\nobj set rand1003 rand1004 rand1002\n~","registerCommand":"~ rand945\nset str rand1009 attributes\nobj get arg0 rand1008 rand1009\nset str rand1009 commands\nobj get rand1008 rand1007 rand1009\nobj set rand1007 arg1 arg2\n~"},"attributes":{}}
+set str rand996 methods
+obj get rand970 rand995 rand996
+set str rand996 .cns
+obj get rand995 rand995 rand996
+callvar rand995 rand944 rand970 arg0 rand971
+set str rand1010 stateManager:terminal:TerminalContext
+settype rand970 rand1010
+set type rand1011 stateManager:terminal:TerminalContext
+call stateManager:terminal:globals:setGlobal rand1011 rand969 rand970
+set str rand1013 terminalContext
+set type rand1014 stateManager:terminal:TerminalContext
+callget rand1012 stateManager:terminal:globals:getGlobal rand1014 rand1013
+istypeg rand1015 rand1012 rand1014
+ji rand1018 rand1015
+set str rand1016 generic function returned 
+set str rand1017  not the specified type 
+add rand1016 rand1016 .typechecktype rand1017
+add rand1016 rand1016 rand1014
+err rand1016
+: rand1018
+set str rand1019 terminalInstance
+set obj rand1020 {"methods":{".cns":"~ rand949\nset str rand1026 attributes\nobj get arg0 rand1025 rand1026\nset str rand1026 context\nobj get rand1025 rand1024 rand1026\ndupe rand1024 arg1\nobj set rand1025 rand1026 rand1024\n~","_destr":"~ rand950\nset num rand1033 0\nobj get arg1 rand1031 rand1033\nset str rand1034  doesnt exist on value\nadd rand1034 rand1033 rand1034\nernull rand1031 rand1034\nset str rand1032 \"\neql rand1029 rand1031 rand1032\nlen rand1038 arg1\nset num rand1039 1\nsub rand1037 rand1038 rand1039\nobj get arg1 rand1035 rand1037\nset str rand1040  doesnt exist on value\nadd rand1040 rand1037 rand1040\nernull rand1035 rand1040\nset str rand1036 \"\neql rand1030 rand1035 rand1036\nand rand1028 rand1029 rand1030\njn rand1041 rand1028\nset num rand1044 1\nset num rand1045 -1\nslice rand1043 arg1 rand1044 rand1045\nret rand1043\n: rand1041\nprint arg1\nret arg1\n~","runCommand":"~ rand951\nset str rand1048  \nset obj rand1049 [\"intactQuotes\"]\ncallget rand1047 stateManager:terminal:utils:splitChar arg1 rand1048 rand1049\nset str rand1055 attributes\nobj get arg0 rand1054 rand1055\nset str rand1055 context\nobj get rand1054 rand1052 rand1055\nset str rand1056 context attribute is null\nerrnull rand1052 rand1056\nset str rand1057 attributes\nobj get rand1052 rand1053 rand1057\nset str rand1057 commands\nobj get rand1053 rand1051 rand1057\nset str rand1058 commands attribute is null\nerrnull rand1051 rand1058\nobj keys rand1050 rand1051\nset num rand1061 0\nobj get rand1047 rand1060 rand1061\nset str rand1062  doesnt exist on tokens\nadd rand1062 rand1061 rand1062\nernull rand1060 rand1062\narr has rand1059 rand1050 rand1060\njn rand1063 rand1059\nset obj rand1065 []\narr shift rand1047 rand1066\nset num rand1070 1\nset num rand1071 0\nlen rand1067 rand1047\n: rand1068\nsml rand1072 rand1071 rand1067\njn rand1069 rand1072\nobj get rand1047 rand1073 rand1071\nset str rand1074  doesnt exist on tokens\nadd rand1074 rand1071 rand1074\nernull rand1073 rand1074\nset str rand1078 methods\nobj get arg0 rand1077 rand1078\nset str rand1078 _destr\nobj get rand1077 rand1077 rand1078\ncallgetvar rand1076 rand1077 rand950 arg0 rand1073\nadd rand1075 emptystring rand1076\narr add rand1065 rand1075\njai rand1068 rand1071\n: rand1069\nset str rand1084 attributes\nobj get arg0 rand1083 rand1084\nset str rand1084 context\nobj get rand1083 rand1081 rand1084\nset str rand1085 context attribute is null\nerrnull rand1081 rand1085\nset str rand1086 attributes\nobj get rand1081 rand1082 rand1086\nset str rand1086 commands\nobj get rand1082 rand1080 rand1086\nset str rand1087 commands attribute is null\nerrnull rand1080 rand1087\nobj get rand1080 rand1079 rand1066\nset str rand1088  doesnt exist on self.context.commands\nadd rand1088 rand1066 rand1088\nernull rand1079 rand1088\nset str rand1091 methods\nobj get rand1079 rand1090 rand1091\nset str rand1091 execute\nobj get rand1090 rand1090 rand1091\ncallgetvar rand1089 rand1090 rand937 rand1079 rand1065\nret rand1089\n: rand1063\nset bool rand1093 false\nset str rand1097 unknown command '\nset num rand1099 0\nobj get rand1047 rand1098 rand1099\nset str rand1100  doesnt exist on tokens\nadd rand1100 rand1099 rand1100\nernull rand1098 rand1100\nadd rand1095 emptystring rand1097 rand1098\nset str rand1096 '\nadd rand1094 emptystring rand1095 rand1096\nset obj rand1092 {\"methods\":{\".cns\":\"~ rand932\\nset str rand1107 attributes\\nobj get arg0 rand1106 rand1107\\nset str rand1107 successful\\nobj get rand1106 rand1105 rand1107\\ndupe rand1105 arg1\\nobj set rand1106 rand1107 rand1105\\nset str rand1110 attributes\\nobj get arg0 rand1109 rand1110\\nset str rand1110 text\\nobj get rand1109 rand1108 rand1110\\ndupe rand1108 arg2\\nobj set rand1109 rand1110 rand1108\\n~\"},\"attributes\":{}}\nset str rand1102 methods\nobj get rand1092 rand1101 rand1102\nset str rand1102 .cns\nobj get rand1101 rand1101 rand1102\ncallvar rand1101 rand932 rand1092 rand1093 rand1094\nret rand1092\n~"},"attributes":{"text":"> ","currentCmd":""}}
+set str rand1111 attributes
+obj get rand1020 rand1112 rand1111
+set obj rand1113 {"methods":{},"attributes":{"text":"#fff","warn":"#e37900","error":"#bf0000"}}
+set str rand1116 theme
+obj set rand1112 rand1116 rand1113
+set str rand1022 methods
+obj get rand1020 rand1021 rand1022
+set str rand1022 .cns
+obj get rand1021 rand1021 rand1022
+callvar rand1021 rand949 rand1020 rand1012
+set str rand1117 stateManager:terminal:TerminalInstance
+settype rand1020 rand1117
+set type rand1118 stateManager:terminal:TerminalInstance
+call stateManager:terminal:globals:setGlobal rand1118 rand1019 rand1020
 ret
 ~
 ~ stateManager:terminal:runCommand
-set str rand1030 methods
-obj get arg1 rand1029 rand1030
-set str rand1030 runCommand
-obj get rand1029 rand1029 rand1030
-callgetvar rand1028 rand1029 rand922 arg1 arg0
-set str rand1034 attributes
-obj get rand1028 rand1033 rand1034
-set str rand1034 successful
-obj get rand1033 rand1032 rand1034
-set str rand1035 successful attribute is null
-errnull rand1032 rand1035
-inv rand1031 rand1032
-jn rand1036 rand1031
-set str rand1041 attributes
-obj get arg1 rand1040 rand1041
-set str rand1041 text
-obj get rand1040 rand1039 rand1041
-set str rand1047 attributes
-obj get arg1 rand1046 rand1047
-set str rand1047 context
-obj get rand1046 rand1044 rand1047
-set str rand1048 context attribute is null
-errnull rand1044 rand1048
-set str rand1049 attributes
-obj get rand1044 rand1045 rand1049
-set str rand1049 state
-obj get rand1045 rand1043 rand1049
-set str rand1050 state attribute is null
-errnull rand1043 rand1050
-set str rand1055 attributes
-obj get arg1 rand1054 rand1055
-set str rand1055 theme
-obj get rand1054 rand1052 rand1055
-set str rand1056 attributes
-obj get rand1052 rand1053 rand1056
-set str rand1056 warn
-obj get rand1053 rand1051 rand1056
-callget rand1042 stateManager:terminal:text:embedColor rand1043 rand1051
-add rand1039 emptystring rand1039 rand1042
-obj set rand1040 rand1041 rand1039
-: rand1036
-set str rand1061 attributes
-obj get arg1 rand1060 rand1061
-set str rand1061 text
-obj get rand1060 rand1059 rand1061
-set str rand1064 attributes
-obj get rand1028 rand1063 rand1064
-set str rand1064 text
-obj get rand1063 rand1062 rand1064
-set str rand1065 text attribute is null
-errnull rand1062 rand1065
-add rand1059 emptystring rand1059 rand1062
-obj set rand1060 rand1061 rand1059
+set str rand1126 methods
+obj get arg1 rand1125 rand1126
+set str rand1126 runCommand
+obj get rand1125 rand1125 rand1126
+callgetvar rand1124 rand1125 rand951 arg1 arg0
+set str rand1130 attributes
+obj get rand1124 rand1129 rand1130
+set str rand1130 successful
+obj get rand1129 rand1128 rand1130
+set str rand1131 successful attribute is null
+errnull rand1128 rand1131
+inv rand1127 rand1128
+jn rand1132 rand1127
+set str rand1137 attributes
+obj get arg1 rand1136 rand1137
+set str rand1137 text
+obj get rand1136 rand1135 rand1137
+set str rand1143 attributes
+obj get arg1 rand1142 rand1143
+set str rand1143 context
+obj get rand1142 rand1140 rand1143
+set str rand1144 context attribute is null
+errnull rand1140 rand1144
+set str rand1145 attributes
+obj get rand1140 rand1141 rand1145
+set str rand1145 state
+obj get rand1141 rand1139 rand1145
+set str rand1146 state attribute is null
+errnull rand1139 rand1146
+set str rand1151 attributes
+obj get arg1 rand1150 rand1151
+set str rand1151 theme
+obj get rand1150 rand1148 rand1151
+set str rand1152 attributes
+obj get rand1148 rand1149 rand1152
+set str rand1152 warn
+obj get rand1149 rand1147 rand1152
+callget rand1138 stateManager:terminal:text:embedColor rand1139 rand1147
+add rand1135 emptystring rand1135 rand1138
+obj set rand1136 rand1137 rand1135
+: rand1132
+set str rand1157 attributes
+obj get arg1 rand1156 rand1157
+set str rand1157 text
+obj get rand1156 rand1155 rand1157
+set str rand1160 attributes
+obj get rand1124 rand1159 rand1160
+set str rand1160 text
+obj get rand1159 rand1158 rand1160
+set str rand1161 text attribute is null
+errnull rand1158 rand1161
+add rand1155 emptystring rand1155 rand1158
+obj set rand1156 rand1157 rand1155
 ret
 ~
 ~ stateManager:terminal:newLine
-set str rand1076 attributes
-obj get arg0 rand1075 rand1076
-set str rand1076 text
-obj get rand1075 rand1074 rand1076
-len rand1072 rand1074
-set num rand1073 0
-gtr rand1071 rand1072 rand1073
-jn rand1077 rand1071
-set str rand1082 attributes
-obj get arg0 rand1081 rand1082
-set str rand1082 text
-obj get rand1081 rand1080 rand1082
-set str rand1083 \n
-add rand1080 emptystring rand1080 rand1083
-obj set rand1081 rand1082 rand1080
-: rand1077
-set str rand1088 attributes
-obj get arg0 rand1087 rand1088
-set str rand1088 text
-obj get rand1087 rand1086 rand1088
-set str rand1094 attributes
-obj get arg0 rand1093 rand1094
-set str rand1094 context
-obj get rand1093 rand1091 rand1094
-set str rand1095 context attribute is null
-errnull rand1091 rand1095
-set str rand1096 attributes
-obj get rand1091 rand1092 rand1096
-set str rand1096 state
-obj get rand1092 rand1090 rand1096
-set str rand1097 state attribute is null
-errnull rand1090 rand1097
-callget rand1089 stateManager:terminal:text:embedReset rand1090
-add rand1086 emptystring rand1086 rand1089
-obj set rand1087 rand1088 rand1086
-set str rand1102 attributes
-obj get arg0 rand1101 rand1102
-set str rand1102 text
-obj get rand1101 rand1100 rand1102
-set str rand1103 > 
-add rand1100 emptystring rand1100 rand1103
-obj set rand1101 rand1102 rand1100
+set str rand1172 attributes
+obj get arg0 rand1171 rand1172
+set str rand1172 text
+obj get rand1171 rand1170 rand1172
+len rand1168 rand1170
+set num rand1169 0
+gtr rand1167 rand1168 rand1169
+jn rand1173 rand1167
+set str rand1178 attributes
+obj get arg0 rand1177 rand1178
+set str rand1178 text
+obj get rand1177 rand1176 rand1178
+set str rand1179 \n
+add rand1176 emptystring rand1176 rand1179
+obj set rand1177 rand1178 rand1176
+: rand1173
+set str rand1184 attributes
+obj get arg0 rand1183 rand1184
+set str rand1184 text
+obj get rand1183 rand1182 rand1184
+set str rand1190 attributes
+obj get arg0 rand1189 rand1190
+set str rand1190 context
+obj get rand1189 rand1187 rand1190
+set str rand1191 context attribute is null
+errnull rand1187 rand1191
+set str rand1192 attributes
+obj get rand1187 rand1188 rand1192
+set str rand1192 state
+obj get rand1188 rand1186 rand1192
+set str rand1193 state attribute is null
+errnull rand1186 rand1193
+callget rand1185 stateManager:terminal:text:embedReset rand1186
+add rand1182 emptystring rand1182 rand1185
+obj set rand1183 rand1184 rand1182
+set str rand1198 attributes
+obj get arg0 rand1197 rand1198
+set str rand1198 text
+obj get rand1197 rand1196 rand1198
+set str rand1199 > 
+add rand1196 emptystring rand1196 rand1199
+obj set rand1197 rand1198 rand1196
 ret
 ~
 ~ stateManager:terminal:handleInput
-set str rand1109 terminalInstance
-set type rand1110 stateManager:terminal:TerminalInstance
-callget rand1108 stateManager:terminal:globals:getGlobal rand1110 rand1109
-istypeg rand1111 rand1108 rand1110
-ji rand1114 rand1111
-set str rand1112 generic function returned 
-set str rand1113  not the specified type 
-add rand1112 rand1112 .typechecktype rand1113
-add rand1112 rand1112 rand1110
-err rand1112
-: rand1114
-set bool rand1115 true
-set str rand1119 attributes
-obj get rand1108 rand1118 rand1119
-set str rand1119 process
-obj get rand1118 rand1117 rand1119
-isnull rand1116 rand1117
-inv rand1116 rand1116
-jn rand1120 rand1116
-set str rand1124 attributes
-obj get rand1108 rand1123 rand1124
-set str rand1124 process
-obj get rand1123 rand1122 rand1124
-: rand1120
-set str rand1131 attributes
-obj get arg0 rand1130 rand1131
-set str rand1131 inputState
-obj get rand1130 rand1128 rand1131
-set str rand1132 attributes
-obj get rand1128 rand1129 rand1132
-set str rand1132 map
-obj get rand1129 rand1126 rand1132
-set str rand1133 attributes
-obj get rand1126 rand1127 rand1133
-set str rand1133 keys
-obj get rand1127 rand1125 rand1133
-: rand1134
-len rand1138 rand1125
-set num rand1139 0
-gtr rand1137 rand1138 rand1139
-jn rand1135 rand1137
-arr pop rand1125 rand1140
-jn rand1141 rand1115
-set str rand1145 attributes
-obj get rand1108 rand1144 rand1145
-set str rand1145 text
-obj get rand1144 rand1143 rand1145
-dupe rand1146 rand1140
-add rand1143 emptystring rand1143 rand1146
-obj set rand1144 rand1145 rand1143
-set str rand1150 attributes
-obj get rand1108 rand1149 rand1150
-set str rand1150 currentCmd
-obj get rand1149 rand1148 rand1150
-dupe rand1151 rand1140
-add rand1148 emptystring rand1148 rand1151
-obj set rand1149 rand1150 rand1148
-: rand1141
-jp rand1134
-: rand1135
-set str rand1159 attributes
-obj get arg0 rand1158 rand1159
-set str rand1159 inputState
-obj get rand1158 rand1156 rand1159
-set str rand1160 attributes
-obj get rand1156 rand1157 rand1160
-set str rand1160 map
-obj get rand1157 rand1154 rand1160
-set str rand1161 attributes
-obj get rand1154 rand1155 rand1161
-set str rand1161 special
-obj get rand1155 rand1153 rand1161
-: rand1162
-len rand1166 rand1153
-set num rand1167 0
-gtr rand1165 rand1166 rand1167
-jn rand1163 rand1165
-arr pop rand1153 rand1168
-jn rand1169 rand1115
-set str rand1174 Enter
-eql rand1172 rand1168 rand1174
-set str rand1179 attributes
-obj get rand1108 rand1178 rand1179
-set str rand1179 currentCmd
-obj get rand1178 rand1177 rand1179
-len rand1175 rand1177
-set num rand1176 0
-gtr rand1173 rand1175 rand1176
-and rand1171 rand1172 rand1173
-jn rand1180 rand1171
-set str rand1185 attributes
-obj get rand1108 rand1184 rand1185
-set str rand1185 text
-obj get rand1184 rand1183 rand1185
-set str rand1186 \n
-add rand1183 emptystring rand1183 rand1186
-obj set rand1184 rand1185 rand1183
-set str rand1190 attributes
-obj get rand1108 rand1189 rand1190
-set str rand1190 currentCmd
-obj get rand1189 rand1188 rand1190
-call stateManager:terminal:runCommand rand1188 rand1108
-call stateManager:terminal:newLine rand1108
-set str rand1194 attributes
-obj get rand1108 rand1193 rand1194
-set str rand1194 currentCmd
-obj get rand1193 rand1192 rand1194
-set str rand1192 
-obj set rand1193 rand1194 rand1192
-: rand1180
-set str rand1198 Backspace
-eql rand1196 rand1168 rand1198
-set str rand1203 attributes
-obj get rand1108 rand1202 rand1203
-set str rand1203 currentCmd
-obj get rand1202 rand1201 rand1203
-len rand1199 rand1201
-set num rand1200 0
-gtr rand1197 rand1199 rand1200
-and rand1195 rand1196 rand1197
-jn rand1204 rand1195
-set str rand1209 attributes
-obj get rand1108 rand1208 rand1209
-set str rand1209 text
-obj get rand1208 rand1207 rand1209
-set str rand1212 attributes
-obj get rand1108 rand1211 rand1212
-set str rand1212 text
-obj get rand1211 rand1210 rand1212
-set num rand1213 0
-set num rand1214 -1
-slice rand1207 rand1210 rand1213 rand1214
-obj set rand1208 rand1209 rand1207
-set str rand1218 attributes
-obj get rand1108 rand1217 rand1218
-set str rand1218 currentCmd
-obj get rand1217 rand1216 rand1218
-set str rand1221 attributes
-obj get rand1108 rand1220 rand1221
-set str rand1221 currentCmd
-obj get rand1220 rand1219 rand1221
-set num rand1222 0
-set num rand1223 -1
-slice rand1216 rand1219 rand1222 rand1223
-obj set rand1217 rand1218 rand1216
-: rand1204
-: rand1169
-jp rand1162
-: rand1163
-set str rand1224 terminalInstance
-set str rand1225 stateManager:terminal:TerminalInstance
-settype rand1108 rand1225
-set type rand1226 stateManager:terminal:TerminalInstance
-call stateManager:terminal:globals:setGlobal rand1226 rand1224 rand1108
+set str rand1205 terminalInstance
+set type rand1206 stateManager:terminal:TerminalInstance
+callget rand1204 stateManager:terminal:globals:getGlobal rand1206 rand1205
+istypeg rand1207 rand1204 rand1206
+ji rand1210 rand1207
+set str rand1208 generic function returned 
+set str rand1209  not the specified type 
+add rand1208 rand1208 .typechecktype rand1209
+add rand1208 rand1208 rand1206
+err rand1208
+: rand1210
+set bool rand1211 true
+set str rand1215 attributes
+obj get rand1204 rand1214 rand1215
+set str rand1215 process
+obj get rand1214 rand1213 rand1215
+isnull rand1212 rand1213
+inv rand1212 rand1212
+jn rand1216 rand1212
+set str rand1220 attributes
+obj get rand1204 rand1219 rand1220
+set str rand1220 process
+obj get rand1219 rand1218 rand1220
+: rand1216
+set str rand1227 attributes
+obj get arg0 rand1226 rand1227
+set str rand1227 inputState
+obj get rand1226 rand1224 rand1227
+set str rand1228 attributes
+obj get rand1224 rand1225 rand1228
+set str rand1228 map
+obj get rand1225 rand1222 rand1228
+set str rand1229 attributes
+obj get rand1222 rand1223 rand1229
+set str rand1229 keys
+obj get rand1223 rand1221 rand1229
+: rand1230
+len rand1234 rand1221
+set num rand1235 0
+gtr rand1233 rand1234 rand1235
+jn rand1231 rand1233
+arr pop rand1221 rand1236
+jn rand1237 rand1211
+set str rand1241 attributes
+obj get rand1204 rand1240 rand1241
+set str rand1241 text
+obj get rand1240 rand1239 rand1241
+dupe rand1242 rand1236
+add rand1239 emptystring rand1239 rand1242
+obj set rand1240 rand1241 rand1239
+set str rand1246 attributes
+obj get rand1204 rand1245 rand1246
+set str rand1246 currentCmd
+obj get rand1245 rand1244 rand1246
+dupe rand1247 rand1236
+add rand1244 emptystring rand1244 rand1247
+obj set rand1245 rand1246 rand1244
+: rand1237
+jp rand1230
+: rand1231
+set str rand1255 attributes
+obj get arg0 rand1254 rand1255
+set str rand1255 inputState
+obj get rand1254 rand1252 rand1255
+set str rand1256 attributes
+obj get rand1252 rand1253 rand1256
+set str rand1256 map
+obj get rand1253 rand1250 rand1256
+set str rand1257 attributes
+obj get rand1250 rand1251 rand1257
+set str rand1257 special
+obj get rand1251 rand1249 rand1257
+: rand1258
+len rand1262 rand1249
+set num rand1263 0
+gtr rand1261 rand1262 rand1263
+jn rand1259 rand1261
+arr pop rand1249 rand1264
+jn rand1265 rand1211
+set str rand1270 Enter
+eql rand1268 rand1264 rand1270
+set str rand1275 attributes
+obj get rand1204 rand1274 rand1275
+set str rand1275 currentCmd
+obj get rand1274 rand1273 rand1275
+len rand1271 rand1273
+set num rand1272 0
+gtr rand1269 rand1271 rand1272
+and rand1267 rand1268 rand1269
+jn rand1276 rand1267
+set str rand1281 attributes
+obj get rand1204 rand1280 rand1281
+set str rand1281 text
+obj get rand1280 rand1279 rand1281
+set str rand1282 \n
+add rand1279 emptystring rand1279 rand1282
+obj set rand1280 rand1281 rand1279
+set str rand1286 attributes
+obj get rand1204 rand1285 rand1286
+set str rand1286 currentCmd
+obj get rand1285 rand1284 rand1286
+call stateManager:terminal:runCommand rand1284 rand1204
+call stateManager:terminal:newLine rand1204
+set str rand1290 attributes
+obj get rand1204 rand1289 rand1290
+set str rand1290 currentCmd
+obj get rand1289 rand1288 rand1290
+set str rand1288 
+obj set rand1289 rand1290 rand1288
+: rand1276
+set str rand1294 Backspace
+eql rand1292 rand1264 rand1294
+set str rand1299 attributes
+obj get rand1204 rand1298 rand1299
+set str rand1299 currentCmd
+obj get rand1298 rand1297 rand1299
+len rand1295 rand1297
+set num rand1296 0
+gtr rand1293 rand1295 rand1296
+and rand1291 rand1292 rand1293
+jn rand1300 rand1291
+set str rand1305 attributes
+obj get rand1204 rand1304 rand1305
+set str rand1305 text
+obj get rand1304 rand1303 rand1305
+set str rand1308 attributes
+obj get rand1204 rand1307 rand1308
+set str rand1308 text
+obj get rand1307 rand1306 rand1308
+set num rand1309 0
+set num rand1310 -1
+slice rand1303 rand1306 rand1309 rand1310
+obj set rand1304 rand1305 rand1303
+set str rand1314 attributes
+obj get rand1204 rand1313 rand1314
+set str rand1314 currentCmd
+obj get rand1313 rand1312 rand1314
+set str rand1317 attributes
+obj get rand1204 rand1316 rand1317
+set str rand1317 currentCmd
+obj get rand1316 rand1315 rand1317
+set num rand1318 0
+set num rand1319 -1
+slice rand1312 rand1315 rand1318 rand1319
+obj set rand1313 rand1314 rand1312
+: rand1300
+: rand1265
+jp rand1258
+: rand1259
+set str rand1320 terminalInstance
+set str rand1321 stateManager:terminal:TerminalInstance
+settype rand1204 rand1321
+set type rand1322 stateManager:terminal:TerminalInstance
+call stateManager:terminal:globals:setGlobal rand1322 rand1320 rand1204
 ret
 ~
 ~ stateManager:terminal:drawMain
-set str rand1234 attributes
-obj get arg1 rand1233 rand1234
-set str rand1234 drawSurface
-obj get rand1233 rand1232 rand1234
-set str rand1235 drawSurface attribute is null
-errnull rand1232 rand1235
-set str rand1238 attributes
-obj get rand1232 rand1237 rand1238
-set str rand1238 frame
-obj get rand1237 rand1236 rand1238
-set str rand1239 frame attribute is null
-errnull rand1236 rand1239
-set str rand1241 terminalInstance
-set type rand1242 stateManager:terminal:TerminalInstance
-callget rand1240 stateManager:terminal:globals:getGlobal rand1242 rand1241
-istypeg rand1243 rand1240 rand1242
-ji rand1246 rand1243
-set str rand1244 generic function returned 
-set str rand1245  not the specified type 
-add rand1244 rand1244 .typechecktype rand1245
-add rand1244 rand1244 rand1242
-err rand1244
-: rand1246
-set str rand1249 #0e0d10
-set str rand1248 methods
-obj get rand1232 rand1247 rand1248
-set str rand1248 setColor
-obj get rand1247 rand1247 rand1248
-callvar rand1247 rand575 rand1232 rand1249
-set str rand1254 methods
-obj get rand1236 rand1253 rand1254
-set str rand1254 getX
-obj get rand1253 rand1253 rand1254
-callgetvar rand1252 rand1253 rand368 rand1236 
-set str rand1257 methods
-obj get rand1236 rand1256 rand1257
-set str rand1257 getY
-obj get rand1256 rand1256 rand1257
-callgetvar rand1255 rand1256 rand369 rand1236 
-set str rand1260 methods
-obj get rand1236 rand1259 rand1260
-set str rand1260 getW
-obj get rand1259 rand1259 rand1260
-callgetvar rand1258 rand1259 rand370 rand1236 
-set str rand1263 methods
-obj get rand1236 rand1262 rand1263
-set str rand1263 getH
-obj get rand1262 rand1262 rand1263
-callgetvar rand1261 rand1262 rand371 rand1236 
-set num rand1264 0
-set str rand1251 methods
-obj get rand1232 rand1250 rand1251
-set str rand1251 rect
-obj get rand1250 rand1250 rand1251
-callvar rand1250 rand570 rand1232 rand1252 rand1255 rand1258 rand1261 rand1264
-set str rand1267 #fff
-set str rand1266 methods
-obj get rand1232 rand1265 rand1266
-set str rand1266 setColor
-obj get rand1265 rand1265 rand1266
-callvar rand1265 rand575 rand1232 rand1267
-set str rand1270 methods
-obj get rand1236 rand1269 rand1270
-set str rand1270 getTL
-obj get rand1269 rand1269 rand1270
-callgetvar rand1268 rand1269 rand372 rand1236 
-set str rand1275 attributes
-obj get rand1240 rand1274 rand1275
-set str rand1275 text
-obj get rand1274 rand1273 rand1275
-set num rand1276 10
-set num rand1280 0
-obj get rand1268 rand1278 rand1280
-set str rand1281  doesnt exist on pos
-add rand1281 rand1280 rand1281
-ernull rand1278 rand1281
-set num rand1279 5
-add rand1277 rand1278 rand1279
-set num rand1285 1
-obj get rand1268 rand1283 rand1285
-set str rand1286  doesnt exist on pos
-add rand1286 rand1285 rand1286
-ernull rand1283 rand1286
-set num rand1284 17.5
-sub rand1282 rand1283 rand1284
-set num rand1287 90
-set num rand1288 0
-set str rand1272 methods
-obj get rand1232 rand1271 rand1272
-set str rand1272 text
-obj get rand1271 rand1271 rand1272
-callvar rand1271 rand572 rand1232 rand1273 rand1276 rand1277 rand1282 rand1287 rand1288
+set str rand1330 attributes
+obj get arg1 rand1329 rand1330
+set str rand1330 drawSurface
+obj get rand1329 rand1328 rand1330
+set str rand1331 drawSurface attribute is null
+errnull rand1328 rand1331
+set str rand1334 attributes
+obj get rand1328 rand1333 rand1334
+set str rand1334 frame
+obj get rand1333 rand1332 rand1334
+set str rand1335 frame attribute is null
+errnull rand1332 rand1335
+set str rand1337 terminalInstance
+set type rand1338 stateManager:terminal:TerminalInstance
+callget rand1336 stateManager:terminal:globals:getGlobal rand1338 rand1337
+istypeg rand1339 rand1336 rand1338
+ji rand1342 rand1339
+set str rand1340 generic function returned 
+set str rand1341  not the specified type 
+add rand1340 rand1340 .typechecktype rand1341
+add rand1340 rand1340 rand1338
+err rand1340
+: rand1342
+set str rand1345 #0e0d10
+set str rand1344 methods
+obj get rand1328 rand1343 rand1344
+set str rand1344 setColor
+obj get rand1343 rand1343 rand1344
+callvar rand1343 rand575 rand1328 rand1345
+set str rand1350 methods
+obj get rand1332 rand1349 rand1350
+set str rand1350 getX
+obj get rand1349 rand1349 rand1350
+callgetvar rand1348 rand1349 rand368 rand1332 
+set str rand1353 methods
+obj get rand1332 rand1352 rand1353
+set str rand1353 getY
+obj get rand1352 rand1352 rand1353
+callgetvar rand1351 rand1352 rand369 rand1332 
+set str rand1356 methods
+obj get rand1332 rand1355 rand1356
+set str rand1356 getW
+obj get rand1355 rand1355 rand1356
+callgetvar rand1354 rand1355 rand370 rand1332 
+set str rand1359 methods
+obj get rand1332 rand1358 rand1359
+set str rand1359 getH
+obj get rand1358 rand1358 rand1359
+callgetvar rand1357 rand1358 rand371 rand1332 
+set num rand1360 0
+set str rand1347 methods
+obj get rand1328 rand1346 rand1347
+set str rand1347 rect
+obj get rand1346 rand1346 rand1347
+callvar rand1346 rand570 rand1328 rand1348 rand1351 rand1354 rand1357 rand1360
+set str rand1363 #fff
+set str rand1362 methods
+obj get rand1328 rand1361 rand1362
+set str rand1362 setColor
+obj get rand1361 rand1361 rand1362
+callvar rand1361 rand575 rand1328 rand1363
+set str rand1366 methods
+obj get rand1332 rand1365 rand1366
+set str rand1366 getTL
+obj get rand1365 rand1365 rand1366
+callgetvar rand1364 rand1365 rand372 rand1332 
+set str rand1371 attributes
+obj get rand1336 rand1370 rand1371
+set str rand1371 text
+obj get rand1370 rand1369 rand1371
+set num rand1372 10
+set num rand1376 0
+obj get rand1364 rand1374 rand1376
+set str rand1377  doesnt exist on pos
+add rand1377 rand1376 rand1377
+ernull rand1374 rand1377
+set num rand1375 5
+add rand1373 rand1374 rand1375
+set num rand1381 1
+obj get rand1364 rand1379 rand1381
+set str rand1382  doesnt exist on pos
+add rand1382 rand1381 rand1382
+ernull rand1379 rand1382
+set num rand1380 17.5
+sub rand1378 rand1379 rand1380
+set num rand1383 90
+set num rand1384 0
+set str rand1368 methods
+obj get rand1328 rand1367 rand1368
+set str rand1368 text
+obj get rand1367 rand1367 rand1368
+callvar rand1367 rand572 rand1328 rand1369 rand1372 rand1373 rand1378 rand1383 rand1384
 ret
 ~
 ~ stateManager:terminal:update
@@ -983,198 +1019,198 @@ err arg0
 ret
 ~
 ~ stateManager:state:io:getScreenSize
-const screen_width rand1299
-const screen_height rand1300
-set obj rand1301 []
-arr add rand1301 rand1299
-arr add rand1301 rand1300
-ret rand1301
+const screen_width rand1395
+const screen_height rand1396
+set obj rand1397 []
+arr add rand1397 rand1395
+arr add rand1397 rand1396
+ret rand1397
 ~
 ~ stateManager:state:io:getCurrentMs
-const ms rand1303
-ret rand1303
+const ms rand1399
+ret rand1399
 ~
 ~ stateManager:state:input:getKeys
-keyhistory getkeys rand1306
-ret rand1306
+keyhistory getkeys rand1402
+ret rand1402
 ~
 ~ stateManager:state:input:shiftKeys
-keyhistory shift rand1308
-ret rand1308
+keyhistory shift rand1404
+ret rand1404
 ~
 ~ stateManager:state:input:clearKeys
 keyhistory delkeys
 ret
 ~
 ~ stateManager:state:input:isSpecialKey
-set obj rand1312 ["Backspace","Tab","Enter","Shift","Control","Alt","CapsLock","Escape","Space","PageUp","PageDown","End","Home","ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Insert","Delete","Meta","ContextMenu","AltGraph","ScrollLock","NumLock","Pause","Clear","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]
-arr has rand1313 rand1312 arg0
-jn rand1314 rand1313
-set bool rand1316 true
-ret rand1316
-: rand1314
-set bool rand1317 false
-ret rand1317
+set obj rand1408 ["Backspace","Tab","Enter","Shift","Control","Alt","CapsLock","Escape","Space","PageUp","PageDown","End","Home","ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Insert","Delete","Meta","ContextMenu","AltGraph","ScrollLock","NumLock","Pause","Clear","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]
+arr has rand1409 rand1408 arg0
+jn rand1410 rand1409
+set bool rand1412 true
+ret rand1412
+: rand1410
+set bool rand1413 false
+ret rand1413
 ~
 ~ stateManager:state:getDefault
-set obj rand1323 {"methods":{},"attributes":{"type":"terminal"}}
-set str rand1326 attributes
-obj get rand1323 rand1327 rand1326
-set obj rand1328 {"methods":{"update":"~ rand96\nset str rand1334 attributes\nobj get arg0 rand1333 rand1334\nset str rand1334 current\nobj get rand1333 rand1332 rand1334\ncallget rand1332 stateManager:state:io:getCurrentMs \nobj set rand1333 rand1334 rand1332\nset str rand1338 attributes\nobj get arg0 rand1337 rand1338\nset str rand1338 uptime\nobj get rand1337 rand1336 rand1338\nset str rand1342 attributes\nobj get arg0 rand1341 rand1342\nset str rand1342 current\nobj get rand1341 rand1339 rand1342\nset str rand1344 attributes\nobj get arg0 rand1343 rand1344\nset str rand1344 start\nobj get rand1343 rand1340 rand1344\nsub rand1336 rand1339 rand1340\nobj set rand1337 rand1338 rand1336\n~","updateFrame":"~ rand97\nset str rand1347 attributes\nobj get arg0 rand1346 rand1347\nset str rand1347 frame\nobj get rand1346 rand1345 rand1347\nset num rand1349 1\nadd rand1345 rand1345 rand1349\nobj set rand1346 rand1347 rand1345\nset str rand1352 methods\nobj get arg0 rand1351 rand1352\nset str rand1352 update\nobj get rand1351 rand1351 rand1352\ncallvar rand1351 rand96 arg0 \n~"},"attributes":{"frame":0,"uptime":0,"current":0}}
-set str rand1353 attributes
-obj get rand1328 rand1354 rand1353
-callget rand1355 stateManager:state:io:getCurrentMs 
-set str rand1356 start
-obj set rand1354 rand1356 rand1355
-set str rand1357 time
-obj set rand1327 rand1357 rand1328
-set obj rand1358 {"methods":{},"attributes":{"fontUrl":"https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff","embeddedCommandChar":""}}
-set str rand1361 config
-obj set rand1327 rand1361 rand1358
-set obj rand1362 {"methods":{".cns":"~ rand91\ncall stateManager:state:input:clearKeys \n~","update":"~ rand92\nset str rand1367 attributes\nobj get arg0 rand1366 rand1367\nset str rand1367 map\nobj get rand1366 rand1365 rand1367\nset str rand1369 methods\nobj get rand1365 rand1368 rand1369\nset str rand1369 update\nobj get rand1368 rand1368 rand1369\ncallvar rand1368 rand87 rand1365 \n~"},"attributes":{}}
-set str rand1370 attributes
-obj get rand1362 rand1371 rand1370
-set obj rand1372 {"methods":{"update":"~ rand87\ncallget rand1375 stateManager:state:input:getKeys \nset num rand1379 1\nset num rand1380 0\nlen rand1376 rand1375\n: rand1377\nsml rand1381 rand1380 rand1376\njn rand1378 rand1381\ncallget rand1382 stateManager:state:input:shiftKeys \nset str rand1384 type\nobj get rand1382 rand1383 rand1384\nset str rand1385  doesnt exist on key\nadd rand1385 rand1384 rand1385\nernull rand1383 rand1385\nset str rand1387 data\nobj get rand1382 rand1386 rand1387\nset str rand1388  doesnt exist on key\nadd rand1388 rand1387 rand1388\nernull rand1386 rand1388\ncallget rand1390 stateManager:state:input:isSpecialKey rand1386\ninv rand1389 rand1390\njn rand1391 rand1389\nset str rand1395 attributes\nobj get arg0 rand1394 rand1395\nset str rand1395 keys\nobj get rand1394 rand1393 rand1395\ndupe rand1396 rand1386\narr add rand1393 rand1396\njp rand1398\n: rand1391\nset str rand1401 attributes\nobj get arg0 rand1400 rand1401\nset str rand1401 special\nobj get rand1400 rand1399 rand1401\ndupe rand1402 rand1386\narr add rand1399 rand1402\n: rand1398\njai rand1377 rand1380\n: rand1378\n~"},"attributes":{}}
-set str rand1403 attributes
-obj get rand1372 rand1404 rand1403
-set obj rand1405 []
-set str rand1406 keys
-obj set rand1404 rand1406 rand1405
-set obj rand1407 []
-set str rand1408 special
-obj set rand1404 rand1408 rand1407
-set str rand1409 map
-obj set rand1371 rand1409 rand1372
-set str rand1364 methods
-obj get rand1362 rand1363 rand1364
-set str rand1364 .cns
-obj get rand1363 rand1363 rand1364
-callvar rand1363 rand91 rand1362 
-set str rand1410 inputState
-obj set rand1327 rand1410 rand1362
-ret rand1323
+set obj rand1419 {"methods":{},"attributes":{"type":"terminal"}}
+set str rand1422 attributes
+obj get rand1419 rand1423 rand1422
+set obj rand1424 {"methods":{"update":"~ rand96\nset str rand1430 attributes\nobj get arg0 rand1429 rand1430\nset str rand1430 current\nobj get rand1429 rand1428 rand1430\ncallget rand1428 stateManager:state:io:getCurrentMs \nobj set rand1429 rand1430 rand1428\nset str rand1434 attributes\nobj get arg0 rand1433 rand1434\nset str rand1434 uptime\nobj get rand1433 rand1432 rand1434\nset str rand1438 attributes\nobj get arg0 rand1437 rand1438\nset str rand1438 current\nobj get rand1437 rand1435 rand1438\nset str rand1440 attributes\nobj get arg0 rand1439 rand1440\nset str rand1440 start\nobj get rand1439 rand1436 rand1440\nsub rand1432 rand1435 rand1436\nobj set rand1433 rand1434 rand1432\n~","updateFrame":"~ rand97\nset str rand1443 attributes\nobj get arg0 rand1442 rand1443\nset str rand1443 frame\nobj get rand1442 rand1441 rand1443\nset num rand1445 1\nadd rand1441 rand1441 rand1445\nobj set rand1442 rand1443 rand1441\nset str rand1448 methods\nobj get arg0 rand1447 rand1448\nset str rand1448 update\nobj get rand1447 rand1447 rand1448\ncallvar rand1447 rand96 arg0 \n~"},"attributes":{"frame":0,"uptime":0,"current":0}}
+set str rand1449 attributes
+obj get rand1424 rand1450 rand1449
+callget rand1451 stateManager:state:io:getCurrentMs 
+set str rand1452 start
+obj set rand1450 rand1452 rand1451
+set str rand1453 time
+obj set rand1423 rand1453 rand1424
+set obj rand1454 {"methods":{},"attributes":{"fontUrl":"https://raw.githubusercontent.com/Mistium/Origin-OS/refs/heads/main/Fonts/origin.ojff","embeddedCommandChar":""}}
+set str rand1457 config
+obj set rand1423 rand1457 rand1454
+set obj rand1458 {"methods":{".cns":"~ rand91\ncall stateManager:state:input:clearKeys \n~","update":"~ rand92\nset str rand1463 attributes\nobj get arg0 rand1462 rand1463\nset str rand1463 map\nobj get rand1462 rand1461 rand1463\nset str rand1465 methods\nobj get rand1461 rand1464 rand1465\nset str rand1465 update\nobj get rand1464 rand1464 rand1465\ncallvar rand1464 rand87 rand1461 \n~"},"attributes":{}}
+set str rand1466 attributes
+obj get rand1458 rand1467 rand1466
+set obj rand1468 {"methods":{"update":"~ rand87\ncallget rand1471 stateManager:state:input:getKeys \nset num rand1475 1\nset num rand1476 0\nlen rand1472 rand1471\n: rand1473\nsml rand1477 rand1476 rand1472\njn rand1474 rand1477\ncallget rand1478 stateManager:state:input:shiftKeys \nset str rand1480 type\nobj get rand1478 rand1479 rand1480\nset str rand1481  doesnt exist on key\nadd rand1481 rand1480 rand1481\nernull rand1479 rand1481\nset str rand1483 data\nobj get rand1478 rand1482 rand1483\nset str rand1484  doesnt exist on key\nadd rand1484 rand1483 rand1484\nernull rand1482 rand1484\ncallget rand1486 stateManager:state:input:isSpecialKey rand1482\ninv rand1485 rand1486\njn rand1487 rand1485\nset str rand1491 attributes\nobj get arg0 rand1490 rand1491\nset str rand1491 keys\nobj get rand1490 rand1489 rand1491\ndupe rand1492 rand1482\narr add rand1489 rand1492\njp rand1494\n: rand1487\nset str rand1497 attributes\nobj get arg0 rand1496 rand1497\nset str rand1497 special\nobj get rand1496 rand1495 rand1497\ndupe rand1498 rand1482\narr add rand1495 rand1498\n: rand1494\njai rand1473 rand1476\n: rand1474\n~"},"attributes":{}}
+set str rand1499 attributes
+obj get rand1468 rand1500 rand1499
+set obj rand1501 []
+set str rand1502 keys
+obj set rand1500 rand1502 rand1501
+set obj rand1503 []
+set str rand1504 special
+obj set rand1500 rand1504 rand1503
+set str rand1505 map
+obj set rand1467 rand1505 rand1468
+set str rand1460 methods
+obj get rand1458 rand1459 rand1460
+set str rand1460 .cns
+obj get rand1459 rand1459 rand1460
+callvar rand1459 rand91 rand1458 
+set str rand1506 inputState
+obj set rand1423 rand1506 rand1458
+ret rand1419
 ~
 ~ stateManager:graphics:io:throw
 err arg0
 ret
 ~
 ~ stateManager:graphics:io:getScreenSize
-const screen_width rand1414
-const screen_height rand1415
-set obj rand1416 []
-arr add rand1416 rand1414
-arr add rand1416 rand1415
-ret rand1416
+const screen_width rand1510
+const screen_height rand1511
+set obj rand1512 []
+arr add rand1512 rand1510
+arr add rand1512 rand1511
+ret rand1512
 ~
 ~ stateManager:graphics:io:getCurrentMs
-const ms rand1418
-ret rand1418
+const ms rand1514
+ret rand1514
 ~
 ~ stateManager:graphics:math:sin
-sin rand1421 arg0
-ret rand1421
+sin rand1517 arg0
+ret rand1517
 ~
 ~ stateManager:graphics:math:cos
-cos rand1424 arg0
-ret rand1424
+cos rand1520 arg0
+ret rand1520
 ~
 ~ stateManager:graphics:math:tan
-tan rand1427 arg0
-ret rand1427
+tan rand1523 arg0
+ret rand1523
 ~
 ~ stateManager:graphics:math:round
-round rand1430 arg0
-ret rand1430
+round rand1526 arg0
+ret rand1526
 ~
 ~ stateManager:graphics:math:floor
-floor rand1433 arg0
-ret rand1433
+floor rand1529 arg0
+ret rand1529
 ~
 ~ stateManager:graphics:math:ceiling
-ceiling rand1436 arg0
-ret rand1436
+ceiling rand1532 arg0
+ret rand1532
 ~
 ~ stateManager:graphics:math:lerp
-sub rand1443 arg1 arg0
-mul rand1442 rand1443 arg2
-add rand1441 rand1442 arg0
-ret rand1441
+sub rand1539 arg1 arg0
+mul rand1538 rand1539 arg2
+add rand1537 rand1538 arg0
+ret rand1537
 ~
 ~ stateManager:graphics:math:mid
-add rand1448 arg0 arg1
-set num rand1449 2
-div rand1447 rand1448 rand1449
-ret rand1447
+add rand1544 arg0 arg1
+set num rand1545 2
+div rand1543 rand1544 rand1545
+ret rand1543
 ~
 ~ stateManager:graphics:getDefaultFrame
-callget rand1452 stateManager:graphics:io:getScreenSize 
-set num rand1457 0
-obj get rand1452 rand1455 rand1457
-set str rand1458  doesnt exist on screenSize
-add rand1458 rand1457 rand1458
-ernull rand1455 rand1458
-set num rand1456 -0.5
-mul rand1454 rand1455 rand1456
-set num rand1462 1
-obj get rand1452 rand1460 rand1462
-set str rand1463  doesnt exist on screenSize
-add rand1463 rand1462 rand1463
-ernull rand1460 rand1463
-set num rand1461 -0.5
-mul rand1459 rand1460 rand1461
-set num rand1467 0
-obj get rand1452 rand1465 rand1467
-set str rand1468  doesnt exist on screenSize
-add rand1468 rand1467 rand1468
-ernull rand1465 rand1468
-set num rand1466 0.5
-mul rand1464 rand1465 rand1466
-set num rand1472 1
-obj get rand1452 rand1470 rand1472
-set str rand1473  doesnt exist on screenSize
-add rand1473 rand1472 rand1473
-ernull rand1470 rand1473
-set num rand1471 0.5
-mul rand1469 rand1470 rand1471
-set obj rand1453 {"methods":{".cns":"~ rand367\nset str rand1482 attributes\nobj get arg0 rand1481 rand1482\nset str rand1482 x1\nobj get rand1481 rand1480 rand1482\ndupe rand1480 arg1\nobj set rand1481 rand1482 rand1480\nset str rand1485 attributes\nobj get arg0 rand1484 rand1485\nset str rand1485 y1\nobj get rand1484 rand1483 rand1485\ndupe rand1483 arg2\nobj set rand1484 rand1485 rand1483\nset str rand1488 attributes\nobj get arg0 rand1487 rand1488\nset str rand1488 x2\nobj get rand1487 rand1486 rand1488\ndupe rand1486 arg3\nobj set rand1487 rand1488 rand1486\nset str rand1491 attributes\nobj get arg0 rand1490 rand1491\nset str rand1491 y2\nobj get rand1490 rand1489 rand1491\ndupe rand1489 arg4\nobj set rand1490 rand1491 rand1489\n~","getX":"~ rand368\nset str rand1495 attributes\nobj get arg0 rand1494 rand1495\nset str rand1495 x1\nobj get rand1494 rand1493 rand1495\nset str rand1496 x1 attribute is null\nerrnull rand1493 rand1496\nset str rand1499 attributes\nobj get arg0 rand1498 rand1499\nset str rand1499 x2\nobj get rand1498 rand1497 rand1499\nset str rand1500 x2 attribute is null\nerrnull rand1497 rand1500\ncallget rand1492 stateManager:graphics:math:mid rand1493 rand1497\nret rand1492\n~","getY":"~ rand369\nset str rand1504 attributes\nobj get arg0 rand1503 rand1504\nset str rand1504 y1\nobj get rand1503 rand1502 rand1504\nset str rand1505 y1 attribute is null\nerrnull rand1502 rand1505\nset str rand1508 attributes\nobj get arg0 rand1507 rand1508\nset str rand1508 y2\nobj get rand1507 rand1506 rand1508\nset str rand1509 y2 attribute is null\nerrnull rand1506 rand1509\ncallget rand1501 stateManager:graphics:math:mid rand1502 rand1506\nret rand1501\n~","getW":"~ rand370\nset str rand1514 attributes\nobj get arg0 rand1513 rand1514\nset str rand1514 x2\nobj get rand1513 rand1511 rand1514\nset str rand1515 x2 attribute is null\nerrnull rand1511 rand1515\nset str rand1517 attributes\nobj get arg0 rand1516 rand1517\nset str rand1517 x1\nobj get rand1516 rand1512 rand1517\nset str rand1518 x1 attribute is null\nerrnull rand1512 rand1518\nsub rand1510 rand1511 rand1512\nret rand1510\n~","getH":"~ rand371\nset str rand1523 attributes\nobj get arg0 rand1522 rand1523\nset str rand1523 y2\nobj get rand1522 rand1520 rand1523\nset str rand1524 y2 attribute is null\nerrnull rand1520 rand1524\nset str rand1526 attributes\nobj get arg0 rand1525 rand1526\nset str rand1526 y1\nobj get rand1525 rand1521 rand1526\nset str rand1527 y1 attribute is null\nerrnull rand1521 rand1527\nsub rand1519 rand1520 rand1521\nret rand1519\n~","getTL":"~ rand372\nset obj rand1528 []\nset str rand1531 attributes\nobj get arg0 rand1530 rand1531\nset str rand1531 x1\nobj get rand1530 rand1529 rand1531\nset str rand1532 x1 attribute is null\nerrnull rand1529 rand1532\narr add rand1528 rand1529\nset str rand1535 attributes\nobj get arg0 rand1534 rand1535\nset str rand1535 y2\nobj get rand1534 rand1533 rand1535\nset str rand1536 y2 attribute is null\nerrnull rand1533 rand1536\narr add rand1528 rand1533\nret rand1528\n~","getT":"~ rand373\nset obj rand1537 []\nset str rand1540 methods\nobj get arg0 rand1539 rand1540\nset str rand1540 getX\nobj get rand1539 rand1539 rand1540\ncallgetvar rand1538 rand1539 rand368 arg0 \narr add rand1537 rand1538\nset str rand1543 attributes\nobj get arg0 rand1542 rand1543\nset str rand1543 y2\nobj get rand1542 rand1541 rand1543\nset str rand1544 y2 attribute is null\nerrnull rand1541 rand1544\narr add rand1537 rand1541\nret rand1537\n~","getTR":"~ rand374\nset obj rand1545 []\nset str rand1548 attributes\nobj get arg0 rand1547 rand1548\nset str rand1548 x2\nobj get rand1547 rand1546 rand1548\nset str rand1549 x2 attribute is null\nerrnull rand1546 rand1549\narr add rand1545 rand1546\nset str rand1552 attributes\nobj get arg0 rand1551 rand1552\nset str rand1552 y2\nobj get rand1551 rand1550 rand1552\nset str rand1553 y2 attribute is null\nerrnull rand1550 rand1553\narr add rand1545 rand1550\nret rand1545\n~","getL":"~ rand375\nset obj rand1554 []\nset str rand1557 attributes\nobj get arg0 rand1556 rand1557\nset str rand1557 x1\nobj get rand1556 rand1555 rand1557\nset str rand1558 x1 attribute is null\nerrnull rand1555 rand1558\narr add rand1554 rand1555\nset str rand1561 methods\nobj get arg0 rand1560 rand1561\nset str rand1561 getY\nobj get rand1560 rand1560 rand1561\ncallgetvar rand1559 rand1560 rand369 arg0 \narr add rand1554 rand1559\nret rand1554\n~","getM":"~ rand376\nset obj rand1562 []\nset str rand1565 methods\nobj get arg0 rand1564 rand1565\nset str rand1565 getX\nobj get rand1564 rand1564 rand1565\ncallgetvar rand1563 rand1564 rand368 arg0 \narr add rand1562 rand1563\nset str rand1568 methods\nobj get arg0 rand1567 rand1568\nset str rand1568 getY\nobj get rand1567 rand1567 rand1568\ncallgetvar rand1566 rand1567 rand369 arg0 \narr add rand1562 rand1566\nret rand1562\n~","getR":"~ rand377\nset obj rand1569 []\nset str rand1572 attributes\nobj get arg0 rand1571 rand1572\nset str rand1572 x2\nobj get rand1571 rand1570 rand1572\nset str rand1573 x2 attribute is null\nerrnull rand1570 rand1573\narr add rand1569 rand1570\nset str rand1576 methods\nobj get arg0 rand1575 rand1576\nset str rand1576 getY\nobj get rand1575 rand1575 rand1576\ncallgetvar rand1574 rand1575 rand369 arg0 \narr add rand1569 rand1574\nret rand1569\n~","getBL":"~ rand378\nset obj rand1577 []\nset str rand1580 attributes\nobj get arg0 rand1579 rand1580\nset str rand1580 x1\nobj get rand1579 rand1578 rand1580\nset str rand1581 x1 attribute is null\nerrnull rand1578 rand1581\narr add rand1577 rand1578\nset str rand1584 attributes\nobj get arg0 rand1583 rand1584\nset str rand1584 y1\nobj get rand1583 rand1582 rand1584\nset str rand1585 y1 attribute is null\nerrnull rand1582 rand1585\narr add rand1577 rand1582\nret rand1577\n~","getB":"~ rand379\nset obj rand1586 []\nset str rand1589 methods\nobj get arg0 rand1588 rand1589\nset str rand1589 getX\nobj get rand1588 rand1588 rand1589\ncallgetvar rand1587 rand1588 rand368 arg0 \narr add rand1586 rand1587\nset str rand1592 attributes\nobj get arg0 rand1591 rand1592\nset str rand1592 y1\nobj get rand1591 rand1590 rand1592\nset str rand1593 y1 attribute is null\nerrnull rand1590 rand1593\narr add rand1586 rand1590\nret rand1586\n~","getBR":"~ rand380\nset obj rand1594 []\nset str rand1597 attributes\nobj get arg0 rand1596 rand1597\nset str rand1597 x2\nobj get rand1596 rand1595 rand1597\nset str rand1598 x2 attribute is null\nerrnull rand1595 rand1598\narr add rand1594 rand1595\nset str rand1601 attributes\nobj get arg0 rand1600 rand1601\nset str rand1601 y1\nobj get rand1600 rand1599 rand1601\nset str rand1602 y1 attribute is null\nerrnull rand1599 rand1602\narr add rand1594 rand1599\nret rand1594\n~","stringify":"~ rand381\nset str rand1614 Frame{\nset str rand1617 attributes\nobj get arg0 rand1616 rand1617\nset str rand1617 x1\nobj get rand1616 rand1615 rand1617\nset str rand1618 x1 attribute is null\nerrnull rand1615 rand1618\nadd rand1612 emptystring rand1614 rand1615\nset str rand1620 attributes\nobj get arg0 rand1619 rand1620\nset str rand1620 y1\nobj get rand1619 rand1613 rand1620\nset str rand1621 y1 attribute is null\nerrnull rand1613 rand1621\nadd rand1610 emptystring rand1612 comma rand1613\nset str rand1611 to\nadd rand1608 emptystring rand1610 space rand1611\nset str rand1623 attributes\nobj get arg0 rand1622 rand1623\nset str rand1623 x2\nobj get rand1622 rand1609 rand1623\nset str rand1624 x2 attribute is null\nerrnull rand1609 rand1624\nadd rand1606 emptystring rand1608 space rand1609\nset str rand1626 attributes\nobj get arg0 rand1625 rand1626\nset str rand1626 y2\nobj get rand1625 rand1607 rand1626\nset str rand1627 y2 attribute is null\nerrnull rand1607 rand1627\nadd rand1604 emptystring rand1606 comma rand1607\nset str rand1605 }\nadd rand1603 emptystring rand1604 rand1605\nret rand1603\n~"},"attributes":{}}
-set str rand1475 methods
-obj get rand1453 rand1474 rand1475
-set str rand1475 .cns
-obj get rand1474 rand1474 rand1475
-callvar rand1474 rand367 rand1453 rand1454 rand1459 rand1464 rand1469
-ret rand1453
+callget rand1548 stateManager:graphics:io:getScreenSize 
+set num rand1553 0
+obj get rand1548 rand1551 rand1553
+set str rand1554  doesnt exist on screenSize
+add rand1554 rand1553 rand1554
+ernull rand1551 rand1554
+set num rand1552 -0.5
+mul rand1550 rand1551 rand1552
+set num rand1558 1
+obj get rand1548 rand1556 rand1558
+set str rand1559  doesnt exist on screenSize
+add rand1559 rand1558 rand1559
+ernull rand1556 rand1559
+set num rand1557 -0.5
+mul rand1555 rand1556 rand1557
+set num rand1563 0
+obj get rand1548 rand1561 rand1563
+set str rand1564  doesnt exist on screenSize
+add rand1564 rand1563 rand1564
+ernull rand1561 rand1564
+set num rand1562 0.5
+mul rand1560 rand1561 rand1562
+set num rand1568 1
+obj get rand1548 rand1566 rand1568
+set str rand1569  doesnt exist on screenSize
+add rand1569 rand1568 rand1569
+ernull rand1566 rand1569
+set num rand1567 0.5
+mul rand1565 rand1566 rand1567
+set obj rand1549 {"methods":{".cns":"~ rand367\nset str rand1578 attributes\nobj get arg0 rand1577 rand1578\nset str rand1578 x1\nobj get rand1577 rand1576 rand1578\ndupe rand1576 arg1\nobj set rand1577 rand1578 rand1576\nset str rand1581 attributes\nobj get arg0 rand1580 rand1581\nset str rand1581 y1\nobj get rand1580 rand1579 rand1581\ndupe rand1579 arg2\nobj set rand1580 rand1581 rand1579\nset str rand1584 attributes\nobj get arg0 rand1583 rand1584\nset str rand1584 x2\nobj get rand1583 rand1582 rand1584\ndupe rand1582 arg3\nobj set rand1583 rand1584 rand1582\nset str rand1587 attributes\nobj get arg0 rand1586 rand1587\nset str rand1587 y2\nobj get rand1586 rand1585 rand1587\ndupe rand1585 arg4\nobj set rand1586 rand1587 rand1585\n~","getX":"~ rand368\nset str rand1591 attributes\nobj get arg0 rand1590 rand1591\nset str rand1591 x1\nobj get rand1590 rand1589 rand1591\nset str rand1592 x1 attribute is null\nerrnull rand1589 rand1592\nset str rand1595 attributes\nobj get arg0 rand1594 rand1595\nset str rand1595 x2\nobj get rand1594 rand1593 rand1595\nset str rand1596 x2 attribute is null\nerrnull rand1593 rand1596\ncallget rand1588 stateManager:graphics:math:mid rand1589 rand1593\nret rand1588\n~","getY":"~ rand369\nset str rand1600 attributes\nobj get arg0 rand1599 rand1600\nset str rand1600 y1\nobj get rand1599 rand1598 rand1600\nset str rand1601 y1 attribute is null\nerrnull rand1598 rand1601\nset str rand1604 attributes\nobj get arg0 rand1603 rand1604\nset str rand1604 y2\nobj get rand1603 rand1602 rand1604\nset str rand1605 y2 attribute is null\nerrnull rand1602 rand1605\ncallget rand1597 stateManager:graphics:math:mid rand1598 rand1602\nret rand1597\n~","getW":"~ rand370\nset str rand1610 attributes\nobj get arg0 rand1609 rand1610\nset str rand1610 x2\nobj get rand1609 rand1607 rand1610\nset str rand1611 x2 attribute is null\nerrnull rand1607 rand1611\nset str rand1613 attributes\nobj get arg0 rand1612 rand1613\nset str rand1613 x1\nobj get rand1612 rand1608 rand1613\nset str rand1614 x1 attribute is null\nerrnull rand1608 rand1614\nsub rand1606 rand1607 rand1608\nret rand1606\n~","getH":"~ rand371\nset str rand1619 attributes\nobj get arg0 rand1618 rand1619\nset str rand1619 y2\nobj get rand1618 rand1616 rand1619\nset str rand1620 y2 attribute is null\nerrnull rand1616 rand1620\nset str rand1622 attributes\nobj get arg0 rand1621 rand1622\nset str rand1622 y1\nobj get rand1621 rand1617 rand1622\nset str rand1623 y1 attribute is null\nerrnull rand1617 rand1623\nsub rand1615 rand1616 rand1617\nret rand1615\n~","getTL":"~ rand372\nset obj rand1624 []\nset str rand1627 attributes\nobj get arg0 rand1626 rand1627\nset str rand1627 x1\nobj get rand1626 rand1625 rand1627\nset str rand1628 x1 attribute is null\nerrnull rand1625 rand1628\narr add rand1624 rand1625\nset str rand1631 attributes\nobj get arg0 rand1630 rand1631\nset str rand1631 y2\nobj get rand1630 rand1629 rand1631\nset str rand1632 y2 attribute is null\nerrnull rand1629 rand1632\narr add rand1624 rand1629\nret rand1624\n~","getT":"~ rand373\nset obj rand1633 []\nset str rand1636 methods\nobj get arg0 rand1635 rand1636\nset str rand1636 getX\nobj get rand1635 rand1635 rand1636\ncallgetvar rand1634 rand1635 rand368 arg0 \narr add rand1633 rand1634\nset str rand1639 attributes\nobj get arg0 rand1638 rand1639\nset str rand1639 y2\nobj get rand1638 rand1637 rand1639\nset str rand1640 y2 attribute is null\nerrnull rand1637 rand1640\narr add rand1633 rand1637\nret rand1633\n~","getTR":"~ rand374\nset obj rand1641 []\nset str rand1644 attributes\nobj get arg0 rand1643 rand1644\nset str rand1644 x2\nobj get rand1643 rand1642 rand1644\nset str rand1645 x2 attribute is null\nerrnull rand1642 rand1645\narr add rand1641 rand1642\nset str rand1648 attributes\nobj get arg0 rand1647 rand1648\nset str rand1648 y2\nobj get rand1647 rand1646 rand1648\nset str rand1649 y2 attribute is null\nerrnull rand1646 rand1649\narr add rand1641 rand1646\nret rand1641\n~","getL":"~ rand375\nset obj rand1650 []\nset str rand1653 attributes\nobj get arg0 rand1652 rand1653\nset str rand1653 x1\nobj get rand1652 rand1651 rand1653\nset str rand1654 x1 attribute is null\nerrnull rand1651 rand1654\narr add rand1650 rand1651\nset str rand1657 methods\nobj get arg0 rand1656 rand1657\nset str rand1657 getY\nobj get rand1656 rand1656 rand1657\ncallgetvar rand1655 rand1656 rand369 arg0 \narr add rand1650 rand1655\nret rand1650\n~","getM":"~ rand376\nset obj rand1658 []\nset str rand1661 methods\nobj get arg0 rand1660 rand1661\nset str rand1661 getX\nobj get rand1660 rand1660 rand1661\ncallgetvar rand1659 rand1660 rand368 arg0 \narr add rand1658 rand1659\nset str rand1664 methods\nobj get arg0 rand1663 rand1664\nset str rand1664 getY\nobj get rand1663 rand1663 rand1664\ncallgetvar rand1662 rand1663 rand369 arg0 \narr add rand1658 rand1662\nret rand1658\n~","getR":"~ rand377\nset obj rand1665 []\nset str rand1668 attributes\nobj get arg0 rand1667 rand1668\nset str rand1668 x2\nobj get rand1667 rand1666 rand1668\nset str rand1669 x2 attribute is null\nerrnull rand1666 rand1669\narr add rand1665 rand1666\nset str rand1672 methods\nobj get arg0 rand1671 rand1672\nset str rand1672 getY\nobj get rand1671 rand1671 rand1672\ncallgetvar rand1670 rand1671 rand369 arg0 \narr add rand1665 rand1670\nret rand1665\n~","getBL":"~ rand378\nset obj rand1673 []\nset str rand1676 attributes\nobj get arg0 rand1675 rand1676\nset str rand1676 x1\nobj get rand1675 rand1674 rand1676\nset str rand1677 x1 attribute is null\nerrnull rand1674 rand1677\narr add rand1673 rand1674\nset str rand1680 attributes\nobj get arg0 rand1679 rand1680\nset str rand1680 y1\nobj get rand1679 rand1678 rand1680\nset str rand1681 y1 attribute is null\nerrnull rand1678 rand1681\narr add rand1673 rand1678\nret rand1673\n~","getB":"~ rand379\nset obj rand1682 []\nset str rand1685 methods\nobj get arg0 rand1684 rand1685\nset str rand1685 getX\nobj get rand1684 rand1684 rand1685\ncallgetvar rand1683 rand1684 rand368 arg0 \narr add rand1682 rand1683\nset str rand1688 attributes\nobj get arg0 rand1687 rand1688\nset str rand1688 y1\nobj get rand1687 rand1686 rand1688\nset str rand1689 y1 attribute is null\nerrnull rand1686 rand1689\narr add rand1682 rand1686\nret rand1682\n~","getBR":"~ rand380\nset obj rand1690 []\nset str rand1693 attributes\nobj get arg0 rand1692 rand1693\nset str rand1693 x2\nobj get rand1692 rand1691 rand1693\nset str rand1694 x2 attribute is null\nerrnull rand1691 rand1694\narr add rand1690 rand1691\nset str rand1697 attributes\nobj get arg0 rand1696 rand1697\nset str rand1697 y1\nobj get rand1696 rand1695 rand1697\nset str rand1698 y1 attribute is null\nerrnull rand1695 rand1698\narr add rand1690 rand1695\nret rand1690\n~","stringify":"~ rand381\nset str rand1710 Frame{\nset str rand1713 attributes\nobj get arg0 rand1712 rand1713\nset str rand1713 x1\nobj get rand1712 rand1711 rand1713\nset str rand1714 x1 attribute is null\nerrnull rand1711 rand1714\nadd rand1708 emptystring rand1710 rand1711\nset str rand1716 attributes\nobj get arg0 rand1715 rand1716\nset str rand1716 y1\nobj get rand1715 rand1709 rand1716\nset str rand1717 y1 attribute is null\nerrnull rand1709 rand1717\nadd rand1706 emptystring rand1708 comma rand1709\nset str rand1707 to\nadd rand1704 emptystring rand1706 space rand1707\nset str rand1719 attributes\nobj get arg0 rand1718 rand1719\nset str rand1719 x2\nobj get rand1718 rand1705 rand1719\nset str rand1720 x2 attribute is null\nerrnull rand1705 rand1720\nadd rand1702 emptystring rand1704 space rand1705\nset str rand1722 attributes\nobj get arg0 rand1721 rand1722\nset str rand1722 y2\nobj get rand1721 rand1703 rand1722\nset str rand1723 y2 attribute is null\nerrnull rand1703 rand1723\nadd rand1700 emptystring rand1702 comma rand1703\nset str rand1701 }\nadd rand1699 emptystring rand1700 rand1701\nret rand1699\n~"},"attributes":{}}
+set str rand1571 methods
+obj get rand1549 rand1570 rand1571
+set str rand1571 .cns
+obj get rand1570 rand1570 rand1571
+callvar rand1570 rand367 rand1549 rand1550 rand1555 rand1560 rand1565
+ret rand1549
 ~
 ~ stateManager:initState
-set str rand1638 attributes
-obj get arg0 rand1637 rand1638
-set str rand1638 type
-obj get rand1637 rand1635 rand1638
-set str rand1636 terminal
-eql rand1634 rand1635 rand1636
-jn rand1639 rand1634
+set str rand1734 attributes
+obj get arg0 rand1733 rand1734
+set str rand1734 type
+obj get rand1733 rand1731 rand1734
+set str rand1732 terminal
+eql rand1730 rand1731 rand1732
+jn rand1735 rand1730
 call stateManager:terminal:init arg0 arg1
-: rand1639
+: rand1735
 ret
 ~
 ~ stateManager:updateState
-set str rand1647 attributes
-obj get arg0 rand1646 rand1647
-set str rand1647 time
-obj get rand1646 rand1645 rand1647
-set str rand1649 methods
-obj get rand1645 rand1648 rand1649
-set str rand1649 updateFrame
-obj get rand1648 rand1648 rand1649
-callvar rand1648 rand97 rand1645 
-set str rand1654 attributes
-obj get arg0 rand1653 rand1654
-set str rand1654 type
-obj get rand1653 rand1651 rand1654
-set str rand1652 terminal
-eql rand1650 rand1651 rand1652
-jn rand1655 rand1650
+set str rand1743 attributes
+obj get arg0 rand1742 rand1743
+set str rand1743 time
+obj get rand1742 rand1741 rand1743
+set str rand1745 methods
+obj get rand1741 rand1744 rand1745
+set str rand1745 updateFrame
+obj get rand1744 rand1744 rand1745
+callvar rand1744 rand97 rand1741 
+set str rand1750 attributes
+obj get arg0 rand1749 rand1750
+set str rand1750 type
+obj get rand1749 rand1747 rand1750
+set str rand1748 terminal
+eql rand1746 rand1747 rand1748
+jn rand1751 rand1746
 call stateManager:terminal:update arg0 arg1
-: rand1655
+: rand1751
 ret
 ~
 ~ graphics:io:throw
@@ -1182,177 +1218,213 @@ err arg0
 ret
 ~
 ~ graphics:io:getScreenSize
-const screen_width rand1661
-const screen_height rand1662
-set obj rand1663 []
-arr add rand1663 rand1661
-arr add rand1663 rand1662
-ret rand1663
+const screen_width rand1757
+const screen_height rand1758
+set obj rand1759 []
+arr add rand1759 rand1757
+arr add rand1759 rand1758
+ret rand1759
 ~
 ~ graphics:io:getCurrentMs
-const ms rand1665
-ret rand1665
+const ms rand1761
+ret rand1761
 ~
 ~ graphics:math:sin
-sin rand1668 arg0
-ret rand1668
+sin rand1764 arg0
+ret rand1764
 ~
 ~ graphics:math:cos
-cos rand1671 arg0
-ret rand1671
+cos rand1767 arg0
+ret rand1767
 ~
 ~ graphics:math:tan
-tan rand1674 arg0
-ret rand1674
+tan rand1770 arg0
+ret rand1770
 ~
 ~ graphics:math:round
-round rand1677 arg0
-ret rand1677
+round rand1773 arg0
+ret rand1773
 ~
 ~ graphics:math:floor
-floor rand1680 arg0
-ret rand1680
+floor rand1776 arg0
+ret rand1776
 ~
 ~ graphics:math:ceiling
-ceiling rand1683 arg0
-ret rand1683
+ceiling rand1779 arg0
+ret rand1779
 ~
 ~ graphics:math:lerp
-sub rand1690 arg1 arg0
-mul rand1689 rand1690 arg2
-add rand1688 rand1689 arg0
-ret rand1688
+sub rand1786 arg1 arg0
+mul rand1785 rand1786 arg2
+add rand1784 rand1785 arg0
+ret rand1784
 ~
 ~ graphics:math:mid
-add rand1695 arg0 arg1
-set num rand1696 2
-div rand1694 rand1695 rand1696
-ret rand1694
+add rand1791 arg0 arg1
+set num rand1792 2
+div rand1790 rand1791 rand1792
+ret rand1790
 ~
 ~ graphics:getDefaultFrame
-callget rand1698 graphics:io:getScreenSize 
-set num rand1703 0
-obj get rand1698 rand1701 rand1703
-set str rand1704  doesnt exist on screenSize
-add rand1704 rand1703 rand1704
-ernull rand1701 rand1704
-set num rand1702 -0.5
-mul rand1700 rand1701 rand1702
-set num rand1708 1
-obj get rand1698 rand1706 rand1708
-set str rand1709  doesnt exist on screenSize
-add rand1709 rand1708 rand1709
-ernull rand1706 rand1709
-set num rand1707 -0.5
-mul rand1705 rand1706 rand1707
-set num rand1713 0
-obj get rand1698 rand1711 rand1713
-set str rand1714  doesnt exist on screenSize
-add rand1714 rand1713 rand1714
-ernull rand1711 rand1714
-set num rand1712 0.5
-mul rand1710 rand1711 rand1712
-set num rand1718 1
-obj get rand1698 rand1716 rand1718
-set str rand1719  doesnt exist on screenSize
-add rand1719 rand1718 rand1719
-ernull rand1716 rand1719
-set num rand1717 0.5
-mul rand1715 rand1716 rand1717
-set obj rand1699 {"methods":{".cns":"~ rand367\nset str rand1728 attributes\nobj get arg0 rand1727 rand1728\nset str rand1728 x1\nobj get rand1727 rand1726 rand1728\ndupe rand1726 arg1\nobj set rand1727 rand1728 rand1726\nset str rand1731 attributes\nobj get arg0 rand1730 rand1731\nset str rand1731 y1\nobj get rand1730 rand1729 rand1731\ndupe rand1729 arg2\nobj set rand1730 rand1731 rand1729\nset str rand1734 attributes\nobj get arg0 rand1733 rand1734\nset str rand1734 x2\nobj get rand1733 rand1732 rand1734\ndupe rand1732 arg3\nobj set rand1733 rand1734 rand1732\nset str rand1737 attributes\nobj get arg0 rand1736 rand1737\nset str rand1737 y2\nobj get rand1736 rand1735 rand1737\ndupe rand1735 arg4\nobj set rand1736 rand1737 rand1735\n~","getX":"~ rand368\nset str rand1741 attributes\nobj get arg0 rand1740 rand1741\nset str rand1741 x1\nobj get rand1740 rand1739 rand1741\nset str rand1742 x1 attribute is null\nerrnull rand1739 rand1742\nset str rand1745 attributes\nobj get arg0 rand1744 rand1745\nset str rand1745 x2\nobj get rand1744 rand1743 rand1745\nset str rand1746 x2 attribute is null\nerrnull rand1743 rand1746\ncallget rand1738 graphics:math:mid rand1739 rand1743\nret rand1738\n~","getY":"~ rand369\nset str rand1750 attributes\nobj get arg0 rand1749 rand1750\nset str rand1750 y1\nobj get rand1749 rand1748 rand1750\nset str rand1751 y1 attribute is null\nerrnull rand1748 rand1751\nset str rand1754 attributes\nobj get arg0 rand1753 rand1754\nset str rand1754 y2\nobj get rand1753 rand1752 rand1754\nset str rand1755 y2 attribute is null\nerrnull rand1752 rand1755\ncallget rand1747 graphics:math:mid rand1748 rand1752\nret rand1747\n~","getW":"~ rand370\nset str rand1760 attributes\nobj get arg0 rand1759 rand1760\nset str rand1760 x2\nobj get rand1759 rand1757 rand1760\nset str rand1761 x2 attribute is null\nerrnull rand1757 rand1761\nset str rand1763 attributes\nobj get arg0 rand1762 rand1763\nset str rand1763 x1\nobj get rand1762 rand1758 rand1763\nset str rand1764 x1 attribute is null\nerrnull rand1758 rand1764\nsub rand1756 rand1757 rand1758\nret rand1756\n~","getH":"~ rand371\nset str rand1769 attributes\nobj get arg0 rand1768 rand1769\nset str rand1769 y2\nobj get rand1768 rand1766 rand1769\nset str rand1770 y2 attribute is null\nerrnull rand1766 rand1770\nset str rand1772 attributes\nobj get arg0 rand1771 rand1772\nset str rand1772 y1\nobj get rand1771 rand1767 rand1772\nset str rand1773 y1 attribute is null\nerrnull rand1767 rand1773\nsub rand1765 rand1766 rand1767\nret rand1765\n~","getTL":"~ rand372\nset obj rand1774 []\nset str rand1777 attributes\nobj get arg0 rand1776 rand1777\nset str rand1777 x1\nobj get rand1776 rand1775 rand1777\nset str rand1778 x1 attribute is null\nerrnull rand1775 rand1778\narr add rand1774 rand1775\nset str rand1781 attributes\nobj get arg0 rand1780 rand1781\nset str rand1781 y2\nobj get rand1780 rand1779 rand1781\nset str rand1782 y2 attribute is null\nerrnull rand1779 rand1782\narr add rand1774 rand1779\nret rand1774\n~","getT":"~ rand373\nset obj rand1783 []\nset str rand1786 methods\nobj get arg0 rand1785 rand1786\nset str rand1786 getX\nobj get rand1785 rand1785 rand1786\ncallgetvar rand1784 rand1785 rand368 arg0 \narr add rand1783 rand1784\nset str rand1789 attributes\nobj get arg0 rand1788 rand1789\nset str rand1789 y2\nobj get rand1788 rand1787 rand1789\nset str rand1790 y2 attribute is null\nerrnull rand1787 rand1790\narr add rand1783 rand1787\nret rand1783\n~","getTR":"~ rand374\nset obj rand1791 []\nset str rand1794 attributes\nobj get arg0 rand1793 rand1794\nset str rand1794 x2\nobj get rand1793 rand1792 rand1794\nset str rand1795 x2 attribute is null\nerrnull rand1792 rand1795\narr add rand1791 rand1792\nset str rand1798 attributes\nobj get arg0 rand1797 rand1798\nset str rand1798 y2\nobj get rand1797 rand1796 rand1798\nset str rand1799 y2 attribute is null\nerrnull rand1796 rand1799\narr add rand1791 rand1796\nret rand1791\n~","getL":"~ rand375\nset obj rand1800 []\nset str rand1803 attributes\nobj get arg0 rand1802 rand1803\nset str rand1803 x1\nobj get rand1802 rand1801 rand1803\nset str rand1804 x1 attribute is null\nerrnull rand1801 rand1804\narr add rand1800 rand1801\nset str rand1807 methods\nobj get arg0 rand1806 rand1807\nset str rand1807 getY\nobj get rand1806 rand1806 rand1807\ncallgetvar rand1805 rand1806 rand369 arg0 \narr add rand1800 rand1805\nret rand1800\n~","getM":"~ rand376\nset obj rand1808 []\nset str rand1811 methods\nobj get arg0 rand1810 rand1811\nset str rand1811 getX\nobj get rand1810 rand1810 rand1811\ncallgetvar rand1809 rand1810 rand368 arg0 \narr add rand1808 rand1809\nset str rand1814 methods\nobj get arg0 rand1813 rand1814\nset str rand1814 getY\nobj get rand1813 rand1813 rand1814\ncallgetvar rand1812 rand1813 rand369 arg0 \narr add rand1808 rand1812\nret rand1808\n~","getR":"~ rand377\nset obj rand1815 []\nset str rand1818 attributes\nobj get arg0 rand1817 rand1818\nset str rand1818 x2\nobj get rand1817 rand1816 rand1818\nset str rand1819 x2 attribute is null\nerrnull rand1816 rand1819\narr add rand1815 rand1816\nset str rand1822 methods\nobj get arg0 rand1821 rand1822\nset str rand1822 getY\nobj get rand1821 rand1821 rand1822\ncallgetvar rand1820 rand1821 rand369 arg0 \narr add rand1815 rand1820\nret rand1815\n~","getBL":"~ rand378\nset obj rand1823 []\nset str rand1826 attributes\nobj get arg0 rand1825 rand1826\nset str rand1826 x1\nobj get rand1825 rand1824 rand1826\nset str rand1827 x1 attribute is null\nerrnull rand1824 rand1827\narr add rand1823 rand1824\nset str rand1830 attributes\nobj get arg0 rand1829 rand1830\nset str rand1830 y1\nobj get rand1829 rand1828 rand1830\nset str rand1831 y1 attribute is null\nerrnull rand1828 rand1831\narr add rand1823 rand1828\nret rand1823\n~","getB":"~ rand379\nset obj rand1832 []\nset str rand1835 methods\nobj get arg0 rand1834 rand1835\nset str rand1835 getX\nobj get rand1834 rand1834 rand1835\ncallgetvar rand1833 rand1834 rand368 arg0 \narr add rand1832 rand1833\nset str rand1838 attributes\nobj get arg0 rand1837 rand1838\nset str rand1838 y1\nobj get rand1837 rand1836 rand1838\nset str rand1839 y1 attribute is null\nerrnull rand1836 rand1839\narr add rand1832 rand1836\nret rand1832\n~","getBR":"~ rand380\nset obj rand1840 []\nset str rand1843 attributes\nobj get arg0 rand1842 rand1843\nset str rand1843 x2\nobj get rand1842 rand1841 rand1843\nset str rand1844 x2 attribute is null\nerrnull rand1841 rand1844\narr add rand1840 rand1841\nset str rand1847 attributes\nobj get arg0 rand1846 rand1847\nset str rand1847 y1\nobj get rand1846 rand1845 rand1847\nset str rand1848 y1 attribute is null\nerrnull rand1845 rand1848\narr add rand1840 rand1845\nret rand1840\n~","stringify":"~ rand381\nset str rand1860 Frame{\nset str rand1863 attributes\nobj get arg0 rand1862 rand1863\nset str rand1863 x1\nobj get rand1862 rand1861 rand1863\nset str rand1864 x1 attribute is null\nerrnull rand1861 rand1864\nadd rand1858 emptystring rand1860 rand1861\nset str rand1866 attributes\nobj get arg0 rand1865 rand1866\nset str rand1866 y1\nobj get rand1865 rand1859 rand1866\nset str rand1867 y1 attribute is null\nerrnull rand1859 rand1867\nadd rand1856 emptystring rand1858 comma rand1859\nset str rand1857 to\nadd rand1854 emptystring rand1856 space rand1857\nset str rand1869 attributes\nobj get arg0 rand1868 rand1869\nset str rand1869 x2\nobj get rand1868 rand1855 rand1869\nset str rand1870 x2 attribute is null\nerrnull rand1855 rand1870\nadd rand1852 emptystring rand1854 space rand1855\nset str rand1872 attributes\nobj get arg0 rand1871 rand1872\nset str rand1872 y2\nobj get rand1871 rand1853 rand1872\nset str rand1873 y2 attribute is null\nerrnull rand1853 rand1873\nadd rand1850 emptystring rand1852 comma rand1853\nset str rand1851 }\nadd rand1849 emptystring rand1850 rand1851\nret rand1849\n~"},"attributes":{}}
-set str rand1721 methods
-obj get rand1699 rand1720 rand1721
-set str rand1721 .cns
-obj get rand1720 rand1720 rand1721
-callvar rand1720 rand367 rand1699 rand1700 rand1705 rand1710 rand1715
-ret rand1699
+callget rand1794 graphics:io:getScreenSize 
+set num rand1799 0
+obj get rand1794 rand1797 rand1799
+set str rand1800  doesnt exist on screenSize
+add rand1800 rand1799 rand1800
+ernull rand1797 rand1800
+set num rand1798 -0.5
+mul rand1796 rand1797 rand1798
+set num rand1804 1
+obj get rand1794 rand1802 rand1804
+set str rand1805  doesnt exist on screenSize
+add rand1805 rand1804 rand1805
+ernull rand1802 rand1805
+set num rand1803 -0.5
+mul rand1801 rand1802 rand1803
+set num rand1809 0
+obj get rand1794 rand1807 rand1809
+set str rand1810  doesnt exist on screenSize
+add rand1810 rand1809 rand1810
+ernull rand1807 rand1810
+set num rand1808 0.5
+mul rand1806 rand1807 rand1808
+set num rand1814 1
+obj get rand1794 rand1812 rand1814
+set str rand1815  doesnt exist on screenSize
+add rand1815 rand1814 rand1815
+ernull rand1812 rand1815
+set num rand1813 0.5
+mul rand1811 rand1812 rand1813
+set obj rand1795 {"methods":{".cns":"~ rand367\nset str rand1824 attributes\nobj get arg0 rand1823 rand1824\nset str rand1824 x1\nobj get rand1823 rand1822 rand1824\ndupe rand1822 arg1\nobj set rand1823 rand1824 rand1822\nset str rand1827 attributes\nobj get arg0 rand1826 rand1827\nset str rand1827 y1\nobj get rand1826 rand1825 rand1827\ndupe rand1825 arg2\nobj set rand1826 rand1827 rand1825\nset str rand1830 attributes\nobj get arg0 rand1829 rand1830\nset str rand1830 x2\nobj get rand1829 rand1828 rand1830\ndupe rand1828 arg3\nobj set rand1829 rand1830 rand1828\nset str rand1833 attributes\nobj get arg0 rand1832 rand1833\nset str rand1833 y2\nobj get rand1832 rand1831 rand1833\ndupe rand1831 arg4\nobj set rand1832 rand1833 rand1831\n~","getX":"~ rand368\nset str rand1837 attributes\nobj get arg0 rand1836 rand1837\nset str rand1837 x1\nobj get rand1836 rand1835 rand1837\nset str rand1838 x1 attribute is null\nerrnull rand1835 rand1838\nset str rand1841 attributes\nobj get arg0 rand1840 rand1841\nset str rand1841 x2\nobj get rand1840 rand1839 rand1841\nset str rand1842 x2 attribute is null\nerrnull rand1839 rand1842\ncallget rand1834 graphics:math:mid rand1835 rand1839\nret rand1834\n~","getY":"~ rand369\nset str rand1846 attributes\nobj get arg0 rand1845 rand1846\nset str rand1846 y1\nobj get rand1845 rand1844 rand1846\nset str rand1847 y1 attribute is null\nerrnull rand1844 rand1847\nset str rand1850 attributes\nobj get arg0 rand1849 rand1850\nset str rand1850 y2\nobj get rand1849 rand1848 rand1850\nset str rand1851 y2 attribute is null\nerrnull rand1848 rand1851\ncallget rand1843 graphics:math:mid rand1844 rand1848\nret rand1843\n~","getW":"~ rand370\nset str rand1856 attributes\nobj get arg0 rand1855 rand1856\nset str rand1856 x2\nobj get rand1855 rand1853 rand1856\nset str rand1857 x2 attribute is null\nerrnull rand1853 rand1857\nset str rand1859 attributes\nobj get arg0 rand1858 rand1859\nset str rand1859 x1\nobj get rand1858 rand1854 rand1859\nset str rand1860 x1 attribute is null\nerrnull rand1854 rand1860\nsub rand1852 rand1853 rand1854\nret rand1852\n~","getH":"~ rand371\nset str rand1865 attributes\nobj get arg0 rand1864 rand1865\nset str rand1865 y2\nobj get rand1864 rand1862 rand1865\nset str rand1866 y2 attribute is null\nerrnull rand1862 rand1866\nset str rand1868 attributes\nobj get arg0 rand1867 rand1868\nset str rand1868 y1\nobj get rand1867 rand1863 rand1868\nset str rand1869 y1 attribute is null\nerrnull rand1863 rand1869\nsub rand1861 rand1862 rand1863\nret rand1861\n~","getTL":"~ rand372\nset obj rand1870 []\nset str rand1873 attributes\nobj get arg0 rand1872 rand1873\nset str rand1873 x1\nobj get rand1872 rand1871 rand1873\nset str rand1874 x1 attribute is null\nerrnull rand1871 rand1874\narr add rand1870 rand1871\nset str rand1877 attributes\nobj get arg0 rand1876 rand1877\nset str rand1877 y2\nobj get rand1876 rand1875 rand1877\nset str rand1878 y2 attribute is null\nerrnull rand1875 rand1878\narr add rand1870 rand1875\nret rand1870\n~","getT":"~ rand373\nset obj rand1879 []\nset str rand1882 methods\nobj get arg0 rand1881 rand1882\nset str rand1882 getX\nobj get rand1881 rand1881 rand1882\ncallgetvar rand1880 rand1881 rand368 arg0 \narr add rand1879 rand1880\nset str rand1885 attributes\nobj get arg0 rand1884 rand1885\nset str rand1885 y2\nobj get rand1884 rand1883 rand1885\nset str rand1886 y2 attribute is null\nerrnull rand1883 rand1886\narr add rand1879 rand1883\nret rand1879\n~","getTR":"~ rand374\nset obj rand1887 []\nset str rand1890 attributes\nobj get arg0 rand1889 rand1890\nset str rand1890 x2\nobj get rand1889 rand1888 rand1890\nset str rand1891 x2 attribute is null\nerrnull rand1888 rand1891\narr add rand1887 rand1888\nset str rand1894 attributes\nobj get arg0 rand1893 rand1894\nset str rand1894 y2\nobj get rand1893 rand1892 rand1894\nset str rand1895 y2 attribute is null\nerrnull rand1892 rand1895\narr add rand1887 rand1892\nret rand1887\n~","getL":"~ rand375\nset obj rand1896 []\nset str rand1899 attributes\nobj get arg0 rand1898 rand1899\nset str rand1899 x1\nobj get rand1898 rand1897 rand1899\nset str rand1900 x1 attribute is null\nerrnull rand1897 rand1900\narr add rand1896 rand1897\nset str rand1903 methods\nobj get arg0 rand1902 rand1903\nset str rand1903 getY\nobj get rand1902 rand1902 rand1903\ncallgetvar rand1901 rand1902 rand369 arg0 \narr add rand1896 rand1901\nret rand1896\n~","getM":"~ rand376\nset obj rand1904 []\nset str rand1907 methods\nobj get arg0 rand1906 rand1907\nset str rand1907 getX\nobj get rand1906 rand1906 rand1907\ncallgetvar rand1905 rand1906 rand368 arg0 \narr add rand1904 rand1905\nset str rand1910 methods\nobj get arg0 rand1909 rand1910\nset str rand1910 getY\nobj get rand1909 rand1909 rand1910\ncallgetvar rand1908 rand1909 rand369 arg0 \narr add rand1904 rand1908\nret rand1904\n~","getR":"~ rand377\nset obj rand1911 []\nset str rand1914 attributes\nobj get arg0 rand1913 rand1914\nset str rand1914 x2\nobj get rand1913 rand1912 rand1914\nset str rand1915 x2 attribute is null\nerrnull rand1912 rand1915\narr add rand1911 rand1912\nset str rand1918 methods\nobj get arg0 rand1917 rand1918\nset str rand1918 getY\nobj get rand1917 rand1917 rand1918\ncallgetvar rand1916 rand1917 rand369 arg0 \narr add rand1911 rand1916\nret rand1911\n~","getBL":"~ rand378\nset obj rand1919 []\nset str rand1922 attributes\nobj get arg0 rand1921 rand1922\nset str rand1922 x1\nobj get rand1921 rand1920 rand1922\nset str rand1923 x1 attribute is null\nerrnull rand1920 rand1923\narr add rand1919 rand1920\nset str rand1926 attributes\nobj get arg0 rand1925 rand1926\nset str rand1926 y1\nobj get rand1925 rand1924 rand1926\nset str rand1927 y1 attribute is null\nerrnull rand1924 rand1927\narr add rand1919 rand1924\nret rand1919\n~","getB":"~ rand379\nset obj rand1928 []\nset str rand1931 methods\nobj get arg0 rand1930 rand1931\nset str rand1931 getX\nobj get rand1930 rand1930 rand1931\ncallgetvar rand1929 rand1930 rand368 arg0 \narr add rand1928 rand1929\nset str rand1934 attributes\nobj get arg0 rand1933 rand1934\nset str rand1934 y1\nobj get rand1933 rand1932 rand1934\nset str rand1935 y1 attribute is null\nerrnull rand1932 rand1935\narr add rand1928 rand1932\nret rand1928\n~","getBR":"~ rand380\nset obj rand1936 []\nset str rand1939 attributes\nobj get arg0 rand1938 rand1939\nset str rand1939 x2\nobj get rand1938 rand1937 rand1939\nset str rand1940 x2 attribute is null\nerrnull rand1937 rand1940\narr add rand1936 rand1937\nset str rand1943 attributes\nobj get arg0 rand1942 rand1943\nset str rand1943 y1\nobj get rand1942 rand1941 rand1943\nset str rand1944 y1 attribute is null\nerrnull rand1941 rand1944\narr add rand1936 rand1941\nret rand1936\n~","stringify":"~ rand381\nset str rand1956 Frame{\nset str rand1959 attributes\nobj get arg0 rand1958 rand1959\nset str rand1959 x1\nobj get rand1958 rand1957 rand1959\nset str rand1960 x1 attribute is null\nerrnull rand1957 rand1960\nadd rand1954 emptystring rand1956 rand1957\nset str rand1962 attributes\nobj get arg0 rand1961 rand1962\nset str rand1962 y1\nobj get rand1961 rand1955 rand1962\nset str rand1963 y1 attribute is null\nerrnull rand1955 rand1963\nadd rand1952 emptystring rand1954 comma rand1955\nset str rand1953 to\nadd rand1950 emptystring rand1952 space rand1953\nset str rand1965 attributes\nobj get arg0 rand1964 rand1965\nset str rand1965 x2\nobj get rand1964 rand1951 rand1965\nset str rand1966 x2 attribute is null\nerrnull rand1951 rand1966\nadd rand1948 emptystring rand1950 space rand1951\nset str rand1968 attributes\nobj get arg0 rand1967 rand1968\nset str rand1968 y2\nobj get rand1967 rand1949 rand1968\nset str rand1969 y2 attribute is null\nerrnull rand1949 rand1969\nadd rand1946 emptystring rand1948 comma rand1949\nset str rand1947 }\nadd rand1945 emptystring rand1946 rand1947\nret rand1945\n~"},"attributes":{}}
+set str rand1817 methods
+obj get rand1795 rand1816 rand1817
+set str rand1817 .cns
+obj get rand1816 rand1816 rand1817
+callvar rand1816 rand367 rand1795 rand1796 rand1801 rand1806 rand1811
+ret rand1795
 ~
 ~ utils:splitChar
-set obj rand1877 [""]
-set bool rand1878 false
-set str rand1880 intactQuotes
-arr has rand1879 arg2 rand1880
-set num rand1884 1
-set num rand1885 0
-len rand1881 arg0
-: rand1882
-sml rand1886 rand1885 rand1881
-jn rand1883 rand1886
-obj get arg0 rand1887 rand1885
-set str rand1888  doesnt exist on text
-add rand1888 rand1885 rand1888
-ernull rand1887 rand1888
-set str rand1890 \\
-eql rand1889 rand1887 rand1890
-jn rand1891 rand1889
-len rand1894 rand1877
-set num rand1895 1
-sub rand1893 rand1894 rand1895
-len rand1898 rand1877
-set num rand1899 1
-sub rand1897 rand1898 rand1899
-obj get rand1877 rand1896 rand1897
-set str rand1900  doesnt exist on tokens
-add rand1900 rand1897 rand1900
-ernull rand1896 rand1900
-dupe rand1901 rand1887
-add rand1887 emptystring rand1887 rand1901
-obj set rand1877 rand1893 rand1887
-jai rand1882 rand1885
-: rand1891
-jn rand1903 rand1879
-set str rand1906 "
-eql rand1905 rand1887 rand1906
-jn rand1907 rand1905
-inv rand1878 rand1878
-: rand1907
-: rand1903
-inv rand1909 rand1878
-jn rand1910 rand1909
-eql rand1912 rand1887 arg1
-jn rand1913 rand1912
-set str rand1915 
-arr add rand1877 rand1915
-jai rand1882 rand1885
-: rand1913
-: rand1910
-len rand1917 rand1877
-set num rand1918 1
-sub rand1916 rand1917 rand1918
-len rand1922 rand1877
-set num rand1923 1
-sub rand1921 rand1922 rand1923
-obj get rand1877 rand1920 rand1921
-set str rand1924  doesnt exist on tokens
-add rand1924 rand1921 rand1924
-ernull rand1920 rand1924
-add rand1919 emptystring rand1920 rand1887
-obj set rand1877 rand1916 rand1919
-jai rand1882 rand1885
-: rand1883
-ret rand1877
+set obj rand1973 [""]
+set bool rand1974 false
+set str rand1976 intactQuotes
+arr has rand1975 arg2 rand1976
+set num rand1980 1
+set num rand1981 0
+len rand1977 arg0
+: rand1978
+sml rand1982 rand1981 rand1977
+jn rand1979 rand1982
+obj get arg0 rand1983 rand1981
+set str rand1984  doesnt exist on text
+add rand1984 rand1981 rand1984
+ernull rand1983 rand1984
+set str rand1986 \\
+eql rand1985 rand1983 rand1986
+jn rand1987 rand1985
+len rand1990 rand1973
+set num rand1991 1
+sub rand1989 rand1990 rand1991
+len rand1994 rand1973
+set num rand1995 1
+sub rand1993 rand1994 rand1995
+obj get rand1973 rand1992 rand1993
+set str rand1996  doesnt exist on tokens
+add rand1996 rand1993 rand1996
+ernull rand1992 rand1996
+dupe rand1997 rand1983
+add rand1983 emptystring rand1983 rand1997
+obj set rand1973 rand1989 rand1983
+jai rand1978 rand1981
+: rand1987
+jn rand1999 rand1975
+set str rand2002 "
+eql rand2001 rand1983 rand2002
+jn rand2003 rand2001
+inv rand1974 rand1974
+: rand2003
+: rand1999
+inv rand2005 rand1974
+jn rand2006 rand2005
+eql rand2008 rand1983 arg1
+jn rand2009 rand2008
+set str rand2011 
+arr add rand1973 rand2011
+jai rand1978 rand1981
+: rand2009
+: rand2006
+len rand2013 rand1973
+set num rand2014 1
+sub rand2012 rand2013 rand2014
+len rand2018 rand1973
+set num rand2019 1
+sub rand2017 rand2018 rand2019
+obj get rand1973 rand2016 rand2017
+set str rand2020  doesnt exist on tokens
+add rand2020 rand2017 rand2020
+ernull rand2016 rand2020
+add rand2015 emptystring rand2016 rand1983
+obj set rand1973 rand2012 rand2015
+jai rand1978 rand1981
+: rand1979
+ret rand1973
+~
+~ utils:deEscape
+set str rand2022 
+set num rand2026 1
+set num rand2027 0
+len rand2023 arg0
+: rand2024
+sml rand2028 rand2027 rand2023
+jn rand2025 rand2028
+obj get arg0 rand2029 rand2027
+set str rand2030  doesnt exist on text
+add rand2030 rand2027 rand2030
+ernull rand2029 rand2030
+set str rand2032 \\
+eql rand2031 rand2029 rand2032
+jn rand2033 rand2031
+set num rand2037 1
+add rand2027 rand2027 rand2037
+obj get arg0 rand2029 rand2035
+set str rand2038  doesnt exist on text
+add rand2038 rand2035 rand2038
+ernull rand2029 rand2038
+set str rand2040 n
+eql rand2039 rand2029 rand2040
+jn rand2041 rand2039
+set str rand2043 \n
+add rand2022 emptystring rand2022 rand2043
+jai rand2024 rand2027
+: rand2041
+dupe rand2044 rand2029
+add rand2022 emptystring rand2022 rand2044
+jai rand2024 rand2027
+: rand2033
+jai rand2024 rand2027
+: rand2025
+ret rand2022
 ~
 ~ main
-callget rand1925 stateManager:state:getDefault 
-set obj rand1926 {"methods":{".cns":"~ rand585\ncallget rand1931 graphics:getDefaultFrame \nset str rand1930 methods\nobj get arg0 rand1929 rand1930\nset str rand1930 newDisplay\nobj get rand1929 rand1929 rand1930\ncallvar rand1929 rand586 arg0 rand1931\nset str rand1935 attributes\nobj get arg0 rand1934 rand1935\nset str rand1935 drawSurface\nobj get rand1934 rand1933 rand1935\nset str rand1936 pen\ncallget rand1937 graphics:getDefaultFrame \nset obj rand1933 {\"methods\":{\".cns\":\"~ rand565\\nset str rand1944 attributes\\nobj get arg0 rand1943 rand1944\\nset str rand1944 type\\nobj get rand1943 rand1942 rand1944\\ndupe rand1942 arg1\\nobj set rand1943 rand1944 rand1942\\nset str rand1947 attributes\\nobj get arg0 rand1946 rand1947\\nset str rand1947 frame\\nobj get rand1946 rand1945 rand1947\\ndupe rand1945 arg2\\nobj set rand1946 rand1947 rand1945\\n~\",\"clear\":\"~ rand566\\nset str rand1952 attributes\\nobj get arg0 rand1951 rand1952\\nset str rand1952 type\\nobj get rand1951 rand1949 rand1952\\nset str rand1953 type attribute is null\\nerrnull rand1949 rand1953\\nset str rand1950 pen\\neql rand1948 rand1949 rand1950\\njn rand1954 rand1948\\npen clear\\nret\\n: rand1954\\nset str rand1959 cannot use clear method on\\nset str rand1962 attributes\\nobj get arg0 rand1961 rand1962\\nset str rand1962 type\\nobj get rand1961 rand1960 rand1962\\nset str rand1963 type attribute is null\\nerrnull rand1960 rand1963\\nadd rand1957 emptystring rand1959 space rand1960\\nset str rand1958 surface\\nadd rand1956 emptystring rand1957 space rand1958\\ncall graphics:io:throw rand1956\\n~\",\"line\":\"~ rand567\\nset str rand1973 attributes\\nobj get arg0 rand1972 rand1973\\nset str rand1973 type\\nobj get rand1972 rand1970 rand1973\\nset str rand1974 type attribute is null\\nerrnull rand1970 rand1974\\nset str rand1971 pen\\neql rand1969 rand1970 rand1971\\njn rand1975 rand1969\\ndrawCursor goto arg1 arg2\\npen size arg5\\npen down\\ndrawCursor goto arg3 arg4\\npen up\\nret\\n: rand1975\\nset str rand1980 cannot use line method on\\nset str rand1983 attributes\\nobj get arg0 rand1982 rand1983\\nset str rand1983 type\\nobj get rand1982 rand1981 rand1983\\nset str rand1984 type attribute is null\\nerrnull rand1981 rand1984\\nadd rand1978 emptystring rand1980 space rand1981\\nset str rand1979 surface\\nadd rand1977 emptystring rand1978 space rand1979\\ncall graphics:io:throw rand1977\\n~\",\"tri\":\"~ rand568\\nset str rand1996 attributes\\nobj get arg0 rand1995 rand1996\\nset str rand1996 type\\nobj get rand1995 rand1993 rand1996\\nset str rand1997 type attribute is null\\nerrnull rand1993 rand1997\\nset str rand1994 pen\\neql rand1992 rand1993 rand1994\\njn rand1998 rand1992\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\nret\\n: rand1998\\nset str rand2003 cannot use tri method on\\nset str rand2006 attributes\\nobj get arg0 rand2005 rand2006\\nset str rand2006 type\\nobj get rand2005 rand2004 rand2006\\nset str rand2007 type attribute is null\\nerrnull rand2004 rand2007\\nadd rand2001 emptystring rand2003 space rand2004\\nset str rand2002 surface\\nadd rand2000 emptystring rand2001 space rand2002\\ncall graphics:io:throw rand2000\\n~\",\"quad\":\"~ rand569\\nset str rand2021 attributes\\nobj get arg0 rand2020 rand2021\\nset str rand2021 type\\nobj get rand2020 rand2018 rand2021\\nset str rand2022 type attribute is null\\nerrnull rand2018 rand2022\\nset str rand2019 pen\\neql rand2017 rand2018 rand2019\\njn rand2023 rand2017\\nset str rand2026 methods\\nobj get arg0 rand2025 rand2026\\nset str rand2026 tri\\nobj get rand2025 rand2025 rand2026\\ncallvar rand2025 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\nset str rand2028 methods\\nobj get arg0 rand2027 rand2028\\nset str rand2028 tri\\nobj get rand2027 rand2027 rand2028\\ncallvar rand2027 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\nret\\n: rand2023\\nset str rand2032 cannot use quad method on\\nset str rand2035 attributes\\nobj get arg0 rand2034 rand2035\\nset str rand2035 type\\nobj get rand2034 rand2033 rand2035\\nset str rand2036 type attribute is null\\nerrnull rand2033 rand2036\\nadd rand2030 emptystring rand2032 space rand2033\\nset str rand2031 surface\\nadd rand2029 emptystring rand2030 space rand2031\\ncall graphics:io:throw rand2029\\n~\",\"rect\":\"~ rand570\\nset num rand2043 2\\ndiv rand2042 arg3 rand2043\\nset num rand2045 2\\ndiv rand2044 arg4 rand2045\\nsub rand2048 arg1 rand2042\\nsub rand2049 arg2 rand2044\\nsub rand2050 arg1 rand2042\\nadd rand2051 arg2 rand2044\\nadd rand2052 arg1 rand2042\\nsub rand2053 arg2 rand2044\\nadd rand2054 arg1 rand2042\\nadd rand2055 arg2 rand2044\\nset str rand2047 methods\\nobj get arg0 rand2046 rand2047\\nset str rand2047 quad\\nobj get rand2046 rand2046 rand2047\\ncallvar rand2046 rand569 arg0 rand2048 rand2049 rand2050 rand2051 rand2052 rand2053 rand2054 rand2055 arg5\\n~\",\"icon\":\"~ rand571\\nset str rand2066 attributes\\nobj get arg0 rand2065 rand2066\\nset str rand2066 type\\nobj get rand2065 rand2063 rand2066\\nset str rand2067 type attribute is null\\nerrnull rand2063 rand2067\\nset str rand2064 pen\\neql rand2062 rand2063 rand2064\\njn rand2068 rand2062\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\nret\\n: rand2068\\nset str rand2073 cannot use icon method on\\nset str rand2076 attributes\\nobj get arg0 rand2075 rand2076\\nset str rand2076 type\\nobj get rand2075 rand2074 rand2076\\nset str rand2077 type attribute is null\\nerrnull rand2074 rand2077\\nadd rand2071 emptystring rand2073 space rand2074\\nset str rand2072 surface\\nadd rand2070 emptystring rand2071 space rand2072\\ncall graphics:io:throw rand2070\\n~\",\"text\":\"~ rand572\\nset str rand2088 attributes\\nobj get arg0 rand2087 rand2088\\nset str rand2088 type\\nobj get rand2087 rand2085 rand2088\\nset str rand2089 type attribute is null\\nerrnull rand2085 rand2089\\nset str rand2086 pen\\neql rand2084 rand2085 rand2086\\njn rand2090 rand2084\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\nret\\n: rand2090\\nset str rand2095 cannot use text method on\\nset str rand2098 attributes\\nobj get arg0 rand2097 rand2098\\nset str rand2098 type\\nobj get rand2097 rand2096 rand2098\\nset str rand2099 type attribute is null\\nerrnull rand2096 rand2099\\nadd rand2093 emptystring rand2095 space rand2096\\nset str rand2094 surface\\nadd rand2092 emptystring rand2093 space rand2094\\ncall graphics:io:throw rand2092\\n~\",\"loadFontFromUrl\":\"~ rand573\\nset str rand2105 attributes\\nobj get arg0 rand2104 rand2105\\nset str rand2105 type\\nobj get rand2104 rand2102 rand2105\\nset str rand2106 type attribute is null\\nerrnull rand2102 rand2106\\nset str rand2103 pen\\neql rand2101 rand2102 rand2103\\njn rand2107 rand2101\\npen loadfonturl arg1\\nret\\n: rand2107\\nset str rand2112 cannot use loadFontFromUrl method on\\nset str rand2115 attributes\\nobj get arg0 rand2114 rand2115\\nset str rand2115 type\\nobj get rand2114 rand2113 rand2115\\nset str rand2116 type attribute is null\\nerrnull rand2113 rand2116\\nadd rand2110 emptystring rand2112 space rand2113\\nset str rand2111 surface\\nadd rand2109 emptystring rand2110 space rand2111\\ncall graphics:io:throw rand2109\\n~\",\"loadFontData\":\"~ rand574\\nset str rand2122 attributes\\nobj get arg0 rand2121 rand2122\\nset str rand2122 type\\nobj get rand2121 rand2119 rand2122\\nset str rand2123 type attribute is null\\nerrnull rand2119 rand2123\\nset str rand2120 pen\\neql rand2118 rand2119 rand2120\\njn rand2124 rand2118\\npen loadfontdata arg1\\nret\\n: rand2124\\nset str rand2129 cannot use loadFontData method on\\nset str rand2132 attributes\\nobj get arg0 rand2131 rand2132\\nset str rand2132 type\\nobj get rand2131 rand2130 rand2132\\nset str rand2133 type attribute is null\\nerrnull rand2130 rand2133\\nadd rand2127 emptystring rand2129 space rand2130\\nset str rand2128 surface\\nadd rand2126 emptystring rand2127 space rand2128\\ncall graphics:io:throw rand2126\\n~\",\"setColor\":\"~ rand575\\nset str rand2139 attributes\\nobj get arg0 rand2138 rand2139\\nset str rand2139 type\\nobj get rand2138 rand2136 rand2139\\nset str rand2140 type attribute is null\\nerrnull rand2136 rand2140\\nset str rand2137 pen\\neql rand2135 rand2136 rand2137\\njn rand2141 rand2135\\npen color arg1\\nret\\n: rand2141\\nset str rand2146 cannot use setColor method on\\nset str rand2149 attributes\\nobj get arg0 rand2148 rand2149\\nset str rand2149 type\\nobj get rand2148 rand2147 rand2149\\nset str rand2150 type attribute is null\\nerrnull rand2147 rand2150\\nadd rand2144 emptystring rand2146 space rand2147\\nset str rand2145 surface\\nadd rand2143 emptystring rand2144 space rand2145\\ncall graphics:io:throw rand2143\\n~\"},\"attributes\":{}}\nset str rand1939 methods\nobj get rand1933 rand1938 rand1939\nset str rand1939 .cns\nobj get rand1938 rand1938 rand1939\ncallvar rand1938 rand565 rand1933 rand1936 rand1937\nobj set rand1934 rand1935 rand1933\n~","newDisplay":"~ rand586\nset str rand2155 attributes\nobj get arg0 rand2154 rand2155\nset str rand2155 displays\nobj get rand2154 rand2153 rand2155\nisnull rand2152 rand2153\ninv rand2152 rand2152\njn rand2156 rand2152\nset str rand2160 attributes\nobj get arg0 rand2159 rand2160\nset str rand2160 displays\nobj get rand2159 rand2158 rand2160\nset obj rand2161 {\"methods\":{\".cns\":\"~ rand580\\nset str rand2168 attributes\\nobj get arg0 rand2167 rand2168\\nset str rand2168 surface\\nobj get rand2167 rand2166 rand2168\\nset str rand2169 pen\\nset obj rand2166 {\\\"methods\\\":{\\\".cns\\\":\\\"~ rand565\\\\nset str rand2176 attributes\\\\nobj get arg0 rand2175 rand2176\\\\nset str rand2176 type\\\\nobj get rand2175 rand2174 rand2176\\\\ndupe rand2174 arg1\\\\nobj set rand2175 rand2176 rand2174\\\\nset str rand2179 attributes\\\\nobj get arg0 rand2178 rand2179\\\\nset str rand2179 frame\\\\nobj get rand2178 rand2177 rand2179\\\\ndupe rand2177 arg2\\\\nobj set rand2178 rand2179 rand2177\\\\n~\\\",\\\"clear\\\":\\\"~ rand566\\\\nset str rand2184 attributes\\\\nobj get arg0 rand2183 rand2184\\\\nset str rand2184 type\\\\nobj get rand2183 rand2181 rand2184\\\\nset str rand2185 type attribute is null\\\\nerrnull rand2181 rand2185\\\\nset str rand2182 pen\\\\neql rand2180 rand2181 rand2182\\\\njn rand2186 rand2180\\\\npen clear\\\\nret\\\\n: rand2186\\\\nset str rand2191 cannot use clear method on\\\\nset str rand2194 attributes\\\\nobj get arg0 rand2193 rand2194\\\\nset str rand2194 type\\\\nobj get rand2193 rand2192 rand2194\\\\nset str rand2195 type attribute is null\\\\nerrnull rand2192 rand2195\\\\nadd rand2189 emptystring rand2191 space rand2192\\\\nset str rand2190 surface\\\\nadd rand2188 emptystring rand2189 space rand2190\\\\ncall graphics:io:throw rand2188\\\\n~\\\",\\\"line\\\":\\\"~ rand567\\\\nset str rand2205 attributes\\\\nobj get arg0 rand2204 rand2205\\\\nset str rand2205 type\\\\nobj get rand2204 rand2202 rand2205\\\\nset str rand2206 type attribute is null\\\\nerrnull rand2202 rand2206\\\\nset str rand2203 pen\\\\neql rand2201 rand2202 rand2203\\\\njn rand2207 rand2201\\\\ndrawCursor goto arg1 arg2\\\\npen size arg5\\\\npen down\\\\ndrawCursor goto arg3 arg4\\\\npen up\\\\nret\\\\n: rand2207\\\\nset str rand2212 cannot use line method on\\\\nset str rand2215 attributes\\\\nobj get arg0 rand2214 rand2215\\\\nset str rand2215 type\\\\nobj get rand2214 rand2213 rand2215\\\\nset str rand2216 type attribute is null\\\\nerrnull rand2213 rand2216\\\\nadd rand2210 emptystring rand2212 space rand2213\\\\nset str rand2211 surface\\\\nadd rand2209 emptystring rand2210 space rand2211\\\\ncall graphics:io:throw rand2209\\\\n~\\\",\\\"tri\\\":\\\"~ rand568\\\\nset str rand2228 attributes\\\\nobj get arg0 rand2227 rand2228\\\\nset str rand2228 type\\\\nobj get rand2227 rand2225 rand2228\\\\nset str rand2229 type attribute is null\\\\nerrnull rand2225 rand2229\\\\nset str rand2226 pen\\\\neql rand2224 rand2225 rand2226\\\\njn rand2230 rand2224\\\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\\\nret\\\\n: rand2230\\\\nset str rand2235 cannot use tri method on\\\\nset str rand2238 attributes\\\\nobj get arg0 rand2237 rand2238\\\\nset str rand2238 type\\\\nobj get rand2237 rand2236 rand2238\\\\nset str rand2239 type attribute is null\\\\nerrnull rand2236 rand2239\\\\nadd rand2233 emptystring rand2235 space rand2236\\\\nset str rand2234 surface\\\\nadd rand2232 emptystring rand2233 space rand2234\\\\ncall graphics:io:throw rand2232\\\\n~\\\",\\\"quad\\\":\\\"~ rand569\\\\nset str rand2253 attributes\\\\nobj get arg0 rand2252 rand2253\\\\nset str rand2253 type\\\\nobj get rand2252 rand2250 rand2253\\\\nset str rand2254 type attribute is null\\\\nerrnull rand2250 rand2254\\\\nset str rand2251 pen\\\\neql rand2249 rand2250 rand2251\\\\njn rand2255 rand2249\\\\nset str rand2258 methods\\\\nobj get arg0 rand2257 rand2258\\\\nset str rand2258 tri\\\\nobj get rand2257 rand2257 rand2258\\\\ncallvar rand2257 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\\\nset str rand2260 methods\\\\nobj get arg0 rand2259 rand2260\\\\nset str rand2260 tri\\\\nobj get rand2259 rand2259 rand2260\\\\ncallvar rand2259 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\\\nret\\\\n: rand2255\\\\nset str rand2264 cannot use quad method on\\\\nset str rand2267 attributes\\\\nobj get arg0 rand2266 rand2267\\\\nset str rand2267 type\\\\nobj get rand2266 rand2265 rand2267\\\\nset str rand2268 type attribute is null\\\\nerrnull rand2265 rand2268\\\\nadd rand2262 emptystring rand2264 space rand2265\\\\nset str rand2263 surface\\\\nadd rand2261 emptystring rand2262 space rand2263\\\\ncall graphics:io:throw rand2261\\\\n~\\\",\\\"rect\\\":\\\"~ rand570\\\\nset num rand2275 2\\\\ndiv rand2274 arg3 rand2275\\\\nset num rand2277 2\\\\ndiv rand2276 arg4 rand2277\\\\nsub rand2280 arg1 rand2274\\\\nsub rand2281 arg2 rand2276\\\\nsub rand2282 arg1 rand2274\\\\nadd rand2283 arg2 rand2276\\\\nadd rand2284 arg1 rand2274\\\\nsub rand2285 arg2 rand2276\\\\nadd rand2286 arg1 rand2274\\\\nadd rand2287 arg2 rand2276\\\\nset str rand2279 methods\\\\nobj get arg0 rand2278 rand2279\\\\nset str rand2279 quad\\\\nobj get rand2278 rand2278 rand2279\\\\ncallvar rand2278 rand569 arg0 rand2280 rand2281 rand2282 rand2283 rand2284 rand2285 rand2286 rand2287 arg5\\\\n~\\\",\\\"icon\\\":\\\"~ rand571\\\\nset str rand2298 attributes\\\\nobj get arg0 rand2297 rand2298\\\\nset str rand2298 type\\\\nobj get rand2297 rand2295 rand2298\\\\nset str rand2299 type attribute is null\\\\nerrnull rand2295 rand2299\\\\nset str rand2296 pen\\\\neql rand2294 rand2295 rand2296\\\\njn rand2300 rand2294\\\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2300\\\\nset str rand2305 cannot use icon method on\\\\nset str rand2308 attributes\\\\nobj get arg0 rand2307 rand2308\\\\nset str rand2308 type\\\\nobj get rand2307 rand2306 rand2308\\\\nset str rand2309 type attribute is null\\\\nerrnull rand2306 rand2309\\\\nadd rand2303 emptystring rand2305 space rand2306\\\\nset str rand2304 surface\\\\nadd rand2302 emptystring rand2303 space rand2304\\\\ncall graphics:io:throw rand2302\\\\n~\\\",\\\"text\\\":\\\"~ rand572\\\\nset str rand2320 attributes\\\\nobj get arg0 rand2319 rand2320\\\\nset str rand2320 type\\\\nobj get rand2319 rand2317 rand2320\\\\nset str rand2321 type attribute is null\\\\nerrnull rand2317 rand2321\\\\nset str rand2318 pen\\\\neql rand2316 rand2317 rand2318\\\\njn rand2322 rand2316\\\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2322\\\\nset str rand2327 cannot use text method on\\\\nset str rand2330 attributes\\\\nobj get arg0 rand2329 rand2330\\\\nset str rand2330 type\\\\nobj get rand2329 rand2328 rand2330\\\\nset str rand2331 type attribute is null\\\\nerrnull rand2328 rand2331\\\\nadd rand2325 emptystring rand2327 space rand2328\\\\nset str rand2326 surface\\\\nadd rand2324 emptystring rand2325 space rand2326\\\\ncall graphics:io:throw rand2324\\\\n~\\\",\\\"loadFontFromUrl\\\":\\\"~ rand573\\\\nset str rand2337 attributes\\\\nobj get arg0 rand2336 rand2337\\\\nset str rand2337 type\\\\nobj get rand2336 rand2334 rand2337\\\\nset str rand2338 type attribute is null\\\\nerrnull rand2334 rand2338\\\\nset str rand2335 pen\\\\neql rand2333 rand2334 rand2335\\\\njn rand2339 rand2333\\\\npen loadfonturl arg1\\\\nret\\\\n: rand2339\\\\nset str rand2344 cannot use loadFontFromUrl method on\\\\nset str rand2347 attributes\\\\nobj get arg0 rand2346 rand2347\\\\nset str rand2347 type\\\\nobj get rand2346 rand2345 rand2347\\\\nset str rand2348 type attribute is null\\\\nerrnull rand2345 rand2348\\\\nadd rand2342 emptystring rand2344 space rand2345\\\\nset str rand2343 surface\\\\nadd rand2341 emptystring rand2342 space rand2343\\\\ncall graphics:io:throw rand2341\\\\n~\\\",\\\"loadFontData\\\":\\\"~ rand574\\\\nset str rand2354 attributes\\\\nobj get arg0 rand2353 rand2354\\\\nset str rand2354 type\\\\nobj get rand2353 rand2351 rand2354\\\\nset str rand2355 type attribute is null\\\\nerrnull rand2351 rand2355\\\\nset str rand2352 pen\\\\neql rand2350 rand2351 rand2352\\\\njn rand2356 rand2350\\\\npen loadfontdata arg1\\\\nret\\\\n: rand2356\\\\nset str rand2361 cannot use loadFontData method on\\\\nset str rand2364 attributes\\\\nobj get arg0 rand2363 rand2364\\\\nset str rand2364 type\\\\nobj get rand2363 rand2362 rand2364\\\\nset str rand2365 type attribute is null\\\\nerrnull rand2362 rand2365\\\\nadd rand2359 emptystring rand2361 space rand2362\\\\nset str rand2360 surface\\\\nadd rand2358 emptystring rand2359 space rand2360\\\\ncall graphics:io:throw rand2358\\\\n~\\\",\\\"setColor\\\":\\\"~ rand575\\\\nset str rand2371 attributes\\\\nobj get arg0 rand2370 rand2371\\\\nset str rand2371 type\\\\nobj get rand2370 rand2368 rand2371\\\\nset str rand2372 type attribute is null\\\\nerrnull rand2368 rand2372\\\\nset str rand2369 pen\\\\neql rand2367 rand2368 rand2369\\\\njn rand2373 rand2367\\\\npen color arg1\\\\nret\\\\n: rand2373\\\\nset str rand2378 cannot use setColor method on\\\\nset str rand2381 attributes\\\\nobj get arg0 rand2380 rand2381\\\\nset str rand2381 type\\\\nobj get rand2380 rand2379 rand2381\\\\nset str rand2382 type attribute is null\\\\nerrnull rand2379 rand2382\\\\nadd rand2376 emptystring rand2378 space rand2379\\\\nset str rand2377 surface\\\\nadd rand2375 emptystring rand2376 space rand2377\\\\ncall graphics:io:throw rand2375\\\\n~\\\"},\\\"attributes\\\":{}}\\nset str rand2171 methods\\nobj get rand2166 rand2170 rand2171\\nset str rand2171 .cns\\nobj get rand2170 rand2170 rand2171\\ncallvar rand2170 rand565 rand2166 rand2169 arg1\\nobj set rand2167 rand2168 rand2166\\n~\"},\"attributes\":{}}\nset str rand2163 methods\nobj get rand2161 rand2162 rand2163\nset str rand2163 .cns\nobj get rand2162 rand2162 rand2163\ncallvar rand2162 rand580 rand2161 arg1\narr add rand2158 rand2161\njp rand2384\n: rand2156\nset str rand2388 attributes\nobj get arg0 rand2387 rand2388\nset str rand2388 displays\nobj get rand2387 rand2386 rand2388\nset obj rand2386 []\nset obj rand2389 {\"methods\":{\".cns\":\"~ rand580\\nset str rand2396 attributes\\nobj get arg0 rand2395 rand2396\\nset str rand2396 surface\\nobj get rand2395 rand2394 rand2396\\nset str rand2397 pen\\nset obj rand2394 {\\\"methods\\\":{\\\".cns\\\":\\\"~ rand565\\\\nset str rand2404 attributes\\\\nobj get arg0 rand2403 rand2404\\\\nset str rand2404 type\\\\nobj get rand2403 rand2402 rand2404\\\\ndupe rand2402 arg1\\\\nobj set rand2403 rand2404 rand2402\\\\nset str rand2407 attributes\\\\nobj get arg0 rand2406 rand2407\\\\nset str rand2407 frame\\\\nobj get rand2406 rand2405 rand2407\\\\ndupe rand2405 arg2\\\\nobj set rand2406 rand2407 rand2405\\\\n~\\\",\\\"clear\\\":\\\"~ rand566\\\\nset str rand2412 attributes\\\\nobj get arg0 rand2411 rand2412\\\\nset str rand2412 type\\\\nobj get rand2411 rand2409 rand2412\\\\nset str rand2413 type attribute is null\\\\nerrnull rand2409 rand2413\\\\nset str rand2410 pen\\\\neql rand2408 rand2409 rand2410\\\\njn rand2414 rand2408\\\\npen clear\\\\nret\\\\n: rand2414\\\\nset str rand2419 cannot use clear method on\\\\nset str rand2422 attributes\\\\nobj get arg0 rand2421 rand2422\\\\nset str rand2422 type\\\\nobj get rand2421 rand2420 rand2422\\\\nset str rand2423 type attribute is null\\\\nerrnull rand2420 rand2423\\\\nadd rand2417 emptystring rand2419 space rand2420\\\\nset str rand2418 surface\\\\nadd rand2416 emptystring rand2417 space rand2418\\\\ncall graphics:io:throw rand2416\\\\n~\\\",\\\"line\\\":\\\"~ rand567\\\\nset str rand2433 attributes\\\\nobj get arg0 rand2432 rand2433\\\\nset str rand2433 type\\\\nobj get rand2432 rand2430 rand2433\\\\nset str rand2434 type attribute is null\\\\nerrnull rand2430 rand2434\\\\nset str rand2431 pen\\\\neql rand2429 rand2430 rand2431\\\\njn rand2435 rand2429\\\\ndrawCursor goto arg1 arg2\\\\npen size arg5\\\\npen down\\\\ndrawCursor goto arg3 arg4\\\\npen up\\\\nret\\\\n: rand2435\\\\nset str rand2440 cannot use line method on\\\\nset str rand2443 attributes\\\\nobj get arg0 rand2442 rand2443\\\\nset str rand2443 type\\\\nobj get rand2442 rand2441 rand2443\\\\nset str rand2444 type attribute is null\\\\nerrnull rand2441 rand2444\\\\nadd rand2438 emptystring rand2440 space rand2441\\\\nset str rand2439 surface\\\\nadd rand2437 emptystring rand2438 space rand2439\\\\ncall graphics:io:throw rand2437\\\\n~\\\",\\\"tri\\\":\\\"~ rand568\\\\nset str rand2456 attributes\\\\nobj get arg0 rand2455 rand2456\\\\nset str rand2456 type\\\\nobj get rand2455 rand2453 rand2456\\\\nset str rand2457 type attribute is null\\\\nerrnull rand2453 rand2457\\\\nset str rand2454 pen\\\\neql rand2452 rand2453 rand2454\\\\njn rand2458 rand2452\\\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\\\nret\\\\n: rand2458\\\\nset str rand2463 cannot use tri method on\\\\nset str rand2466 attributes\\\\nobj get arg0 rand2465 rand2466\\\\nset str rand2466 type\\\\nobj get rand2465 rand2464 rand2466\\\\nset str rand2467 type attribute is null\\\\nerrnull rand2464 rand2467\\\\nadd rand2461 emptystring rand2463 space rand2464\\\\nset str rand2462 surface\\\\nadd rand2460 emptystring rand2461 space rand2462\\\\ncall graphics:io:throw rand2460\\\\n~\\\",\\\"quad\\\":\\\"~ rand569\\\\nset str rand2481 attributes\\\\nobj get arg0 rand2480 rand2481\\\\nset str rand2481 type\\\\nobj get rand2480 rand2478 rand2481\\\\nset str rand2482 type attribute is null\\\\nerrnull rand2478 rand2482\\\\nset str rand2479 pen\\\\neql rand2477 rand2478 rand2479\\\\njn rand2483 rand2477\\\\nset str rand2486 methods\\\\nobj get arg0 rand2485 rand2486\\\\nset str rand2486 tri\\\\nobj get rand2485 rand2485 rand2486\\\\ncallvar rand2485 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\\\nset str rand2488 methods\\\\nobj get arg0 rand2487 rand2488\\\\nset str rand2488 tri\\\\nobj get rand2487 rand2487 rand2488\\\\ncallvar rand2487 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\\\nret\\\\n: rand2483\\\\nset str rand2492 cannot use quad method on\\\\nset str rand2495 attributes\\\\nobj get arg0 rand2494 rand2495\\\\nset str rand2495 type\\\\nobj get rand2494 rand2493 rand2495\\\\nset str rand2496 type attribute is null\\\\nerrnull rand2493 rand2496\\\\nadd rand2490 emptystring rand2492 space rand2493\\\\nset str rand2491 surface\\\\nadd rand2489 emptystring rand2490 space rand2491\\\\ncall graphics:io:throw rand2489\\\\n~\\\",\\\"rect\\\":\\\"~ rand570\\\\nset num rand2503 2\\\\ndiv rand2502 arg3 rand2503\\\\nset num rand2505 2\\\\ndiv rand2504 arg4 rand2505\\\\nsub rand2508 arg1 rand2502\\\\nsub rand2509 arg2 rand2504\\\\nsub rand2510 arg1 rand2502\\\\nadd rand2511 arg2 rand2504\\\\nadd rand2512 arg1 rand2502\\\\nsub rand2513 arg2 rand2504\\\\nadd rand2514 arg1 rand2502\\\\nadd rand2515 arg2 rand2504\\\\nset str rand2507 methods\\\\nobj get arg0 rand2506 rand2507\\\\nset str rand2507 quad\\\\nobj get rand2506 rand2506 rand2507\\\\ncallvar rand2506 rand569 arg0 rand2508 rand2509 rand2510 rand2511 rand2512 rand2513 rand2514 rand2515 arg5\\\\n~\\\",\\\"icon\\\":\\\"~ rand571\\\\nset str rand2526 attributes\\\\nobj get arg0 rand2525 rand2526\\\\nset str rand2526 type\\\\nobj get rand2525 rand2523 rand2526\\\\nset str rand2527 type attribute is null\\\\nerrnull rand2523 rand2527\\\\nset str rand2524 pen\\\\neql rand2522 rand2523 rand2524\\\\njn rand2528 rand2522\\\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2528\\\\nset str rand2533 cannot use icon method on\\\\nset str rand2536 attributes\\\\nobj get arg0 rand2535 rand2536\\\\nset str rand2536 type\\\\nobj get rand2535 rand2534 rand2536\\\\nset str rand2537 type attribute is null\\\\nerrnull rand2534 rand2537\\\\nadd rand2531 emptystring rand2533 space rand2534\\\\nset str rand2532 surface\\\\nadd rand2530 emptystring rand2531 space rand2532\\\\ncall graphics:io:throw rand2530\\\\n~\\\",\\\"text\\\":\\\"~ rand572\\\\nset str rand2548 attributes\\\\nobj get arg0 rand2547 rand2548\\\\nset str rand2548 type\\\\nobj get rand2547 rand2545 rand2548\\\\nset str rand2549 type attribute is null\\\\nerrnull rand2545 rand2549\\\\nset str rand2546 pen\\\\neql rand2544 rand2545 rand2546\\\\njn rand2550 rand2544\\\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2550\\\\nset str rand2555 cannot use text method on\\\\nset str rand2558 attributes\\\\nobj get arg0 rand2557 rand2558\\\\nset str rand2558 type\\\\nobj get rand2557 rand2556 rand2558\\\\nset str rand2559 type attribute is null\\\\nerrnull rand2556 rand2559\\\\nadd rand2553 emptystring rand2555 space rand2556\\\\nset str rand2554 surface\\\\nadd rand2552 emptystring rand2553 space rand2554\\\\ncall graphics:io:throw rand2552\\\\n~\\\",\\\"loadFontFromUrl\\\":\\\"~ rand573\\\\nset str rand2565 attributes\\\\nobj get arg0 rand2564 rand2565\\\\nset str rand2565 type\\\\nobj get rand2564 rand2562 rand2565\\\\nset str rand2566 type attribute is null\\\\nerrnull rand2562 rand2566\\\\nset str rand2563 pen\\\\neql rand2561 rand2562 rand2563\\\\njn rand2567 rand2561\\\\npen loadfonturl arg1\\\\nret\\\\n: rand2567\\\\nset str rand2572 cannot use loadFontFromUrl method on\\\\nset str rand2575 attributes\\\\nobj get arg0 rand2574 rand2575\\\\nset str rand2575 type\\\\nobj get rand2574 rand2573 rand2575\\\\nset str rand2576 type attribute is null\\\\nerrnull rand2573 rand2576\\\\nadd rand2570 emptystring rand2572 space rand2573\\\\nset str rand2571 surface\\\\nadd rand2569 emptystring rand2570 space rand2571\\\\ncall graphics:io:throw rand2569\\\\n~\\\",\\\"loadFontData\\\":\\\"~ rand574\\\\nset str rand2582 attributes\\\\nobj get arg0 rand2581 rand2582\\\\nset str rand2582 type\\\\nobj get rand2581 rand2579 rand2582\\\\nset str rand2583 type attribute is null\\\\nerrnull rand2579 rand2583\\\\nset str rand2580 pen\\\\neql rand2578 rand2579 rand2580\\\\njn rand2584 rand2578\\\\npen loadfontdata arg1\\\\nret\\\\n: rand2584\\\\nset str rand2589 cannot use loadFontData method on\\\\nset str rand2592 attributes\\\\nobj get arg0 rand2591 rand2592\\\\nset str rand2592 type\\\\nobj get rand2591 rand2590 rand2592\\\\nset str rand2593 type attribute is null\\\\nerrnull rand2590 rand2593\\\\nadd rand2587 emptystring rand2589 space rand2590\\\\nset str rand2588 surface\\\\nadd rand2586 emptystring rand2587 space rand2588\\\\ncall graphics:io:throw rand2586\\\\n~\\\",\\\"setColor\\\":\\\"~ rand575\\\\nset str rand2599 attributes\\\\nobj get arg0 rand2598 rand2599\\\\nset str rand2599 type\\\\nobj get rand2598 rand2596 rand2599\\\\nset str rand2600 type attribute is null\\\\nerrnull rand2596 rand2600\\\\nset str rand2597 pen\\\\neql rand2595 rand2596 rand2597\\\\njn rand2601 rand2595\\\\npen color arg1\\\\nret\\\\n: rand2601\\\\nset str rand2606 cannot use setColor method on\\\\nset str rand2609 attributes\\\\nobj get arg0 rand2608 rand2609\\\\nset str rand2609 type\\\\nobj get rand2608 rand2607 rand2609\\\\nset str rand2610 type attribute is null\\\\nerrnull rand2607 rand2610\\\\nadd rand2604 emptystring rand2606 space rand2607\\\\nset str rand2605 surface\\\\nadd rand2603 emptystring rand2604 space rand2605\\\\ncall graphics:io:throw rand2603\\\\n~\\\"},\\\"attributes\\\":{}}\\nset str rand2399 methods\\nobj get rand2394 rand2398 rand2399\\nset str rand2399 .cns\\nobj get rand2398 rand2398 rand2399\\ncallvar rand2398 rand565 rand2394 rand2397 arg1\\nobj set rand2395 rand2396 rand2394\\n~\"},\"attributes\":{}}\nset str rand2391 methods\nobj get rand2389 rand2390 rand2391\nset str rand2391 .cns\nobj get rand2390 rand2390 rand2391\ncallvar rand2390 rand580 rand2389 arg1\narr add rand2386 rand2389\nobj set rand2387 rand2388 rand2386\n: rand2384\n~","clearDisplays":"~ rand587\nset str rand2614 attributes\nobj get arg0 rand2613 rand2614\nset str rand2614 displays\nobj get rand2613 rand2612 rand2614\nset obj rand2612 []\nobj set rand2613 rand2614 rand2612\n~"},"attributes":{}}
-set str rand1928 methods
-obj get rand1926 rand1927 rand1928
-set str rand1928 .cns
-obj get rand1927 rand1927 rand1928
-callvar rand1927 rand585 rand1926 
-call stateManager:initState rand1925 rand1926
-quitTo rand2615
-: rand2615
-set str rand2618 attributes
-obj get rand1925 rand2617 rand2618
-set str rand2618 inputState
-obj get rand2617 rand2616 rand2618
-set str rand2620 methods
-obj get rand2616 rand2619 rand2620
-set str rand2620 update
-obj get rand2619 rand2619 rand2620
-callvar rand2619 rand92 rand2616 
-call stateManager:updateState rand1925 rand1926
-quitTo rand2615
+callget rand2045 stateManager:state:getDefault 
+set obj rand2046 {"methods":{".cns":"~ rand585\ncallget rand2051 graphics:getDefaultFrame \nset str rand2050 methods\nobj get arg0 rand2049 rand2050\nset str rand2050 newDisplay\nobj get rand2049 rand2049 rand2050\ncallvar rand2049 rand586 arg0 rand2051\nset str rand2055 attributes\nobj get arg0 rand2054 rand2055\nset str rand2055 drawSurface\nobj get rand2054 rand2053 rand2055\nset str rand2056 pen\ncallget rand2057 graphics:getDefaultFrame \nset obj rand2053 {\"methods\":{\".cns\":\"~ rand565\\nset str rand2064 attributes\\nobj get arg0 rand2063 rand2064\\nset str rand2064 type\\nobj get rand2063 rand2062 rand2064\\ndupe rand2062 arg1\\nobj set rand2063 rand2064 rand2062\\nset str rand2067 attributes\\nobj get arg0 rand2066 rand2067\\nset str rand2067 frame\\nobj get rand2066 rand2065 rand2067\\ndupe rand2065 arg2\\nobj set rand2066 rand2067 rand2065\\n~\",\"clear\":\"~ rand566\\nset str rand2072 attributes\\nobj get arg0 rand2071 rand2072\\nset str rand2072 type\\nobj get rand2071 rand2069 rand2072\\nset str rand2073 type attribute is null\\nerrnull rand2069 rand2073\\nset str rand2070 pen\\neql rand2068 rand2069 rand2070\\njn rand2074 rand2068\\npen clear\\nret\\n: rand2074\\nset str rand2079 cannot use clear method on\\nset str rand2082 attributes\\nobj get arg0 rand2081 rand2082\\nset str rand2082 type\\nobj get rand2081 rand2080 rand2082\\nset str rand2083 type attribute is null\\nerrnull rand2080 rand2083\\nadd rand2077 emptystring rand2079 space rand2080\\nset str rand2078 surface\\nadd rand2076 emptystring rand2077 space rand2078\\ncall graphics:io:throw rand2076\\n~\",\"line\":\"~ rand567\\nset str rand2093 attributes\\nobj get arg0 rand2092 rand2093\\nset str rand2093 type\\nobj get rand2092 rand2090 rand2093\\nset str rand2094 type attribute is null\\nerrnull rand2090 rand2094\\nset str rand2091 pen\\neql rand2089 rand2090 rand2091\\njn rand2095 rand2089\\ndrawCursor goto arg1 arg2\\npen size arg5\\npen down\\ndrawCursor goto arg3 arg4\\npen up\\nret\\n: rand2095\\nset str rand2100 cannot use line method on\\nset str rand2103 attributes\\nobj get arg0 rand2102 rand2103\\nset str rand2103 type\\nobj get rand2102 rand2101 rand2103\\nset str rand2104 type attribute is null\\nerrnull rand2101 rand2104\\nadd rand2098 emptystring rand2100 space rand2101\\nset str rand2099 surface\\nadd rand2097 emptystring rand2098 space rand2099\\ncall graphics:io:throw rand2097\\n~\",\"tri\":\"~ rand568\\nset str rand2116 attributes\\nobj get arg0 rand2115 rand2116\\nset str rand2116 type\\nobj get rand2115 rand2113 rand2116\\nset str rand2117 type attribute is null\\nerrnull rand2113 rand2117\\nset str rand2114 pen\\neql rand2112 rand2113 rand2114\\njn rand2118 rand2112\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\nret\\n: rand2118\\nset str rand2123 cannot use tri method on\\nset str rand2126 attributes\\nobj get arg0 rand2125 rand2126\\nset str rand2126 type\\nobj get rand2125 rand2124 rand2126\\nset str rand2127 type attribute is null\\nerrnull rand2124 rand2127\\nadd rand2121 emptystring rand2123 space rand2124\\nset str rand2122 surface\\nadd rand2120 emptystring rand2121 space rand2122\\ncall graphics:io:throw rand2120\\n~\",\"quad\":\"~ rand569\\nset str rand2141 attributes\\nobj get arg0 rand2140 rand2141\\nset str rand2141 type\\nobj get rand2140 rand2138 rand2141\\nset str rand2142 type attribute is null\\nerrnull rand2138 rand2142\\nset str rand2139 pen\\neql rand2137 rand2138 rand2139\\njn rand2143 rand2137\\nset str rand2146 methods\\nobj get arg0 rand2145 rand2146\\nset str rand2146 tri\\nobj get rand2145 rand2145 rand2146\\ncallvar rand2145 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\nset str rand2148 methods\\nobj get arg0 rand2147 rand2148\\nset str rand2148 tri\\nobj get rand2147 rand2147 rand2148\\ncallvar rand2147 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\nret\\n: rand2143\\nset str rand2152 cannot use quad method on\\nset str rand2155 attributes\\nobj get arg0 rand2154 rand2155\\nset str rand2155 type\\nobj get rand2154 rand2153 rand2155\\nset str rand2156 type attribute is null\\nerrnull rand2153 rand2156\\nadd rand2150 emptystring rand2152 space rand2153\\nset str rand2151 surface\\nadd rand2149 emptystring rand2150 space rand2151\\ncall graphics:io:throw rand2149\\n~\",\"rect\":\"~ rand570\\nset num rand2163 2\\ndiv rand2162 arg3 rand2163\\nset num rand2165 2\\ndiv rand2164 arg4 rand2165\\nsub rand2168 arg1 rand2162\\nsub rand2169 arg2 rand2164\\nsub rand2170 arg1 rand2162\\nadd rand2171 arg2 rand2164\\nadd rand2172 arg1 rand2162\\nsub rand2173 arg2 rand2164\\nadd rand2174 arg1 rand2162\\nadd rand2175 arg2 rand2164\\nset str rand2167 methods\\nobj get arg0 rand2166 rand2167\\nset str rand2167 quad\\nobj get rand2166 rand2166 rand2167\\ncallvar rand2166 rand569 arg0 rand2168 rand2169 rand2170 rand2171 rand2172 rand2173 rand2174 rand2175 arg5\\n~\",\"icon\":\"~ rand571\\nset str rand2186 attributes\\nobj get arg0 rand2185 rand2186\\nset str rand2186 type\\nobj get rand2185 rand2183 rand2186\\nset str rand2187 type attribute is null\\nerrnull rand2183 rand2187\\nset str rand2184 pen\\neql rand2182 rand2183 rand2184\\njn rand2188 rand2182\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\nret\\n: rand2188\\nset str rand2193 cannot use icon method on\\nset str rand2196 attributes\\nobj get arg0 rand2195 rand2196\\nset str rand2196 type\\nobj get rand2195 rand2194 rand2196\\nset str rand2197 type attribute is null\\nerrnull rand2194 rand2197\\nadd rand2191 emptystring rand2193 space rand2194\\nset str rand2192 surface\\nadd rand2190 emptystring rand2191 space rand2192\\ncall graphics:io:throw rand2190\\n~\",\"text\":\"~ rand572\\nset str rand2208 attributes\\nobj get arg0 rand2207 rand2208\\nset str rand2208 type\\nobj get rand2207 rand2205 rand2208\\nset str rand2209 type attribute is null\\nerrnull rand2205 rand2209\\nset str rand2206 pen\\neql rand2204 rand2205 rand2206\\njn rand2210 rand2204\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\nret\\n: rand2210\\nset str rand2215 cannot use text method on\\nset str rand2218 attributes\\nobj get arg0 rand2217 rand2218\\nset str rand2218 type\\nobj get rand2217 rand2216 rand2218\\nset str rand2219 type attribute is null\\nerrnull rand2216 rand2219\\nadd rand2213 emptystring rand2215 space rand2216\\nset str rand2214 surface\\nadd rand2212 emptystring rand2213 space rand2214\\ncall graphics:io:throw rand2212\\n~\",\"loadFontFromUrl\":\"~ rand573\\nset str rand2225 attributes\\nobj get arg0 rand2224 rand2225\\nset str rand2225 type\\nobj get rand2224 rand2222 rand2225\\nset str rand2226 type attribute is null\\nerrnull rand2222 rand2226\\nset str rand2223 pen\\neql rand2221 rand2222 rand2223\\njn rand2227 rand2221\\npen loadfonturl arg1\\nret\\n: rand2227\\nset str rand2232 cannot use loadFontFromUrl method on\\nset str rand2235 attributes\\nobj get arg0 rand2234 rand2235\\nset str rand2235 type\\nobj get rand2234 rand2233 rand2235\\nset str rand2236 type attribute is null\\nerrnull rand2233 rand2236\\nadd rand2230 emptystring rand2232 space rand2233\\nset str rand2231 surface\\nadd rand2229 emptystring rand2230 space rand2231\\ncall graphics:io:throw rand2229\\n~\",\"loadFontData\":\"~ rand574\\nset str rand2242 attributes\\nobj get arg0 rand2241 rand2242\\nset str rand2242 type\\nobj get rand2241 rand2239 rand2242\\nset str rand2243 type attribute is null\\nerrnull rand2239 rand2243\\nset str rand2240 pen\\neql rand2238 rand2239 rand2240\\njn rand2244 rand2238\\npen loadfontdata arg1\\nret\\n: rand2244\\nset str rand2249 cannot use loadFontData method on\\nset str rand2252 attributes\\nobj get arg0 rand2251 rand2252\\nset str rand2252 type\\nobj get rand2251 rand2250 rand2252\\nset str rand2253 type attribute is null\\nerrnull rand2250 rand2253\\nadd rand2247 emptystring rand2249 space rand2250\\nset str rand2248 surface\\nadd rand2246 emptystring rand2247 space rand2248\\ncall graphics:io:throw rand2246\\n~\",\"setColor\":\"~ rand575\\nset str rand2259 attributes\\nobj get arg0 rand2258 rand2259\\nset str rand2259 type\\nobj get rand2258 rand2256 rand2259\\nset str rand2260 type attribute is null\\nerrnull rand2256 rand2260\\nset str rand2257 pen\\neql rand2255 rand2256 rand2257\\njn rand2261 rand2255\\npen color arg1\\nret\\n: rand2261\\nset str rand2266 cannot use setColor method on\\nset str rand2269 attributes\\nobj get arg0 rand2268 rand2269\\nset str rand2269 type\\nobj get rand2268 rand2267 rand2269\\nset str rand2270 type attribute is null\\nerrnull rand2267 rand2270\\nadd rand2264 emptystring rand2266 space rand2267\\nset str rand2265 surface\\nadd rand2263 emptystring rand2264 space rand2265\\ncall graphics:io:throw rand2263\\n~\"},\"attributes\":{}}\nset str rand2059 methods\nobj get rand2053 rand2058 rand2059\nset str rand2059 .cns\nobj get rand2058 rand2058 rand2059\ncallvar rand2058 rand565 rand2053 rand2056 rand2057\nobj set rand2054 rand2055 rand2053\n~","newDisplay":"~ rand586\nset str rand2275 attributes\nobj get arg0 rand2274 rand2275\nset str rand2275 displays\nobj get rand2274 rand2273 rand2275\nisnull rand2272 rand2273\ninv rand2272 rand2272\njn rand2276 rand2272\nset str rand2280 attributes\nobj get arg0 rand2279 rand2280\nset str rand2280 displays\nobj get rand2279 rand2278 rand2280\nset obj rand2281 {\"methods\":{\".cns\":\"~ rand580\\nset str rand2288 attributes\\nobj get arg0 rand2287 rand2288\\nset str rand2288 surface\\nobj get rand2287 rand2286 rand2288\\nset str rand2289 pen\\nset obj rand2286 {\\\"methods\\\":{\\\".cns\\\":\\\"~ rand565\\\\nset str rand2296 attributes\\\\nobj get arg0 rand2295 rand2296\\\\nset str rand2296 type\\\\nobj get rand2295 rand2294 rand2296\\\\ndupe rand2294 arg1\\\\nobj set rand2295 rand2296 rand2294\\\\nset str rand2299 attributes\\\\nobj get arg0 rand2298 rand2299\\\\nset str rand2299 frame\\\\nobj get rand2298 rand2297 rand2299\\\\ndupe rand2297 arg2\\\\nobj set rand2298 rand2299 rand2297\\\\n~\\\",\\\"clear\\\":\\\"~ rand566\\\\nset str rand2304 attributes\\\\nobj get arg0 rand2303 rand2304\\\\nset str rand2304 type\\\\nobj get rand2303 rand2301 rand2304\\\\nset str rand2305 type attribute is null\\\\nerrnull rand2301 rand2305\\\\nset str rand2302 pen\\\\neql rand2300 rand2301 rand2302\\\\njn rand2306 rand2300\\\\npen clear\\\\nret\\\\n: rand2306\\\\nset str rand2311 cannot use clear method on\\\\nset str rand2314 attributes\\\\nobj get arg0 rand2313 rand2314\\\\nset str rand2314 type\\\\nobj get rand2313 rand2312 rand2314\\\\nset str rand2315 type attribute is null\\\\nerrnull rand2312 rand2315\\\\nadd rand2309 emptystring rand2311 space rand2312\\\\nset str rand2310 surface\\\\nadd rand2308 emptystring rand2309 space rand2310\\\\ncall graphics:io:throw rand2308\\\\n~\\\",\\\"line\\\":\\\"~ rand567\\\\nset str rand2325 attributes\\\\nobj get arg0 rand2324 rand2325\\\\nset str rand2325 type\\\\nobj get rand2324 rand2322 rand2325\\\\nset str rand2326 type attribute is null\\\\nerrnull rand2322 rand2326\\\\nset str rand2323 pen\\\\neql rand2321 rand2322 rand2323\\\\njn rand2327 rand2321\\\\ndrawCursor goto arg1 arg2\\\\npen size arg5\\\\npen down\\\\ndrawCursor goto arg3 arg4\\\\npen up\\\\nret\\\\n: rand2327\\\\nset str rand2332 cannot use line method on\\\\nset str rand2335 attributes\\\\nobj get arg0 rand2334 rand2335\\\\nset str rand2335 type\\\\nobj get rand2334 rand2333 rand2335\\\\nset str rand2336 type attribute is null\\\\nerrnull rand2333 rand2336\\\\nadd rand2330 emptystring rand2332 space rand2333\\\\nset str rand2331 surface\\\\nadd rand2329 emptystring rand2330 space rand2331\\\\ncall graphics:io:throw rand2329\\\\n~\\\",\\\"tri\\\":\\\"~ rand568\\\\nset str rand2348 attributes\\\\nobj get arg0 rand2347 rand2348\\\\nset str rand2348 type\\\\nobj get rand2347 rand2345 rand2348\\\\nset str rand2349 type attribute is null\\\\nerrnull rand2345 rand2349\\\\nset str rand2346 pen\\\\neql rand2344 rand2345 rand2346\\\\njn rand2350 rand2344\\\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\\\nret\\\\n: rand2350\\\\nset str rand2355 cannot use tri method on\\\\nset str rand2358 attributes\\\\nobj get arg0 rand2357 rand2358\\\\nset str rand2358 type\\\\nobj get rand2357 rand2356 rand2358\\\\nset str rand2359 type attribute is null\\\\nerrnull rand2356 rand2359\\\\nadd rand2353 emptystring rand2355 space rand2356\\\\nset str rand2354 surface\\\\nadd rand2352 emptystring rand2353 space rand2354\\\\ncall graphics:io:throw rand2352\\\\n~\\\",\\\"quad\\\":\\\"~ rand569\\\\nset str rand2373 attributes\\\\nobj get arg0 rand2372 rand2373\\\\nset str rand2373 type\\\\nobj get rand2372 rand2370 rand2373\\\\nset str rand2374 type attribute is null\\\\nerrnull rand2370 rand2374\\\\nset str rand2371 pen\\\\neql rand2369 rand2370 rand2371\\\\njn rand2375 rand2369\\\\nset str rand2378 methods\\\\nobj get arg0 rand2377 rand2378\\\\nset str rand2378 tri\\\\nobj get rand2377 rand2377 rand2378\\\\ncallvar rand2377 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\\\nset str rand2380 methods\\\\nobj get arg0 rand2379 rand2380\\\\nset str rand2380 tri\\\\nobj get rand2379 rand2379 rand2380\\\\ncallvar rand2379 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\\\nret\\\\n: rand2375\\\\nset str rand2384 cannot use quad method on\\\\nset str rand2387 attributes\\\\nobj get arg0 rand2386 rand2387\\\\nset str rand2387 type\\\\nobj get rand2386 rand2385 rand2387\\\\nset str rand2388 type attribute is null\\\\nerrnull rand2385 rand2388\\\\nadd rand2382 emptystring rand2384 space rand2385\\\\nset str rand2383 surface\\\\nadd rand2381 emptystring rand2382 space rand2383\\\\ncall graphics:io:throw rand2381\\\\n~\\\",\\\"rect\\\":\\\"~ rand570\\\\nset num rand2395 2\\\\ndiv rand2394 arg3 rand2395\\\\nset num rand2397 2\\\\ndiv rand2396 arg4 rand2397\\\\nsub rand2400 arg1 rand2394\\\\nsub rand2401 arg2 rand2396\\\\nsub rand2402 arg1 rand2394\\\\nadd rand2403 arg2 rand2396\\\\nadd rand2404 arg1 rand2394\\\\nsub rand2405 arg2 rand2396\\\\nadd rand2406 arg1 rand2394\\\\nadd rand2407 arg2 rand2396\\\\nset str rand2399 methods\\\\nobj get arg0 rand2398 rand2399\\\\nset str rand2399 quad\\\\nobj get rand2398 rand2398 rand2399\\\\ncallvar rand2398 rand569 arg0 rand2400 rand2401 rand2402 rand2403 rand2404 rand2405 rand2406 rand2407 arg5\\\\n~\\\",\\\"icon\\\":\\\"~ rand571\\\\nset str rand2418 attributes\\\\nobj get arg0 rand2417 rand2418\\\\nset str rand2418 type\\\\nobj get rand2417 rand2415 rand2418\\\\nset str rand2419 type attribute is null\\\\nerrnull rand2415 rand2419\\\\nset str rand2416 pen\\\\neql rand2414 rand2415 rand2416\\\\njn rand2420 rand2414\\\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2420\\\\nset str rand2425 cannot use icon method on\\\\nset str rand2428 attributes\\\\nobj get arg0 rand2427 rand2428\\\\nset str rand2428 type\\\\nobj get rand2427 rand2426 rand2428\\\\nset str rand2429 type attribute is null\\\\nerrnull rand2426 rand2429\\\\nadd rand2423 emptystring rand2425 space rand2426\\\\nset str rand2424 surface\\\\nadd rand2422 emptystring rand2423 space rand2424\\\\ncall graphics:io:throw rand2422\\\\n~\\\",\\\"text\\\":\\\"~ rand572\\\\nset str rand2440 attributes\\\\nobj get arg0 rand2439 rand2440\\\\nset str rand2440 type\\\\nobj get rand2439 rand2437 rand2440\\\\nset str rand2441 type attribute is null\\\\nerrnull rand2437 rand2441\\\\nset str rand2438 pen\\\\neql rand2436 rand2437 rand2438\\\\njn rand2442 rand2436\\\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2442\\\\nset str rand2447 cannot use text method on\\\\nset str rand2450 attributes\\\\nobj get arg0 rand2449 rand2450\\\\nset str rand2450 type\\\\nobj get rand2449 rand2448 rand2450\\\\nset str rand2451 type attribute is null\\\\nerrnull rand2448 rand2451\\\\nadd rand2445 emptystring rand2447 space rand2448\\\\nset str rand2446 surface\\\\nadd rand2444 emptystring rand2445 space rand2446\\\\ncall graphics:io:throw rand2444\\\\n~\\\",\\\"loadFontFromUrl\\\":\\\"~ rand573\\\\nset str rand2457 attributes\\\\nobj get arg0 rand2456 rand2457\\\\nset str rand2457 type\\\\nobj get rand2456 rand2454 rand2457\\\\nset str rand2458 type attribute is null\\\\nerrnull rand2454 rand2458\\\\nset str rand2455 pen\\\\neql rand2453 rand2454 rand2455\\\\njn rand2459 rand2453\\\\npen loadfonturl arg1\\\\nret\\\\n: rand2459\\\\nset str rand2464 cannot use loadFontFromUrl method on\\\\nset str rand2467 attributes\\\\nobj get arg0 rand2466 rand2467\\\\nset str rand2467 type\\\\nobj get rand2466 rand2465 rand2467\\\\nset str rand2468 type attribute is null\\\\nerrnull rand2465 rand2468\\\\nadd rand2462 emptystring rand2464 space rand2465\\\\nset str rand2463 surface\\\\nadd rand2461 emptystring rand2462 space rand2463\\\\ncall graphics:io:throw rand2461\\\\n~\\\",\\\"loadFontData\\\":\\\"~ rand574\\\\nset str rand2474 attributes\\\\nobj get arg0 rand2473 rand2474\\\\nset str rand2474 type\\\\nobj get rand2473 rand2471 rand2474\\\\nset str rand2475 type attribute is null\\\\nerrnull rand2471 rand2475\\\\nset str rand2472 pen\\\\neql rand2470 rand2471 rand2472\\\\njn rand2476 rand2470\\\\npen loadfontdata arg1\\\\nret\\\\n: rand2476\\\\nset str rand2481 cannot use loadFontData method on\\\\nset str rand2484 attributes\\\\nobj get arg0 rand2483 rand2484\\\\nset str rand2484 type\\\\nobj get rand2483 rand2482 rand2484\\\\nset str rand2485 type attribute is null\\\\nerrnull rand2482 rand2485\\\\nadd rand2479 emptystring rand2481 space rand2482\\\\nset str rand2480 surface\\\\nadd rand2478 emptystring rand2479 space rand2480\\\\ncall graphics:io:throw rand2478\\\\n~\\\",\\\"setColor\\\":\\\"~ rand575\\\\nset str rand2491 attributes\\\\nobj get arg0 rand2490 rand2491\\\\nset str rand2491 type\\\\nobj get rand2490 rand2488 rand2491\\\\nset str rand2492 type attribute is null\\\\nerrnull rand2488 rand2492\\\\nset str rand2489 pen\\\\neql rand2487 rand2488 rand2489\\\\njn rand2493 rand2487\\\\npen color arg1\\\\nret\\\\n: rand2493\\\\nset str rand2498 cannot use setColor method on\\\\nset str rand2501 attributes\\\\nobj get arg0 rand2500 rand2501\\\\nset str rand2501 type\\\\nobj get rand2500 rand2499 rand2501\\\\nset str rand2502 type attribute is null\\\\nerrnull rand2499 rand2502\\\\nadd rand2496 emptystring rand2498 space rand2499\\\\nset str rand2497 surface\\\\nadd rand2495 emptystring rand2496 space rand2497\\\\ncall graphics:io:throw rand2495\\\\n~\\\"},\\\"attributes\\\":{}}\\nset str rand2291 methods\\nobj get rand2286 rand2290 rand2291\\nset str rand2291 .cns\\nobj get rand2290 rand2290 rand2291\\ncallvar rand2290 rand565 rand2286 rand2289 arg1\\nobj set rand2287 rand2288 rand2286\\n~\"},\"attributes\":{}}\nset str rand2283 methods\nobj get rand2281 rand2282 rand2283\nset str rand2283 .cns\nobj get rand2282 rand2282 rand2283\ncallvar rand2282 rand580 rand2281 arg1\narr add rand2278 rand2281\njp rand2504\n: rand2276\nset str rand2508 attributes\nobj get arg0 rand2507 rand2508\nset str rand2508 displays\nobj get rand2507 rand2506 rand2508\nset obj rand2506 []\nset obj rand2509 {\"methods\":{\".cns\":\"~ rand580\\nset str rand2516 attributes\\nobj get arg0 rand2515 rand2516\\nset str rand2516 surface\\nobj get rand2515 rand2514 rand2516\\nset str rand2517 pen\\nset obj rand2514 {\\\"methods\\\":{\\\".cns\\\":\\\"~ rand565\\\\nset str rand2524 attributes\\\\nobj get arg0 rand2523 rand2524\\\\nset str rand2524 type\\\\nobj get rand2523 rand2522 rand2524\\\\ndupe rand2522 arg1\\\\nobj set rand2523 rand2524 rand2522\\\\nset str rand2527 attributes\\\\nobj get arg0 rand2526 rand2527\\\\nset str rand2527 frame\\\\nobj get rand2526 rand2525 rand2527\\\\ndupe rand2525 arg2\\\\nobj set rand2526 rand2527 rand2525\\\\n~\\\",\\\"clear\\\":\\\"~ rand566\\\\nset str rand2532 attributes\\\\nobj get arg0 rand2531 rand2532\\\\nset str rand2532 type\\\\nobj get rand2531 rand2529 rand2532\\\\nset str rand2533 type attribute is null\\\\nerrnull rand2529 rand2533\\\\nset str rand2530 pen\\\\neql rand2528 rand2529 rand2530\\\\njn rand2534 rand2528\\\\npen clear\\\\nret\\\\n: rand2534\\\\nset str rand2539 cannot use clear method on\\\\nset str rand2542 attributes\\\\nobj get arg0 rand2541 rand2542\\\\nset str rand2542 type\\\\nobj get rand2541 rand2540 rand2542\\\\nset str rand2543 type attribute is null\\\\nerrnull rand2540 rand2543\\\\nadd rand2537 emptystring rand2539 space rand2540\\\\nset str rand2538 surface\\\\nadd rand2536 emptystring rand2537 space rand2538\\\\ncall graphics:io:throw rand2536\\\\n~\\\",\\\"line\\\":\\\"~ rand567\\\\nset str rand2553 attributes\\\\nobj get arg0 rand2552 rand2553\\\\nset str rand2553 type\\\\nobj get rand2552 rand2550 rand2553\\\\nset str rand2554 type attribute is null\\\\nerrnull rand2550 rand2554\\\\nset str rand2551 pen\\\\neql rand2549 rand2550 rand2551\\\\njn rand2555 rand2549\\\\ndrawCursor goto arg1 arg2\\\\npen size arg5\\\\npen down\\\\ndrawCursor goto arg3 arg4\\\\npen up\\\\nret\\\\n: rand2555\\\\nset str rand2560 cannot use line method on\\\\nset str rand2563 attributes\\\\nobj get arg0 rand2562 rand2563\\\\nset str rand2563 type\\\\nobj get rand2562 rand2561 rand2563\\\\nset str rand2564 type attribute is null\\\\nerrnull rand2561 rand2564\\\\nadd rand2558 emptystring rand2560 space rand2561\\\\nset str rand2559 surface\\\\nadd rand2557 emptystring rand2558 space rand2559\\\\ncall graphics:io:throw rand2557\\\\n~\\\",\\\"tri\\\":\\\"~ rand568\\\\nset str rand2576 attributes\\\\nobj get arg0 rand2575 rand2576\\\\nset str rand2576 type\\\\nobj get rand2575 rand2573 rand2576\\\\nset str rand2577 type attribute is null\\\\nerrnull rand2573 rand2577\\\\nset str rand2574 pen\\\\neql rand2572 rand2573 rand2574\\\\njn rand2578 rand2572\\\\npen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7\\\\nret\\\\n: rand2578\\\\nset str rand2583 cannot use tri method on\\\\nset str rand2586 attributes\\\\nobj get arg0 rand2585 rand2586\\\\nset str rand2586 type\\\\nobj get rand2585 rand2584 rand2586\\\\nset str rand2587 type attribute is null\\\\nerrnull rand2584 rand2587\\\\nadd rand2581 emptystring rand2583 space rand2584\\\\nset str rand2582 surface\\\\nadd rand2580 emptystring rand2581 space rand2582\\\\ncall graphics:io:throw rand2580\\\\n~\\\",\\\"quad\\\":\\\"~ rand569\\\\nset str rand2601 attributes\\\\nobj get arg0 rand2600 rand2601\\\\nset str rand2601 type\\\\nobj get rand2600 rand2598 rand2601\\\\nset str rand2602 type attribute is null\\\\nerrnull rand2598 rand2602\\\\nset str rand2599 pen\\\\neql rand2597 rand2598 rand2599\\\\njn rand2603 rand2597\\\\nset str rand2606 methods\\\\nobj get arg0 rand2605 rand2606\\\\nset str rand2606 tri\\\\nobj get rand2605 rand2605 rand2606\\\\ncallvar rand2605 rand568 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg9\\\\nset str rand2608 methods\\\\nobj get arg0 rand2607 rand2608\\\\nset str rand2608 tri\\\\nobj get rand2607 rand2607 rand2608\\\\ncallvar rand2607 rand568 arg0 arg3 arg4 arg5 arg6 arg7 arg8 arg9\\\\nret\\\\n: rand2603\\\\nset str rand2612 cannot use quad method on\\\\nset str rand2615 attributes\\\\nobj get arg0 rand2614 rand2615\\\\nset str rand2615 type\\\\nobj get rand2614 rand2613 rand2615\\\\nset str rand2616 type attribute is null\\\\nerrnull rand2613 rand2616\\\\nadd rand2610 emptystring rand2612 space rand2613\\\\nset str rand2611 surface\\\\nadd rand2609 emptystring rand2610 space rand2611\\\\ncall graphics:io:throw rand2609\\\\n~\\\",\\\"rect\\\":\\\"~ rand570\\\\nset num rand2623 2\\\\ndiv rand2622 arg3 rand2623\\\\nset num rand2625 2\\\\ndiv rand2624 arg4 rand2625\\\\nsub rand2628 arg1 rand2622\\\\nsub rand2629 arg2 rand2624\\\\nsub rand2630 arg1 rand2622\\\\nadd rand2631 arg2 rand2624\\\\nadd rand2632 arg1 rand2622\\\\nsub rand2633 arg2 rand2624\\\\nadd rand2634 arg1 rand2622\\\\nadd rand2635 arg2 rand2624\\\\nset str rand2627 methods\\\\nobj get arg0 rand2626 rand2627\\\\nset str rand2627 quad\\\\nobj get rand2626 rand2626 rand2627\\\\ncallvar rand2626 rand569 arg0 rand2628 rand2629 rand2630 rand2631 rand2632 rand2633 rand2634 rand2635 arg5\\\\n~\\\",\\\"icon\\\":\\\"~ rand571\\\\nset str rand2646 attributes\\\\nobj get arg0 rand2645 rand2646\\\\nset str rand2646 type\\\\nobj get rand2645 rand2643 rand2646\\\\nset str rand2647 type attribute is null\\\\nerrnull rand2643 rand2647\\\\nset str rand2644 pen\\\\neql rand2642 rand2643 rand2644\\\\njn rand2648 rand2642\\\\npen icn arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2648\\\\nset str rand2653 cannot use icon method on\\\\nset str rand2656 attributes\\\\nobj get arg0 rand2655 rand2656\\\\nset str rand2656 type\\\\nobj get rand2655 rand2654 rand2656\\\\nset str rand2657 type attribute is null\\\\nerrnull rand2654 rand2657\\\\nadd rand2651 emptystring rand2653 space rand2654\\\\nset str rand2652 surface\\\\nadd rand2650 emptystring rand2651 space rand2652\\\\ncall graphics:io:throw rand2650\\\\n~\\\",\\\"text\\\":\\\"~ rand572\\\\nset str rand2668 attributes\\\\nobj get arg0 rand2667 rand2668\\\\nset str rand2668 type\\\\nobj get rand2667 rand2665 rand2668\\\\nset str rand2669 type attribute is null\\\\nerrnull rand2665 rand2669\\\\nset str rand2666 pen\\\\neql rand2664 rand2665 rand2666\\\\njn rand2670 rand2664\\\\npen text arg1 arg2 arg3 arg4 arg5 arg6\\\\nret\\\\n: rand2670\\\\nset str rand2675 cannot use text method on\\\\nset str rand2678 attributes\\\\nobj get arg0 rand2677 rand2678\\\\nset str rand2678 type\\\\nobj get rand2677 rand2676 rand2678\\\\nset str rand2679 type attribute is null\\\\nerrnull rand2676 rand2679\\\\nadd rand2673 emptystring rand2675 space rand2676\\\\nset str rand2674 surface\\\\nadd rand2672 emptystring rand2673 space rand2674\\\\ncall graphics:io:throw rand2672\\\\n~\\\",\\\"loadFontFromUrl\\\":\\\"~ rand573\\\\nset str rand2685 attributes\\\\nobj get arg0 rand2684 rand2685\\\\nset str rand2685 type\\\\nobj get rand2684 rand2682 rand2685\\\\nset str rand2686 type attribute is null\\\\nerrnull rand2682 rand2686\\\\nset str rand2683 pen\\\\neql rand2681 rand2682 rand2683\\\\njn rand2687 rand2681\\\\npen loadfonturl arg1\\\\nret\\\\n: rand2687\\\\nset str rand2692 cannot use loadFontFromUrl method on\\\\nset str rand2695 attributes\\\\nobj get arg0 rand2694 rand2695\\\\nset str rand2695 type\\\\nobj get rand2694 rand2693 rand2695\\\\nset str rand2696 type attribute is null\\\\nerrnull rand2693 rand2696\\\\nadd rand2690 emptystring rand2692 space rand2693\\\\nset str rand2691 surface\\\\nadd rand2689 emptystring rand2690 space rand2691\\\\ncall graphics:io:throw rand2689\\\\n~\\\",\\\"loadFontData\\\":\\\"~ rand574\\\\nset str rand2702 attributes\\\\nobj get arg0 rand2701 rand2702\\\\nset str rand2702 type\\\\nobj get rand2701 rand2699 rand2702\\\\nset str rand2703 type attribute is null\\\\nerrnull rand2699 rand2703\\\\nset str rand2700 pen\\\\neql rand2698 rand2699 rand2700\\\\njn rand2704 rand2698\\\\npen loadfontdata arg1\\\\nret\\\\n: rand2704\\\\nset str rand2709 cannot use loadFontData method on\\\\nset str rand2712 attributes\\\\nobj get arg0 rand2711 rand2712\\\\nset str rand2712 type\\\\nobj get rand2711 rand2710 rand2712\\\\nset str rand2713 type attribute is null\\\\nerrnull rand2710 rand2713\\\\nadd rand2707 emptystring rand2709 space rand2710\\\\nset str rand2708 surface\\\\nadd rand2706 emptystring rand2707 space rand2708\\\\ncall graphics:io:throw rand2706\\\\n~\\\",\\\"setColor\\\":\\\"~ rand575\\\\nset str rand2719 attributes\\\\nobj get arg0 rand2718 rand2719\\\\nset str rand2719 type\\\\nobj get rand2718 rand2716 rand2719\\\\nset str rand2720 type attribute is null\\\\nerrnull rand2716 rand2720\\\\nset str rand2717 pen\\\\neql rand2715 rand2716 rand2717\\\\njn rand2721 rand2715\\\\npen color arg1\\\\nret\\\\n: rand2721\\\\nset str rand2726 cannot use setColor method on\\\\nset str rand2729 attributes\\\\nobj get arg0 rand2728 rand2729\\\\nset str rand2729 type\\\\nobj get rand2728 rand2727 rand2729\\\\nset str rand2730 type attribute is null\\\\nerrnull rand2727 rand2730\\\\nadd rand2724 emptystring rand2726 space rand2727\\\\nset str rand2725 surface\\\\nadd rand2723 emptystring rand2724 space rand2725\\\\ncall graphics:io:throw rand2723\\\\n~\\\"},\\\"attributes\\\":{}}\\nset str rand2519 methods\\nobj get rand2514 rand2518 rand2519\\nset str rand2519 .cns\\nobj get rand2518 rand2518 rand2519\\ncallvar rand2518 rand565 rand2514 rand2517 arg1\\nobj set rand2515 rand2516 rand2514\\n~\"},\"attributes\":{}}\nset str rand2511 methods\nobj get rand2509 rand2510 rand2511\nset str rand2511 .cns\nobj get rand2510 rand2510 rand2511\ncallvar rand2510 rand580 rand2509 arg1\narr add rand2506 rand2509\nobj set rand2507 rand2508 rand2506\n: rand2504\n~","clearDisplays":"~ rand587\nset str rand2734 attributes\nobj get arg0 rand2733 rand2734\nset str rand2734 displays\nobj get rand2733 rand2732 rand2734\nset obj rand2732 []\nobj set rand2733 rand2734 rand2732\n~"},"attributes":{}}
+set str rand2048 methods
+obj get rand2046 rand2047 rand2048
+set str rand2048 .cns
+obj get rand2047 rand2047 rand2048
+callvar rand2047 rand585 rand2046 
+call stateManager:initState rand2045 rand2046
+quitTo rand2735
+: rand2735
+set str rand2738 attributes
+obj get rand2045 rand2737 rand2738
+set str rand2738 inputState
+obj get rand2737 rand2736 rand2738
+set str rand2740 methods
+obj get rand2736 rand2739 rand2740
+set str rand2740 update
+obj get rand2739 rand2739 rand2740
+callvar rand2739 rand92 rand2736 
+call stateManager:updateState rand2045 rand2046
+quitTo rand2735
 ret
 ~

@@ -1,0 +1,28 @@
+import io;
+
+struct TerminalResult {
+    bool successful;
+    str text;
+
+    void constructor(bool successful, str text = "") {
+        self.successful = successful;
+        self.text = text;
+    }
+}
+
+struct TerminalTheme {
+    str text = "#fff";
+    str warn = "#e37900";
+    str error = "#bf0000";
+}
+
+struct TerminalInstance {
+    str text = "> ";
+    str currentCmd = "";
+
+    TerminalTheme theme = new TerminalTheme();
+
+    void constructor() {
+        io:throw("cannot create terminal instance from api");
+    }
+}

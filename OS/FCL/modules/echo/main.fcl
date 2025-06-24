@@ -1,0 +1,5 @@
+import terminal;
+
+TerminalResult main() {
+    return new TerminalResult(true);
+}

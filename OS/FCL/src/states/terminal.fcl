@@ -1,10 +1,10 @@
-import state, graphics, globals, process, utils, text;
+import state, graphics, globals, process, clone, utils, text;
 
 struct TerminalResult {
     bool successful;
     str text;
 
-    void constructor(bool successful, str text) {
+    void constructor(bool successful, str text = "") {
         self.successful = successful;
         self.text = text;
     }
@@ -15,6 +15,11 @@ struct TerminalCommand {
 
     void constructor(str path = "") {
         self.path = path;
+    }
+
+    TerminalResult execute(Arr<str> args) {
+        Process proc = 
+        return new TerminalResult(true);
     }
 }
 
@@ -51,12 +56,26 @@ struct TerminalInstance {
         self.context = context;
     }
 
+    str _destr(str value) {
+        if (value[0] == "\"" && value[value.length - 1] == "\"") {
+            return value.slice(1,-1);
+        }
+        print(value);
+        return value;
+    }
     TerminalResult runCommand(str cmd) {
         Arr<str> tokens = utils:splitChar(cmd, " ", ["intactQuotes"]);
-
-        Arr<str> k = context.commands.keys();
-        if (k.contains(cmd)) {
-
+        
+        Arr<str> k = self.context.commands.keys();
+        if (k.contains(tokens[0])) {
+            Arr<str> args = [];
+            str key = tokens.shift();
+            for (i, tokens.length) {
+                elem = tokens[i];
+                args.append(self._destr(elem).toString());
+            }
+            TerminalCommand command = self.context.commands[key];
+            return command.execute(args);
         }
 
         return new TerminalResult(false, "unknown command \'" ++ tokens[0] ++ "\'");
