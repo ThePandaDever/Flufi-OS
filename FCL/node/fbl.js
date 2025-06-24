@@ -3140,16 +3140,6 @@ class Struct extends TypedValueType {
         }
     }
 }
-class StructInstance extends Value {
-    constructor(name) {
-        super();
-
-        this.type = name;
-    }
-    stringify() {
-        return `<${this.name}>`;
-    }
-}
 
 class Func extends Value {
     constructor() {
