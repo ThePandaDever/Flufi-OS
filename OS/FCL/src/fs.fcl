@@ -1,0 +1,110 @@
+import globals, io;
+
+Arr<str> splitFilePath(str string) {
+    num i = 0;
+    while ((str char = string[i]) != "/" && i < string.length) { i ++; }
+    str volume = string.slice(0,i);
+
+    num pathI = string.length - 1;
+    while ((str char = string[pathI]) != "/" && pathI > 0) { pathI --; }
+    str path = string.slice(i+1, pathI);
+
+    num typeI = string.length - 1;
+    while ((str char = string[typeI]) != "." && typeI > 0) { typeI --; }
+
+    if (typeI != 0) {
+        str type = string.slice(typeI+1);
+
+        str name = string.slice(pathI+1, typeI);
+
+        return [volume, path, name, type];
+    } else {
+        io:throw("invalid file path");
+    }
+    return [];
+}
+
+struct FilePath {
+    str volumeName;
+    str path;
+    str name;
+    str type;
+
+    void constructor(str path) {
+        Arr<str> tokens = splitFilePath(path);
+        self.volumeName = tokens[0];
+        self.path = tokens[1];
+        self.name = tokens[2];
+        self.type = tokens[3];
+    }
+
+    str toString() {
+        return self.volumeName ++ "/" ++ self.path ++ "/" ++ self.name ++ "." ++ self.type;
+    }
+}
+
+struct Volume {
+    str source;
+
+    void constructor(str source) {
+        if (!["flf"].contains(source)) {
+            io:throw("unknown volume source" + source);
+        }
+        self.source = source;
+    }
+
+    str readText(FilePath path) {
+        if (self.source == "flf") {
+            read = str(str _) {
+                return raw("fs get .target arg0");
+            }
+            str data = read(path.toString());
+            return data;
+        }
+        io:throw("cannot read from source of type" + self.source);
+        return "";
+    }
+}
+
+struct FileSystem {
+    Obj<Volume> volumes = {};
+
+    void addVolume(str name, Volume volume) {
+        if (self.volumes.keys().contains(name)) {
+            io:throw("volume" + name + "already exists.");
+        }
+        self.volumes[name] = volume;
+    }
+}
+
+struct FileHandle {
+    FilePath path;
+    FileSystem system;
+
+    void constructor(FilePath path, FileSystem system) {
+        self.path = path;
+        self.system = system;
+    }
+
+    str readText() {
+        str volumeName = self.path.volumeName;
+        if (self.system.volumes.keys().contains(volumeName)) {
+            Volume volume = self.system.volumes[volumeName];
+            return volume.readText(self.path);
+        } else {
+            io:throw("unknown volume" + volumeName);
+        }
+        return "";
+    }
+}
+
+FileHandle open(str path) {
+    return new FileHandle(new FilePath(path), globals:getGlobal<FileSystem>("fs", false));
+}
+
+void init() {
+    FileSystem fs = new FileSystem();
+    globals:setGlobal<FileSystem>("fs", fs);
+
+    fs.addVolume("sys", new Volume("flf"));
+}

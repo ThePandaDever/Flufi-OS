@@ -225,7 +225,8 @@ if (config && config["main"] && config["projectPath"]) {
         if (fs.existsSync(config["projectPath"] + "/" + "modules") && doModules) {
             const modulesPath = config["projectPath"] + "/" + "modules";
             const modules = fs.readdirSync(modulesPath);
-            delete FSF.settings["export"];
+            const moduleOuts = {};
+            FSF.settings["export"].desc = "the file path that the file can appear in the os that loads it";
             for (let i = 0; i < modules.length; i++) {
                 const moduleName = modules[i];
                 const modulePath = modulesPath + "/" + moduleName;
@@ -235,7 +236,7 @@ if (config && config["main"] && config["projectPath"]) {
                 if (fs.existsSync(configPath))
                     config2 = FSF.parse(fs.readFileSync(configPath, 'utf8'));
 
-                const localExport = "modules/" + (config2 != null ? config2["export"] ?? `${moduleName}.fbl` : `${moduleName}.fbl`);
+                const localExport = `modules/${moduleName}.fbl`;
                 const moduleExport = exportFolder + "/" + (localExport)
 
                 const main = modulePath + "/" + (config2 != null ? config2["main"] ?? "main.fcl" : "main.fcl");
@@ -249,12 +250,14 @@ if (config && config["main"] && config["projectPath"]) {
                 if (!fs.existsSync(getParent(moduleExport)))
                     fs.mkdirSync(getParent(moduleExport));
                 
-                fs.writeFileSync(moduleExport, out)
+                fs.writeFileSync(moduleExport, out);
+                moduleOuts[localExport] = config2 != null ? config2["export"] : null;
                 modOuts ??= [""];
                 modOuts.push(`output (${moduleName}) put in ${getParent(config["export"])}/${localExport}`)
             }
             if (modOuts)
                 modOuts.push("");
+            fs.writeFileSync(exportFolder + "/modules.json", JSON.stringify(moduleOuts));
         }
 
         fs.writeFileSync(exportPath, out, 'utf8');

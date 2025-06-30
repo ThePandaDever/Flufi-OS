@@ -1,6 +1,10 @@
+~ grah
+set str rand2 hi
+ret rand2
+~
 ~ main
-set obj rand2 []
-set str rand3 sad
-arr add rand2 rand3
+set str rand4 hi
+callget rand5 grah 
+print rand5
 ret
 ~

@@ -1,11 +1,11 @@
-import process, clone, state, stateManager, graphics, utils;
-
-// TODO: finish this src/clone.fcl;
+import process, clone, state, stateManager, graphics, utils, fs;
 
 void main() {
     state = state:getDefault();
     graphicsState = new graphics:GraphicsState();
     stateManager:initState(state, graphicsState);
+    
+    fs:init();
 
     forever {
         state.inputState.update();

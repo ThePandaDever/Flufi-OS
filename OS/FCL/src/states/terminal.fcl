@@ -1,4 +1,4 @@
-import state, graphics, globals, process, clone, utils, text;
+import state, graphics, globals, process, clone, utils, text, fs;
 
 struct TerminalResult {
     bool successful;
@@ -17,8 +17,11 @@ struct TerminalCommand {
         self.path = path;
     }
 
-    TerminalResult execute(Arr<str> args) {
-        Process proc = 
+    TerminalResult execute(TerminalInstance instance, Arr<str> args) {
+        FileHandle handle = fs:open(self.path);
+        CloneData data = new CloneData();
+        //data.set<TerminalInstance>("arg0", instance);
+        Process proc = new Process(handle.readText(), data);
         return new TerminalResult(true);
     }
 }
@@ -60,7 +63,6 @@ struct TerminalInstance {
         if (value[0] == "\"" && value[value.length - 1] == "\"") {
             return value.slice(1,-1);
         }
-        print(value);
         return value;
     }
     TerminalResult runCommand(str cmd) {
@@ -85,7 +87,7 @@ struct TerminalInstance {
 void init(State state, GraphicsState graphicsState) {
     graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
     globals:setGlobal<TerminalContext>("terminalContext", new TerminalContext(state, {
-        "echo": new TerminalCommand("echo")
+        "echo": new TerminalCommand("sys/terminal/echo.fbl")
     }));
 
     TerminalContext context = globals:getGlobal<TerminalContext>("terminalContext");
@@ -93,7 +95,7 @@ void init(State state, GraphicsState graphicsState) {
 }
 
 void runCommand(str cmd, TerminalInstance termInstance) {
-    TerminalResult result = termInstance.runCommand(cmd);
+    TerminalResult result = termInstance.runCommand(termInstance, cmd);
 
     if (!result.successful) {
         termInstance.text ++= text:embedColor(termInstance.context.state, termInstance.theme.warn);

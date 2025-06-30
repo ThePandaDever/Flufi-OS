@@ -1,15 +1,24 @@
 
 #noAnyWarn;
 
-// TODO: finish this
-
 struct CloneData {
-    auto set<t>(str key, t value) {
-        raw("str attrkey attributes\nobj get arg0\n")
+    Obj<any> data;
+
+    void constructor() {
+        self.data = {};
+    }
+
+    auto set<t>(str key, t data) {
+        self.data[key] = data;
+        return data;
+    }
+
+    auto get<t>(str key, t data) {
+        return self.data[key];
     }
 
     Obj<any> getData() {
-        return raw("set obj .target {}");
+        return self!.data;
     }
 }
 
@@ -34,13 +43,13 @@ struct Clone {
         _killClone(self!.id);
     }
     void continue() {
-        data = getCloneData<Obj<any>>(self!.id);
-        if (data) {
-            data["continue"] = true;
+        d = getCloneData<Obj<any>>(self!.id);
+        if (d) {
+            d["continue"] = true;
         }
     }
 
     auto getCloneData<t>(str id) {
-        return getCloneData(id);
+        return getCloneData<t>(id);
     }
 }

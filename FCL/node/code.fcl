@@ -1,5 +1,9 @@
 
+str grah() {
+    return "hi";
+}
+
 void main() {
-    Arr<str> hmm = [];
-    hmm.append("sad");
+    str silly = "hi";
+    raw("print",grah());
 }

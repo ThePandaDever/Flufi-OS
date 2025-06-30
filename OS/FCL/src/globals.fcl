@@ -1,12 +1,12 @@
 import io;
 
-auto getGlobal<type>(str id) {
+auto getGlobal<type>(str id, bool safe = true) {
     type data = raw("globalget .target arg1");
     if (data == null) {
         io:throw("global" + id + "doesnt exist");
     }
     Type dataType = typeof data;
-    if (dataType != type) {
+    if (dataType != type && safe) {
         io:throw("global is" + dataType.toString() + "not" + type.toString());
     }
     return data;

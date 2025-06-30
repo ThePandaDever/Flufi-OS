@@ -1,7 +1,7 @@
 import clone;
 
 struct Process {
-    clone:clone clone;
+    Clone clone;
     bool active = true;
 
     void constructor(str code, CloneData data) {

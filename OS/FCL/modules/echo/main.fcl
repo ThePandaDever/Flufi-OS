@@ -1,5 +1,6 @@
 import terminal;
 
-TerminalResult main() {
+TerminalResult main(TerminalInstance context) {
+    print("funny");
     return new TerminalResult(true);
 }

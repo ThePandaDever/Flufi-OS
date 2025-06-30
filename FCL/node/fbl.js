@@ -360,6 +360,10 @@ class Context {
                     const temp = randomStr();
                     return `set num ${temp} 1\nadd ${target.id} ${target.id} ${temp}`;
                 },
+                "dec": (_,target,aref,bref,atype,btype) => {
+                    const temp = randomStr();
+                    return `set num ${temp} 1\nsub ${target.id} ${target.id} ${temp}`;
+                },
 
                 "invert": (_,target,aref,bref,atype,btype) => `inv ${target.id} ${aref}`,
                 "boolify": (_,target,aref,bref,atype,btype) => `tobool ${target.id} ${aref}`,
@@ -367,13 +371,13 @@ class Context {
                     if (!isTypeSafe(atype,new Union(["num","bool"])))
                         return null;
                     const temp = randomStr();
-                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}\n`;
                 },
                 "negative": (_,target,aref,bref,atype,btype) => {
                     if (!isTypeSafe(atype,new Union(["num","bool"])))
                         return null;
                     const temp = randomStr();
-                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}`
+                    return `set num ${temp} 0\nsub ${target.id} ${temp} ${aref}\n`;
                 },
             };
             this.operation_types = {
@@ -689,25 +693,27 @@ class Node {
         }
 
         /* prefixes */ {
-            this.kind = "operation";
-            switch (code[0]) {
-                case "!":
-                    this.type = "invert";
-                    this.a = new Node(code.slice(1), context);
-                    return;
-                case "?":
-                    this.type = "boolify";
-                    this.a = new Node(code.slice(1), context);
-                    return;
-                    
-                case "+":
-                    this.type = "positive";
-                    this.a = new Node(code.slice(1), context);
-                    return;
-                case "-":
-                    this.type = "negative";
-                    this.a = new Node(code.slice(1), context);
-                    return;
+            if (code.length > 1) {
+                this.kind = "operation";
+                switch (code[0]) {
+                    case "!":
+                        this.type = "invert";
+                        this.a = new Node(code.slice(1), context);
+                        return;
+                    case "?":
+                        this.type = "boolify";
+                        this.a = new Node(code.slice(1), context);
+                        return;
+                        
+                    case "+":
+                        this.type = "positive";
+                        this.a = new Node(code.slice(1), context);
+                        return;
+                    case "-":
+                        this.type = "negative";
+                        this.a = new Node(code.slice(1), context);
+                        return;
+                }
             }
         }
 
@@ -1152,11 +1158,14 @@ class Node {
             }
             if (newTokens.length > 2) {
                 if (operations[newTokens[newTokens.length-2]]) {
-                    this.kind = "operation";
-                    this.b = new Node(newTokens.pop(), context);
-                    this.type = operations[newTokens.pop()];
-                    this.a = new Node(newTokens.join(""), context);
-                    return;
+                    const b = new Node(newTokens.pop(), context);
+                    if (b.code !== "-undefined") {
+                        this.kind = "operation";
+                        this.b = b;
+                        this.type = operations[newTokens.pop()];
+                        this.a = new Node(newTokens.join(""), context);
+                        return;
+                    }
                 }
             }
         }
@@ -1451,7 +1460,9 @@ class Node {
 
             case "execution": {
                 if (this.key.formattedCode === "raw") {
-                    context.text += (this.args.map(n => n.kind == "string" ? n.value : "").join("\n") + "\n").replace(".target", target?.id);
+                    const argKeys = this.args.map(a => a.kind == "string" ? null : a.compileKey(context));
+                    this.args.forEach((a,i) => a.kind == "string" ? null : a.compile(context, new Target(argKeys[i])));
+                    context.text += (this.args.map((n,i) => n.kind == "string" ? n.value : argKeys[i]).join(" ") + "\n").replace(".target", target?.id);
                     return;
                 }
                 const func = this.key.getValue(context);
@@ -1460,7 +1471,7 @@ class Node {
                     this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
                     context.text += func.compileFunc(argKeys, target) + "\n";
                 } else if (func instanceof AutoFunc) {
-                    throw "cannot execute generic function as typed function";
+                    throw "cannot execute generic function as function";
                 } else if (func instanceof DefinedFunc) {
                     let argKeys;
                     if (func.params) {
@@ -1480,7 +1491,7 @@ class Node {
                                 argKeys.push(key);
                                 const t = arg.getType(context);
                                 if (!isTypeSafe(t,param.type.getValue(context))) {
-                                    throw "expected " + t.getName() + " got " + param.type.getValue(context).getName()
+                                    throw "expected " + param.type.getValue(context).getName() + " got " + t.getName();
                                 }
                             }
                         }
@@ -1521,7 +1532,7 @@ class Node {
                                 const t = arg.getType(context);
                                 const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
                                 if (!isTypeSafe(t,pType))
-                                    throw "expected " + t.getName() + " got " + pType.getName();
+                                    throw "expected " + pType.getName() + " got " + t.getName();
                                 if (param.type.formattedCode === func.typeName && !context.unsafe) {
                                     const typeRef = randomStr();
                                     context.text += `set str ${typeRef} ${arg.getType(context).getName()}\nsettype ${key} ${typeRef}\n`;
@@ -1963,6 +1974,9 @@ class Node {
                     }
                 }
 
+                if (target != null && target.id != targetRef)
+                    context.text += `dupe ${target.id} ${targetRef}\n`;
+
                 if (typeof this.key != "string")
                     context.text += `obj set ${parentKey} ${keyKey} ${targetRef}\n`;
                 if (this.fullAttribute) {
@@ -2018,7 +2032,7 @@ class Node {
                             argKeys.push(key);
                             const t = arg.getType(context);
                             if (!isTypeSafe(t,param.type.getValue(context))) {
-                                throw "expected " + param.type.getValue(context).getName() + " got " + t.getName()
+                                throw "expected " + param.type.getValue(context).getName() + " got " + t.getName();
                             }
                         }
                     }
@@ -2061,7 +2075,7 @@ class Node {
                                         argKeys.push(key);
                                         const t = arg.getType(context);
                                         if (!isTypeSafe(t,param.type.getValue(context))) {
-                                            throw "expected " + t?.getName() + " got " + param.type.getValue(context).getName()
+                                            throw "expected " + param.type.getValue(context).getName() + " got " + t?.getName();
                                         }
                                     }
                                 }
@@ -2093,7 +2107,7 @@ class Node {
                         return;
                     }
                 }
-                if (type instanceof TypedValueType && type.baseType.name == "Obj") {
+                if (type instanceof TypedValueType && !(type instanceof Struct) && type.baseType.name == "Obj") {
                     if (this.key == "keys") {
                         const parentRef = this.value.compileKey(context);
                         this.value.compile(context, new Target(parentRef));
@@ -2109,7 +2123,7 @@ class Node {
                         return;
                     }
                 }
-                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                if (type instanceof TypedValueType && !(type instanceof Struct) && type.baseType.name == "Arr") {
                     if (this.key == "append") {
                         const parentRef = this.value.compileKey(context);
                         this.value.compile(context, new Target(parentRef));
@@ -2197,7 +2211,7 @@ class Node {
                                         const t = arg.getType(context);
                                         const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
                                         if (!isTypeSafe(t,pType)) {
-                                            throw "expected " + t.getName() + " got " + pType.getValue(context)
+                                            throw "expected " + pType.getValue(context) + " got " + t.getName();
                                         }
                                     }
                                 }
@@ -2207,7 +2221,7 @@ class Node {
                             context.text += `set str ${keyRef} methods\nobj get ${parentRef} ${methodRef} ${keyRef}\nset str ${keyRef} ${this.key}\nobj get ${methodRef} ${methodRef} ${keyRef}\n`;
                             context.text += target != null ? `callgetvar ${target.id} ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n` : `callvar ${methodRef} ${func.key} ${parentRef} ${argKeys.join(" ")}\n`;
                             
-                            if (!context.unsafe) {
+                            if (!context.unsafe && target) {
                                 let outType = this.type.getValue(context);
                                 outType = outType instanceof GenericType ? `.generic` : outType.getName();
                                 const condRef = randomStr();
@@ -2604,7 +2618,7 @@ class Node {
                 }
                 break;
         }
-        return randomStr();`1`
+        return randomStr();
     }
 
     getValue(context) {
@@ -2635,7 +2649,11 @@ class Node {
             case "assignment":
                 if (["inc", "dec"].includes(this.type))
                     return new TypedValue("num");
-                return this.value.getValue();
+                try {
+                    return this.value.getValue(context);
+                } catch {
+                    return new TypedValue(this.value.getType(context));
+                }
 
             case "string":
                 return new StringValue(this.value);
@@ -2771,9 +2789,9 @@ class Node {
                 }
                 if (type instanceof TypedValueType && type.baseType.name == "Obj") {
                     if (this.key == "keys")
-                        return new TypedValueType("Arr", new Type("str"));
+                        return new TypedValueType(new Type("Arr"), new Type("str"));
                     if (this.key == "values")
-                        return new TypedValueType("Arr", type.valueType.name);
+                        return new TypedValueType(new Type("Arr"), type.valueType);
                 }
                 if (type instanceof TypedValueType && type.baseType.name == "Arr") {
                     if (this.key == "append")
