@@ -1,1 +1,1 @@
-{"modules/echo.fbl":"sys/terminal/echo.fbl"}
+{"modules/echo.fbl":"sys/terminal/echo.fbl","modules/fib.fbl":"sys/terminal/fib.fbl","modules/spinny.fbl":"sys/terminal/spinny.fbl"}

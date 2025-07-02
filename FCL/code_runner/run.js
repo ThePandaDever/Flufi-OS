@@ -188,17 +188,26 @@ if (config && config["main"] && config["projectPath"]) {
 
     console.time("in");
     console.log("starting compilation...");
+    console.log("");
     
+    const startm = performance.now();
     const out = eval(compiler + `;
+    console.time("parsing (main)");
     const script = new Script(${JSON.stringify(code)});
+    console.timeEnd("parsing (main)");
     const context = new CompileContext();
 
     context.sharesVariables = ${config["shareVariables"] ?? false};
     context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};
     context.unsafe = ${config["unsafe"] ?? false};
 
-    script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")}),"apis":{...importFs(${JSON.stringify(config["projectPath"] + "/src")})}});
+    console.time("compiling (main)");
+    const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")}),"apis":{...importFs(${JSON.stringify(config["projectPath"] + "/src")})}});
+    console.timeEnd("compiling (main)");
+    console.log("");
+    val
     `);
+    const endm = performance.now();
     
     if (config["export"]) {
         let modOuts = null;
@@ -231,19 +240,30 @@ if (config && config["main"] && config["projectPath"]) {
                 const moduleName = modules[i];
                 const modulePath = modulesPath + "/" + moduleName;
                 const configPath = modulePath + "/" + "fclconfig.fsf";
-
+                const localExport = `modules/${moduleName}.fbl`;
+                const moduleExport = exportFolder + "/" + (localExport);
+                const start = performance.now();
+                
                 let config2;
                 if (fs.existsSync(configPath))
                     config2 = FSF.parse(fs.readFileSync(configPath, 'utf8'));
-
-                const localExport = `modules/${moduleName}.fbl`;
-                const moduleExport = exportFolder + "/" + (localExport)
 
                 const main = modulePath + "/" + (config2 != null ? config2["main"] ?? "main.fcl" : "main.fcl");
                 
                 let out = "";
                 if (fs.existsSync(main))
-                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});`);
+                    out = eval(compiler + `
+                    console.time("parsing (${moduleName})");
+                    const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});
+                    console.timeEnd("parsing (${moduleName})");
+                    const context = new CompileContext();
+                    context.sharesVariables = ${config["shareVariables"] ?? false};
+                    console.time("compiling (${moduleName})");
+                    const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});
+                    console.timeEnd("compiling (${moduleName})");
+                    console.log("");
+                    val
+                    `);
                 else
                     console.warn(`module ${moduleName} is empty or has no main.fcl; and hasnt been compiled.`);
                 
@@ -253,7 +273,7 @@ if (config && config["main"] && config["projectPath"]) {
                 fs.writeFileSync(moduleExport, out);
                 moduleOuts[localExport] = config2 != null ? config2["export"] : null;
                 modOuts ??= [""];
-                modOuts.push(`output (${moduleName}) put in ${getParent(config["export"])}/${localExport}`)
+                modOuts.push(`output (${moduleName}) put in ${getParent(config["export"])}/${localExport}, in ${Math.floor(performance.now()-start)}ms`)
             }
             if (modOuts)
                 modOuts.push("");
@@ -261,7 +281,7 @@ if (config && config["main"] && config["projectPath"]) {
         }
 
         fs.writeFileSync(exportPath, out, 'utf8');
-        console.log(`compilation finished!${(modOuts ?? ["",""]).join("\n\n")}output (main) put in ${config["export"]}`);
+        console.log(`compilation finished!${(modOuts ?? ["",""]).join("\n\n")}output (main) put in ${config["export"]}, in ${Math.floor(endm-startm)}ms`);
         console.timeLog("in");
     } else {
         let modOuts = null;
@@ -296,7 +316,7 @@ if (config && config["main"] && config["projectPath"]) {
         }
 
         console.log(`compilation finished!\n${(modOuts ?? ["",""]).join("\n")}compiled output (main):\n${out}`);
-        console.timeLog("in");
+        console.timeEnd("in");
     }
     process.exit()
 }

@@ -674,7 +674,7 @@ function isTypeSafeStrict(type,compare) {
 class Node {
     constructor(code, context) {
         this.code = code.trim();
-        this.formattedCode = code.split("\n").map(l => l.trim()).join("\\n");
+        this.formattedCode = code.trim().split("\n").map(l => l.trim()).join("\\n");
         this.kind = "unknown";
         return this.parse(this.code, context);
     }
@@ -1415,9 +1415,9 @@ class Node {
     }
 
     compile(context, target, flags, extra) {
-        if (!context) throw "no context";
-        if (target && !(target instanceof Target)) throw "no valid target";
-        //console.log(this);
+        if (!context) throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "no context";
+        if (target && !(target instanceof Target)) throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "no valid target";
+        //console.log("compiling node of type " + this.kind);
         switch (this.kind) {
             case "segment": {
                 if (!flags?.includes("noscope"))
@@ -1449,7 +1449,7 @@ class Node {
                         current = current[token];
                     }
                     if (!current)
-                        throw "unknown package " + imp.path + ".fcl"
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "unknown package " + imp.path + ".fcl"
                     
                     context.packages[imp.name] = current;
                     current.node.import(context, imp.name);
@@ -1471,7 +1471,7 @@ class Node {
                     this.args.forEach((a,i) => a.compile(context, new Target(argKeys[i])));
                     context.text += func.compileFunc(argKeys, target) + "\n";
                 } else if (func instanceof AutoFunc) {
-                    throw "cannot execute generic function as function";
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot execute generic function as function";
                 } else if (func instanceof DefinedFunc) {
                     let argKeys;
                     if (func.params) {
@@ -1480,7 +1480,7 @@ class Node {
                             const param = func.params[i];
                             const arg = this.args[i];
                             if (arg == null && param.default == null) {
-                                throw `argument ${param.name} not supplied.`;
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `argument ${param.name} not supplied.`;
                             } else if (!arg && param.default) {
                                 const key = param.default.compileKey(context);
                                 param.default.compile(context, new Target(key));
@@ -1491,7 +1491,7 @@ class Node {
                                 argKeys.push(key);
                                 const t = arg.getType(context);
                                 if (!isTypeSafe(t,param.type.getValue(context))) {
-                                    throw "expected " + param.type.getValue(context).getName() + " got " + t.getName();
+                                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected " + param.type.getValue(context).getName() + " got " + t.getName();
                                 }
                             }
                         }
@@ -1501,7 +1501,7 @@ class Node {
                     else
                         context.text += `call ${func.key} ${argKeys.join(" ")}\n`;
                 } else {
-                    throw this.key.formattedCode + " is not a function";
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + this.key.formattedCode + " is not a function";
                 }
                 
                 break;
@@ -1520,7 +1520,7 @@ class Node {
                             const param = func.params[i];
                             const arg = this.args[i];
                             if (arg == null && param.default == null) {
-                                throw `argument ${param.name} not supplied.`;
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `argument ${param.name} not supplied.`;
                             } else if (!arg && param.default) {
                                 const key = param.default.compileKey(context);
                                 param.default.compile(context, new Target(key));
@@ -1532,7 +1532,7 @@ class Node {
                                 const t = arg.getType(context);
                                 const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
                                 if (!isTypeSafe(t,pType))
-                                    throw "expected " + pType.getName() + " got " + t.getName();
+                                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected " + pType.getName() + " got " + t.getName();
                                 if (param.type.formattedCode === func.typeName && !context.unsafe) {
                                     const typeRef = randomStr();
                                     context.text += `set str ${typeRef} ${arg.getType(context).getName()}\nsettype ${key} ${typeRef}\n`;
@@ -1558,7 +1558,7 @@ class Node {
                     } else
                         context.text += `call ${func.key} ${typeRef} ${argKeys.join(" ")}\n`;
                 } else {
-                    throw this.key.formattedCode + " is not a generic function";
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + this.key.formattedCode + " is not a generic function";
                 }
 
                 break;
@@ -1572,7 +1572,7 @@ class Node {
                             this.value.compile(context, new Target(key));
                             const type = this.value.getType(context);
                             if (topLayer && !isTypeSafe(type, topLayer.return_type))
-                                throw `attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`;
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to return a value of type ${type.getName()} when the function should return ${topLayer.return_type.getName()}`;
                             if (topLayer.kind == "auto_function" && !context.unsafe) {
                                 const typeRef = randomStr();
                                 context.text += `set str ${typeRef} ${type instanceof GenericType ? `.generic` : type.getName()}\nsettype ${key} ${typeRef}\n`;
@@ -1580,7 +1580,7 @@ class Node {
                             context.text += `ret ${key}\n`;
                         } else {
                             if (topLayer && !isTypeSafe(new Type("null"),topLayer.return_type))
-                                throw `attempt to return null when the function should return ${topLayer.return_type.getName()}`;
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to return null when the function should return ${topLayer.return_type.getName()}`;
                             else
                                 context.text += `ret\n`;
                         }
@@ -1599,7 +1599,7 @@ class Node {
                             context.text += `${top[1] ?? "jp"} ${top[0]}${top[2]}\n`;
                             break;
                         }
-                        throw "cannot continue outside of loop";
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot continue outside of loop";
                     }
                     case "break": {
                         const top = context.breakLayers[context.breakLayers.length-1];
@@ -1607,10 +1607,10 @@ class Node {
                             context.text += `jp ${top}\n`;
                             break;
                         }
-                        throw "cannot break outside of loop";
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot break outside of loop";
                     }
                     default:
-                        throw "cannot compile statement of type " + this.key;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot compile statement of type " + this.key;
                 }
                 break;
             }
@@ -1625,7 +1625,7 @@ class Node {
                     this.b?.compile(context, new Target(b_key));
                     const out = operation(context, target, a_key, b_key, a_type, b_type);
                     if (!out) {
-                        throw `cannot run ${this.type} operation on values of type ${a_type.getName()} ${b_type != null ? `and ${b_type?.getName()}` : ``}`
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.type} operation on values of type ${a_type.getName()} ${b_type != null ? `and ${b_type?.getName()}` : ``}`
                     } else {
                         context.text += out + "\n";
                     }
@@ -1696,12 +1696,12 @@ class Node {
                             this.lbl = newLbl;
                             this.endLbl = endLbl;
                         } else {
-                            throw "invalid else placement";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "invalid else placement";
                         }
                         break;
                     }
                     default:
-                        throw "cannot compile branch of type " + this.key;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot compile branch of type " + this.key;
                 }
                 break;
             }
@@ -1781,7 +1781,7 @@ class Node {
                             this.lbl = newLbl;
                             this.endLbl = endLbl;
                         } else {
-                            throw "invalid else placement";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "invalid else placement";
                         }
                         break;
                     }
@@ -1849,11 +1849,11 @@ class Node {
                             context.breakLayers.pop();
                             context.scope.exitLayer();
                         } else
-                            throw "unknown for syntax, for; all possible combinations:\n  for(var, var < max)\n  for(var = start, var < max)\n  for(var, cond)\n  for(var = start, cond)";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "unknown for syntax, for; all possible combinations:\n  for(var, var < max)\n  for(var = start, var < max)\n  for(var, cond)\n  for(var = start, cond)";
                         break;
                     }
                     default:
-                        throw "cannot compile branch with args of type " + this.key;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot compile branch with args of type " + this.key;
                 }
                 break;
             }
@@ -1888,7 +1888,7 @@ class Node {
                     const valueType = this.value?.getType(context);
                     const nullAttribute = context.scope.get(this.fullAttribute.value.getType(context).name).nullAttributes[this.fullAttribute.key];
                     if (this.value && !(valueType.getName() === "null" && nullAttribute) && !isTypeSafeStrict(valueType, targetType))
-                        throw `attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()} in ${this.formattedCode}`;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to assign an attribute which is ${targetType.getName()} to a ${valueType.getName()} in ${this.formattedCode}`;
                 } else {
                     if (typeof this.key == "string") {
                         let err;
@@ -1903,19 +1903,19 @@ class Node {
                                     targetType = this.value.getType(context);
                                     const wantedType = this?.varType?.getValue(context);
                                     if (wantedType == null ? false : !isTypeSafeStrict(targetType,wantedType))
-                                        throw "attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName()
+                                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "attempt to assign variable to " + targetType.getName() + " while the variable should be a " + wantedType.getName()
                                     if (wantedType)
                                         targetType = wantedType;
                                     break;
                                 case "inc": case "dec": targetType = new Type("num"); err = null; break;
                                 default:
-                                    throw e;
+                                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + e;
                             }
                         }
                         if (err)
-                            throw err;
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + err;
                         try {
-                            if (targetType instanceof TypedValueType && !(targetType instanceof Struct) && targetType.baseType.getName() == "Arr" && targetType.valueType.getName() == "null") throw "";
+                            if (targetType instanceof TypedValueType && !(targetType instanceof Struct) && targetType.baseType.getName() == "Arr" && targetType.valueType.getName() == "null") throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "";
                             targetRef = context.scope.assign(this.key, this.value.getValue(context));
                         } catch {
                             targetRef = context.scope.assign(this.key, new TypedValue(targetType));
@@ -1938,7 +1938,7 @@ class Node {
 
                         const valueType = this.value.getType(context);
                         if (!isTypeSafeStrict(valueType, targetType))
-                            throw `attempt to assign a key which is ${targetType.getName()} to a ${valueType.getName()}`
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to assign a key which is ${targetType.getName()} to a ${valueType.getName()}`
                     }
                 }
 
@@ -1956,14 +1956,14 @@ class Node {
                         this.value?.compile(context, new Target(valueRef));
                         const out = operation(context, new Target(targetRef), targetRef, valueRef, targetType, valueType);
                         if (!out)
-                            throw `cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`
                         context.text += out + "\n";
                         
                         const operationType = context.operation_types[this.type];
                         const outType = operationType(context, targetType, valueType);
 
                         if (!outType)
-                            throw `cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.type} assignment operation on values of type ${targetType.getName()} and ${valueType.getName()}`
                         
                         try {
                             context.scope.assign(this.key, this.value.getValue(context));
@@ -2001,7 +2001,7 @@ class Node {
                     this.b.compile(context, new Target(b_key));
                     const out = comparison(context, target, a_key, b_key, a_type, b_type);
                     if (!out) {
-                        throw `cannot run ${this.type} comparison on values of type ${a_type} and ${b_type}`
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.type} comparison on values of type ${a_type} and ${b_type}`
                     } else {
                         context.text += out + "\n";
                     }
@@ -2011,7 +2011,7 @@ class Node {
             case "instance": {
                 const instVal = context.scope.get(this.name);
                 if (!instVal || !(instVal instanceof Struct))
-                    throw "cannot instance " + this.name;
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot instance " + this.name;
                 target ??= new Target(randomStr()); 
                 let argKeys;
                 const params = instVal.methods[".cns"]?.params;
@@ -2021,7 +2021,7 @@ class Node {
                         const param = params[i];
                         const arg = this.args[i];
                         if (arg == null && param.default == null) {
-                            throw `argument ${param.name} not supplied.`;
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `argument ${param.name} not supplied.`;
                         } else if (!arg && param.default) {
                             const key = param.default.compileKey(context);
                             param.default.compile(context, new Target(key));
@@ -2032,7 +2032,7 @@ class Node {
                             argKeys.push(key);
                             const t = arg.getType(context);
                             if (!isTypeSafe(t,param.type.getValue(context))) {
-                                throw "expected " + param.type.getValue(context).getName() + " got " + t.getName();
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected " + param.type.getValue(context).getName() + " got " + t.getName();
                             }
                         }
                     }
@@ -2064,7 +2064,7 @@ class Node {
                                     const param = func.params[i];
                                     const arg = this.args[i];
                                     if (arg == null && param.default == null) {
-                                        throw `argument ${param.name} not supplied.`;
+                                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `argument ${param.name} not supplied.`;
                                     } else if (!arg && param.default) {
                                         const key = param.default.compileKey(context);
                                         param.default.compile(context, new Target(key));
@@ -2075,7 +2075,7 @@ class Node {
                                         argKeys.push(key);
                                         const t = arg.getType(context);
                                         if (!isTypeSafe(t,param.type.getValue(context))) {
-                                            throw "expected " + param.type.getValue(context).getName() + " got " + t?.getName();
+                                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected " + param.type.getValue(context).getName() + " got " + t?.getName();
                                         }
                                     }
                                 }
@@ -2103,7 +2103,7 @@ class Node {
                             } else
                                 context.text += `slice ${target.id} ${parentRef} ${startRef}\n`;
                         } else
-                            throw "unexpected amount of args in slice, string.slice(start,end?)"
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "unexpected amount of args in slice, string.slice(start,end?)"
                         return;
                     }
                 }
@@ -2131,7 +2131,7 @@ class Node {
                             const element = this.args[i];
                             const t = element.getType(context);
                             if (!isTypeSafeStrict(type, new TypedValueType(new Type("Arr"), t)))
-                                throw `attempt to add a ${t.getName()} to a ${type.getValueType().getName()} array`;
+                                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to add a ${t.getName()} to a ${type.getValueType().getName()} array`;
                             const ref = randomStr();
                             element.compile(context, new Target(ref));
                             context.text += `arr add ${parentRef} ${ref}\n`;
@@ -2162,7 +2162,7 @@ class Node {
                         const parentRef = this.value.compileKey(context);
                         this.value.compile(context, new Target(parentRef));
                         if (this.args.length != 1)
-                            throw "invalid amount of args for contains";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "invalid amount of args for contains";
                         const valueRef = this.args[0].compileKey(context);
                         this.args[0].compile(context, new Target(valueRef));
                         if (target)
@@ -2180,7 +2180,7 @@ class Node {
                     }
                     return;
                 }
-                throw `cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
+                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
             }
             case "typed_method": {
                 const parentType = this.value.getType(context);
@@ -2199,7 +2199,7 @@ class Node {
                                     const param = func.params[i];
                                     const arg = this.args[i];
                                     if (arg == null && param.default == null) {
-                                        throw `argument ${param.name} not supplied.`;
+                                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `argument ${param.name} not supplied.`;
                                     } else if (!arg && param.default) {
                                         const key = param.default.compileKey(context);
                                         param.default.compile(context, new Target(key));
@@ -2211,7 +2211,7 @@ class Node {
                                         const t = arg.getType(context);
                                         const pType = param.type.formattedCode === func.typeName ? ".any" : param.type.getValue(context);
                                         if (!isTypeSafe(t,pType)) {
-                                            throw "expected " + pType.getValue(context) + " got " + t.getName();
+                                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected " + pType.getValue(context) + " got " + t.getName();
                                         }
                                     }
                                 }
@@ -2236,7 +2236,7 @@ class Node {
                         }
                     }
                 }
-                throw `cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
+                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot run ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
             }
             case "attribute_check": {
                 const ref = this.attribute.compileKey(context);
@@ -2249,7 +2249,7 @@ class Node {
                 context.text += target != null && !(target.id == context.scope.get(this.key).ref) ? `dupe ${target.id} ${context.scope.get(this.key).ref}\n` : "";
                 break;
             case "argument":
-                context.text += target != null && !target.id.startsWith("arg") ? `dupe ${target.id} arg${this.index + context.argOffset ?? 0}\n` : "";
+                context.text += target != null && !target.id.startsWith("arg") ? `dupe ${target.id} arg${this.index + (context.argOffset ?? 0)}\n` : "";
                 break;
             case "constant":
                 if (target == null) break;
@@ -2259,7 +2259,7 @@ class Node {
                         if (top?.hasSelf) {
                             context.text += `dupe ${target.id} arg0\n`;
                         } else {
-                            throw "cannot access self";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot access self";
                         }
                     }
                     return;
@@ -2284,7 +2284,7 @@ class Node {
                         if (!context.unsafe)
                             context.text += `set str ${txtRef = randomStr()}  doesnt exist on ${JSON.stringify(this.value.formattedCode).slice(1,-1)}\nadd ${txtRef} ${keyRef} ${txtRef}\nernull ${target.id} ${txtRef}\n`;
                     } else
-                        throw "cannot get a key from a " + valueType.getName();
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot get a key from a " + valueType.getName();
                 }
                 return;
             }
@@ -2317,7 +2317,7 @@ class Node {
                             }
                             return;
                         }
-                        throw `cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode},\nlist of attributes:\n  ${Object.keys({...parent.attributes, ...parent.nullAttributes}).join("\n  ")}`;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode},\nlist of attributes:\n  ${Object.keys({...parent.attributes, ...parent.nullAttributes}).join("\n  ")}`;
                     }
                 }
                 const type = this.value.getType(context);
@@ -2337,7 +2337,7 @@ class Node {
                         return;
                     }
                 }
-                throw `cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
+                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `cannot get ${this.key} on ${this.value.formattedCode} in ${this.formattedCode}`;
             }
             case "type":
                 context.text += target != null ? `set str ${target.id} ${this.name}\n` : "";
@@ -2406,7 +2406,7 @@ class Node {
             }
             case "function": {
                 const type = this.type.getValue(context);
-                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw "invalid type " + this.type.formattedCode;
+                if (!type || !(type instanceof Type || type instanceof Union || type instanceof TypedValueType)) throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "invalid type " + this.type.formattedCode;
                 
                 if (!context.compiledFunctions.includes(this.key)) {
                     const saveText = context.text;
@@ -2416,7 +2416,7 @@ class Node {
                         const scanContext = new ScanContext();
                         this.content.scan(scanContext);
                         if (!scanContext.returns)
-                            throw "not all code paths return a value";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "not all code paths return a value";
                     }
                     context.scope.newLayer(Object.fromEntries(this.params.map((p,i) => [`.arg${i}`, p.type.getValue(context)])));
                     this.content.compile(context, null, ["noscope"]);
@@ -2447,7 +2447,7 @@ class Node {
                     const scanContext = new ScanContext();
                     this.content.scan(scanContext);
                     if (!scanContext.returns)
-                        throw "not all code paths return a value";
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "not all code paths return a value";
                     const oldOffset = context.argOffset ?? 0;
                     context.argOffset = 1;
                     context.scope.newLayer(Object.fromEntries([[this.type,new GenericType()]]));
@@ -2475,7 +2475,7 @@ class Node {
             }
             case "struct_def": {
                 if (target != null)
-                    throw "expected an output from struct definition";
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "expected an output from struct definition";
                 let struct;
                 if (!structCache[this.name.slice(this.name.indexOf(":") + 1)]) {
                     const attributes = {};
@@ -2501,9 +2501,9 @@ class Node {
                             genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type);
                         
                         if (elem["kind"] == "auto_function" && elem.key === "constructor")
-                            throw "constructor cannot be a generic function";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "constructor cannot be a generic function";
                         if (elem["kind"] == "function" && elem.key === "constructor" && elem.type.formattedCode !== "void")
-                            throw "constructor isnt of type void";
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "constructor isnt of type void";
                     }
                     const args = [attributes,nullAttributes,methods,genericMethods];
                     struct = new Struct(
@@ -2522,7 +2522,7 @@ class Node {
             }
             
             default:
-                throw "cannot compile node " + this.kind;
+                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot compile node " + this.kind;
         }
     }
 
@@ -2621,6 +2621,7 @@ class Node {
         return randomStr();
     }
 
+    
     getValue(context) {
         switch (this.kind) {
             case "segment": return this.elements[this.elements.length-1].getType(context);
@@ -2629,7 +2630,7 @@ class Node {
             case "variable": {
                 const val = context.scope.get(this.key);
                 if (!val)
-                    throw `${this.key} is not defined`;
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `${this.key} is not defined`;
                 return val;
             }
             case "argument":
@@ -2667,7 +2668,7 @@ class Node {
                 return new DefinedFunc(this.key, this.type.getValue(context), this.params);
             case "type":
                 if (this.name == "any" && context?.noAnyWarn != null)
-                    throw "usage of any, any is not recomended, if this is necessary, put #noAnyWarn before the usage"
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "usage of any, any is not recomended, if this is necessary, put #noAnyWarn before the usage"
                 if (this.name == "any")
                     return new Type(".any");
                 return new Type(this.name);
@@ -2685,7 +2686,7 @@ class Node {
                         items.type = elementType;
                         items.push(element);
                     } else {
-                        throw `attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} array`;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} array`;
                     }
                 }
                 if (items.type == null)
@@ -2701,14 +2702,14 @@ class Node {
                     if (items.type == null || isTypeSafeStrict(elementType, items.type)) {
                         items.type = elementType;
                     } else {
-                        throw `attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} object`;
+                        throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `attempt to have a ${elementType.stringify()} in a presumably ${items.type.stringify()} object`;
                     }
                 }
                 return new ObjectValue(items.type ?? new Type("null"));
             }
 
             default:
-                throw "cannot get value of " + this.kind;
+                throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot get value of " + this.kind;
         }
     }
     getType(context) {
@@ -2718,7 +2719,7 @@ class Node {
             case "variable":
                 const val = context.scope.get(this.key);
                 if (!val)
-                    throw `${this.key} is not defined`;
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + `${this.key} is not defined`;
                 return val.getType(context);
             case "argument":
                 return context.scope.get(`.arg${this.index}`);
@@ -2753,7 +2754,7 @@ class Node {
                 if (valueType.canGetKey && valueType.canGetKey())
                     return valueType.getValueType(this.key);
                 else
-                    throw "cannot get a key from a " + valueType.getName();
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot get a key from a " + valueType.getName();
             
             case "execution":
                 if (this.key.formattedCode == "raw") return new Type(".any");
@@ -2772,7 +2773,7 @@ class Node {
             case "instance":
                 const instVal = context.scope.get(this.name);
                 if (!instVal)
-                    throw "cannot instance " + this.name;
+                    throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "cannot instance " + this.name;
                 return instVal;
             case "method": {
                 try {
@@ -2787,13 +2788,13 @@ class Node {
                     if (this.key == "slice")
                         return new Type("str");
                 }
-                if (type instanceof TypedValueType && type.baseType.name == "Obj") {
+                if (type instanceof TypedValueType && !(type instanceof Struct) && type.baseType.name == "Obj") {
                     if (this.key == "keys")
                         return new TypedValueType(new Type("Arr"), new Type("str"));
                     if (this.key == "values")
                         return new TypedValueType(new Type("Arr"), type.valueType);
                 }
-                if (type instanceof TypedValueType && type.baseType.name == "Arr") {
+                if (type instanceof TypedValueType && !(type instanceof Struct) && type.baseType.name == "Arr") {
                     if (this.key == "append")
                         return this.value.getType(context);
                     if (this.key == "pop") {

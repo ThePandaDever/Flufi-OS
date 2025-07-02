@@ -1,6 +1,17 @@
 import terminal;
 
-TerminalResult main(TerminalInstance context) {
-    print("funny");
-    return new TerminalResult(true);
+str join(Arr<str> elems, str joiner = "") {
+    str out = "";
+    for (i, elems.length) {
+        out ++= elems[i];
+        if (i < elems.length - 1) {
+            out ++= joiner;
+        }
+    }
+    return out;
+}
+
+void main(TerminalInstance instance, Arr<str> args) {
+    print(args);
+    instance.text ++= join(args, " ");
 }

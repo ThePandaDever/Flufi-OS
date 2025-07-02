@@ -1,10 +1,31 @@
-~ grah
-set str rand2 hi
-ret rand2
+~ join
+set str rand4 
+set num rand8 1
+set num rand9 0
+len rand5 arg0
+: rand6
+sml rand10 rand9 rand5
+jn rand7 rand10
+obj get arg0 rand11 rand9
+set str rand12  doesnt exist on elems
+add rand12 rand9 rand12
+ernull rand11 rand12
+add rand4 emptystring rand4 rand11
+len rand15 arg0
+set num rand16 1
+sub rand14 rand15 rand16
+sml rand13 rand9 rand14
+jn rand17 rand13
+dupe rand19 arg1
+add rand4 emptystring rand4 rand19
+: rand17
+jai rand6 rand9
+: rand7
+ret rand4
 ~
 ~ main
-set str rand4 hi
-callget rand5 grah 
-print rand5
+set obj rand22 ["fr","ra"]
+set str rand23  
+callget rand21 join rand22 rand23
 ret
 ~

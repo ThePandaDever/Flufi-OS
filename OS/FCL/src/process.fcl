@@ -16,6 +16,10 @@ struct Process {
         self!.clone.continue();
     }
 
+    bool getAlive() {
+        return raw("clone alive .target", self.clone.id);
+    }
+
     auto getScope<t>() {
         return clone:getCloneData<t>(self!.clone!.id);
     }

@@ -1,9 +1,14 @@
-
-str grah() {
-    return "hi";
+str join(Arr<str> elems, str joiner = "") {
+    str out = "";
+    for (i, elems.length) {
+        out ++= elems[i];
+        if (i < elems.length - 1) {
+            out ++= joiner;
+        }
+    }
+    return out;
 }
 
 void main() {
-    str silly = "hi";
-    raw("print",grah());
+    grah = join(["fr","ra"], " ");
 }

@@ -29,7 +29,7 @@ str _killClone(str id) {
     return raw("clone kill arg0");
 }
 auto getCloneData<t>(str id) {
-    return raw("clone getData .target arg0");
+    return raw("clone getData .target arg1");
 }
 
 struct Clone {

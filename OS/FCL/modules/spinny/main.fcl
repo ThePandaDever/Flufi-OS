@@ -1,0 +1,17 @@
+import terminal, math, input;
+
+void main(TerminalInstance instance, Arr<str> args, KeyMap map) {
+    instance.text ++= "|";
+    Arr<str> chars = [
+        "|","/","-","\\","|","/","-","\\"
+    ];
+    num i = 0;
+    num lastMs = io:getCurrentMs();
+    num dt = 0;
+    forever {
+        instance.text = instance.text.slice(0,-1) ++ chars[math:floor(i/90) % chars.length];
+        i += dt;
+        dt = io:getCurrentMs() - lastMs;
+        lastMs = io:getCurrentMs();
+    }
+}

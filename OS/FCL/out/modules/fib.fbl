@@ -1,0 +1,29 @@
+~ io:throw
+err arg0
+ret
+~
+~ io:getCurrentMs
+const ms rand5
+ret rand5
+~
+~ main
+callget rand8 io:getCurrentMs 
+set num rand9 1000000
+set num rand10 0
+set num rand11 1
+set num rand12 0
+set num rand13 2
+set num rand16 1
+: rand14
+sml rand17 rand13 rand9
+jn rand15 rand17
+add rand12 rand10 rand11
+dupe rand10 rand11
+dupe rand11 rand12
+jai rand14 rand13
+: rand15
+callget rand18 io:getCurrentMs 
+sub rand19 rand18 rand8
+print rand19 rand12
+ret
+~

@@ -17,11 +17,14 @@ struct TerminalCommand {
         self.path = path;
     }
 
-    TerminalResult execute(TerminalInstance instance, Arr<str> args) {
+    TerminalResult execute(TerminalInstance instance, Arr<str> args, KeyMap keyMap) {
         FileHandle handle = fs:open(self.path);
         CloneData data = new CloneData();
-        //data.set<TerminalInstance>("arg0", instance);
+        data.set<TerminalInstance>("arg0", instance);
+        data.set<Arr<str>>("arg1", args);
+        data.set<KeyMap>("arg2", keyMap);
         Process proc = new Process(handle.readText(), data);
+        instance.process = proc;
         return new TerminalResult(true);
     }
 }
@@ -48,15 +51,28 @@ struct TerminalContext {
 }
 
 struct TerminalInstance {
-    str text = "> ";
+    str text = "";
     str currentCmd = "";
+    bool hasLine = false;
 
     Process process;
     TerminalContext context;
     TerminalTheme theme = new TerminalTheme();
 
-    void constructor(TerminalContext context) {
+    KeyMap map;
+
+    void constructor(TerminalContext context, KeyMap map) {
         self.context = context;
+        self.map = map;
+    }
+    void update() {
+        if (self?.process) {
+            if(!self!.process.getAlive()) {
+                self.process = null;
+            } else {
+                self.process.continue();
+            }
+        }
     }
 
     str _destr(str value) {
@@ -77,7 +93,7 @@ struct TerminalInstance {
                 args.append(self._destr(elem).toString());
             }
             TerminalCommand command = self.context.commands[key];
-            return command.execute(args);
+            return command.execute(self, args, self.map);
         }
 
         return new TerminalResult(false, "unknown command \'" ++ tokens[0] ++ "\'");
@@ -87,15 +103,17 @@ struct TerminalInstance {
 void init(State state, GraphicsState graphicsState) {
     graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
     globals:setGlobal<TerminalContext>("terminalContext", new TerminalContext(state, {
-        "echo": new TerminalCommand("sys/terminal/echo.fbl")
+        "echo": new TerminalCommand("sys/terminal/echo.fbl"),
+        "spinny": new TerminalCommand("sys/terminal/spinny.fbl"),
+        "fib": new TerminalCommand("sys/terminal/fib.fbl"),
     }));
 
     TerminalContext context = globals:getGlobal<TerminalContext>("terminalContext");
-    globals:setGlobal<TerminalInstance>("terminalInstance", new TerminalInstance(context));
+    globals:setGlobal<TerminalInstance>("terminalInstance", new TerminalInstance(context, state.inputState.map));
 }
 
 void runCommand(str cmd, TerminalInstance termInstance) {
-    TerminalResult result = termInstance.runCommand(termInstance, cmd);
+    TerminalResult result = termInstance.runCommand(cmd);
 
     if (!result.successful) {
         termInstance.text ++= text:embedColor(termInstance.context.state, termInstance.theme.warn);
@@ -113,14 +131,28 @@ void newLine(TerminalInstance termInstance) {
 void handleInput(State state) {
     TerminalInstance termInstance = globals:getGlobal<TerminalInstance>("terminalInstance");
     
+    termInstance.update();
+
     bool inControl = true;
     if (termInstance?.process) {
-        proc = termInstance!.process;
+        Process proc = termInstance!.process;
+        inControl = false;
+    }
+
+    if ((!termInstance.hasLine) &&& inControl) {
+        newLine(termInstance);
+        termInstance.hasLine = true;
     }
 
     Arr<str> keys = state.inputState.map.keys;
     while (keys.length > 0) {
         str key = keys.pop();
+        if (state.inputState.map.downSpecial.contains("Control")) {
+            if (key == "c" && termInstance?.process) {
+                Process proc = termInstance!.process;
+                proc.kill();
+            }
+        }
         if (inControl) {
             termInstance.text ++= key;
             termInstance.currentCmd ++= key;
@@ -134,8 +166,8 @@ void handleInput(State state) {
             if (key == "Enter" && termInstance.currentCmd.length > 0) {
                 termInstance.text ++= "\n";
                 runCommand(termInstance.currentCmd, termInstance);
-                newLine(termInstance);
                 termInstance.currentCmd = "";
+                termInstance.hasLine = false;
             }
             if (key == "Backspace" && termInstance.currentCmd.length > 0) {
                 termInstance.text = termInstance.text.slice(0,-1);

@@ -2,16 +2,44 @@
 err arg0
 ret
 ~
+~ terminal:io:getCurrentMs
+const ms rand6
+ret rand6
+~
+~ join
+set str rand20 
+set num rand24 1
+set num rand25 0
+len rand21 arg0
+: rand22
+sml rand26 rand25 rand21
+jn rand23 rand26
+obj get arg0 rand27 rand25
+set str rand28  doesnt exist on elems
+add rand28 rand25 rand28
+ernull rand27 rand28
+add rand20 emptystring rand20 rand27
+len rand31 arg0
+set num rand32 1
+sub rand30 rand31 rand32
+sml rand29 rand25 rand30
+jn rand33 rand29
+dupe rand35 arg1
+add rand20 emptystring rand20 rand35
+: rand33
+jai rand22 rand25
+: rand23
+ret rand20
+~
 ~ main
-set str rand15 funny
-print rand15
-set bool rand17 true
-set str rand18 
-set obj rand16 {"methods":{".cns":"~ rand6\nset str rand25 attributes\nobj get arg0 rand24 rand25\nset str rand25 successful\nobj get rand24 rand23 rand25\ndupe rand23 arg1\nobj set rand24 rand25 rand23\nset str rand28 attributes\nobj get arg0 rand27 rand28\nset str rand28 text\nobj get rand27 rand26 rand28\ndupe rand26 arg2\nobj set rand27 rand28 rand26\n~"},"attributes":{}}
-set str rand20 methods
-obj get rand16 rand19 rand20
-set str rand20 .cns
-obj get rand19 rand19 rand20
-callvar rand19 rand6 rand16 rand17 rand18
-ret rand16
+print arg1
+set str rand42 attributes
+obj get arg0 rand41 rand42
+set str rand42 text
+obj get rand41 rand40 rand42
+set str rand44  
+callget rand43 join arg1 rand44
+add rand40 emptystring rand40 rand43
+obj set rand41 rand42 rand40
+ret
 ~

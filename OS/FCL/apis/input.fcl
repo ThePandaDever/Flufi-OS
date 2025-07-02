@@ -1,0 +1,13 @@
+import io;
+
+struct KeyMap {
+    Arr<str> keys = [];
+    Arr<str> special = [];
+
+    Arr<str> downKeys = [];
+    Arr<str> downSpecial = [];
+
+    void update() {
+        io:throw("cannot update input with api");
+    }
+}

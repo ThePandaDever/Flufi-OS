@@ -7,6 +7,10 @@ Obj<str> shiftKeys() {
     return raw("keyhistory shift .target");
 }
 
+Arr<Obj<str>> getDown() {
+    return raw("keyhistory getdown .target");
+}
+
 void clearKeys() {
     raw("keyhistory delkeys");
 }
@@ -31,17 +35,33 @@ struct KeyMap {
     Arr<str> keys = [];
     Arr<str> special = [];
 
+    Arr<str> downKeys = [];
+    Arr<str> downSpecial = [];
+
     void update() {
         Arr<Obj<str>> keys = getKeys();
         for(i, keys.length) {
             Obj<str> key = shiftKeys();
 
-            str type = key["type"];
             str data = key["data"];
             if (!isSpecialKey(data)) {
                 self.keys.append(data);
             } else {
                 self.special.append(data);
+            }
+        }
+
+        self.downKeys = [];
+        self.downSpecial = [];
+        Arr<Obj<str>> down = getDown();
+        for (i, down.length) {
+            Obj<str> key = down[i];
+            
+            str data = key["data"];
+            if (!isSpecialKey(data)) {
+                self.downKeys.append(data);
+            } else {
+                self.downSpecial.append(data);
             }
         }
     }
