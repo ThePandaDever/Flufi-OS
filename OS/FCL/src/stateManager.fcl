@@ -1,15 +1,28 @@
-import states/terminal;
+import states/terminal, states/desktop;
 import state, graphics;
 
 void initState(State state, GraphicsState graphicsState) {
     if (state.type == "terminal") {
         terminal:init(state, graphicsState);
     }
+    if (state.type == "desktop") {
+        desktop:init(state, graphicsState);
+    }
 }
 
 void updateState(State state, GraphicsState graphicsState) {
     state.time.updateFrame();
-    if (state.type == "terminal") {
-        terminal:update(state, graphicsState);
+    if (state.wait > 0) {
+        state.wait --;
+    } else {
+        if (state.needsInit) {
+            state.needsInit = false;
+            initState(state, graphicsState);
+        }
+        if (state.type == "terminal") {
+            terminal:update(state, graphicsState);
+        } else (state.type == "desktop") {
+            desktop:update(state, graphicsState);
+        }
     }
 }

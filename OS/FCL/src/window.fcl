@@ -1,11 +1,31 @@
 import graphics;
 
+struct WindowFunction {
+    
+}
+
+struct WindowButton {
+    str id;
+}
+
+struct WindowRenderSettings {
+    bool renderBase = true;
+    bool renderMenuBar = true; // normally the topbar
+
+
+}
+
 struct Window {
     Surface surface;
     Frame frame;
+    Frame contentFrame;
 
-    void constructor(Frame frame, str surfaceType = "pen") {
+    str title = "Window";
+
+    WindowRenderSettings renderSettings = new WindowRenderSettings();
+
+    void constructor(Frame frame) {
         self.frame = frame;
-        self.surface = new Surface(surfaceType, self!.frame);
+        self.surface = new Surface("pen", self!.frame);
     }
 }

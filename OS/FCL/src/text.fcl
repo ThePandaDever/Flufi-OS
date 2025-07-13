@@ -26,7 +26,7 @@ str embedLocalDirection(State state, num direction) {
 str embedResetBoldness(State state) {
     return embedCommand(state, "rboldness");
 }
-str embedResetBoldness(State state) {
+str embedResetLocalDirection(State state) {
     return embedCommand(state, "rdirection");
 }
 str embedReset(State state) {

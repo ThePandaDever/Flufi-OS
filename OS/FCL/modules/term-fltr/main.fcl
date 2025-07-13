@@ -1,0 +1,72 @@
+import states/terminal;
+
+Arr<str> splitChars(str text, Arr<str> splitters) {
+    Arr<str> tokens = [""];
+
+    for (i, text.length) {
+        str char = text[i];
+
+        if (splitters.contains(char)) {
+            if (tokens[tokens.length-1] == "") {
+                tokens[tokens.length-1] = char;
+            } else {
+                tokens.append(char);
+            }
+            tokens.append("");
+            continue;
+        }
+
+        tokens[tokens.length-1] = tokens[tokens.length-1] ++ char;
+    }
+
+    return tokens;
+}
+
+struct fltrNode {
+    str kind;
+
+}
+
+struct fltrContext {
+    Arr<fltrNode> nodes;
+}
+
+Arr<fltrNode> parse(str code) {
+    Arr<fltrNode> nodes = [];
+    Arr<str> tokens = splitChars(code, ["+","-","*","/","<",">"," ","\n","\"","\\"]);
+
+    num quoteStart = -1;
+    str quoteData = "";
+
+    for (i, tokens.length) {
+        str token = tokens[i];
+        if (token[0] == "\"") {
+            if (quoteStart == -1) {
+                quoteStart = i;
+            } else {
+                print("QUOOOE", quoteStart, i, tokens.slice(quoteStart,i));
+                quoteStart = 0;
+            }
+            continue;
+        }
+        if (quoteStart == -1) {
+            continue;
+        }
+        print(token);
+    }
+    return nodes;
+}
+
+void run(str code) {
+    Arr<fltrNode> nodes = parse(code);
+    fltrContext context = new fltrContext();
+    context.nodes = nodes;
+}
+
+void main(TerminalInstance instance, Arr<str> args) {
+    str code = "
+        \"skibidi\" -> myVar
+        print myVar
+    ";
+    run(code);
+}

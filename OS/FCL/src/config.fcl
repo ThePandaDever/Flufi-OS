@@ -1,3 +1,4 @@
+import theme;
 
 struct Config {
     // a link to a ojff file / any font format that whatever is running flufi os can draw
@@ -11,4 +12,6 @@ struct Config {
         obviously this is an oversimiplification but thats the base of it
     */
     str embeddedCommandChar = "";
+
+    Theme theme = new Theme();
 }

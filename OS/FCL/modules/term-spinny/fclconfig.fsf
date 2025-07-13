@@ -1,0 +1,2 @@
+export: sys/terminal/spinny.fbl;
+noComp: true;

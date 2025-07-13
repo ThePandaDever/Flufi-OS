@@ -1,4 +1,4 @@
-import terminal, math, input;
+import states/terminal, math, input;
 
 void main(TerminalInstance instance, Arr<str> args, KeyMap map) {
     instance.text ++= "|";

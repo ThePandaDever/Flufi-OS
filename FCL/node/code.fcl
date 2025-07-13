@@ -1,14 +1,3 @@
-str join(Arr<str> elems, str joiner = "") {
-    str out = "";
-    for (i, elems.length) {
-        out ++= elems[i];
-        if (i < elems.length - 1) {
-            out ++= joiner;
-        }
-    }
-    return out;
-}
-
 void main() {
-    grah = join(["fr","ra"], " ");
+    print("hello world" + "<- funny");
 }

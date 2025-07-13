@@ -1,0 +1,13 @@
+
+struct Theme {
+    str accent = "#a600ff";
+    
+    str primary = "#1a1d28";
+    str secondary = "#313f4e";
+    str tertiary = "#4f617d";
+
+    str text = "#b3cbf9";
+
+    str background = "#090a0b";
+    str selected = "#0059ff";
+}

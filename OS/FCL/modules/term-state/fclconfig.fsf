@@ -1,0 +1,2 @@
+export: sys/terminal/state.fbl;
+noComp: true;

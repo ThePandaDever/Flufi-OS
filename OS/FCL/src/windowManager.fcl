@@ -1,0 +1,81 @@
+import process, globals, io, clone, fs, window;
+
+struct WindowManagerProvider {
+    str path;
+    Process proc;
+
+    void constructor(str path) {
+        self.path = path;
+    }
+
+    void init(State state, GraphicsState graphicsState, Obj<Window> windows) {
+        FileHandle handle = fs:open(self.path);
+
+        CloneData data = new CloneData();
+        data.set<State>("arg0", state);
+        data.set<GraphicsState>("arg1", graphicsState);
+        data.set<Obj<Window>>("arg2", windows);
+        self.proc = new Process(handle.readText(), data);
+    }
+    void continue() {
+        if (self?.proc) {
+            self.proc.continue();
+        } else {
+            io:throw("no wm to continue");
+        }
+    }
+}
+
+struct WindowManagerContext {
+    Obj<WindowManagerProvider> providers = {};
+    str currentProvider;
+
+    Obj<Window> windows = {
+        "myID": new Window(new Frame(-300,-200, 300,200))
+    };
+
+    void update() {
+        if (!self?.currentProvider) {
+            io:throw("no current wm provider");
+        }
+        WindowManagerProvider provider = self.providers[self!.currentProvider];
+        provider.continue();
+    }
+
+    void setCurrentProvider(str name) {
+        if (!self.providers.keys().contains(name)) {
+            io:throw("unknown provider" + name);
+        }
+        self.currentProvider = name;
+    }
+    void startProvider(State state, GraphicsState graphicsState) {
+        if (!self?.currentProvider) {
+            io:throw("no current wm provider");
+        }
+        if (!self.providers.keys().contains(self!.currentProvider)) {
+            io:throw("unknown provider" + self!.currentProvider);
+        }
+        WindowManagerProvider provider = self.providers[self!.currentProvider];
+        provider.init(state, graphicsState, self.windows);
+    }
+    void addProvider(str name, WindowManagerProvider provider) {
+        self.providers[name] = provider;
+    }
+}
+
+
+void init(State state, GraphicsState graphicsState) {
+    WindowManagerContext ctx = globals:setGlobal<WindowManagerContext>("wmContext", new WindowManagerContext());
+
+    ctx.addProvider("normal", new WindowManagerProvider("sys/wms/normal.fbl"));
+
+    ctx.setCurrentProvider("normal");
+    ctx.startProvider(state, graphicsState);
+    
+    graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
+}
+void update(State state, GraphicsState graphicsState) {
+    WindowManagerContext ctx = globals:getGlobal<WindowManagerContext>("wmContext");
+
+    ctx.update();
+}

@@ -1,0 +1,17 @@
+import state, graphics, states/terminal, io, text;
+
+void main(TerminalInstance instance, Arr<str> args, null _, State state, GraphicsState graphicsState) {
+    if (args.length == 2) {
+        if (args[0] == "set") {
+            state.type = args[1];
+            state.wait = 5;
+            state.needsInit = true;
+            return
+        }
+    }
+
+    Arr<str> commands = [
+        "state set <name>"
+    ];
+    instance.text ++= embedColor(state, instance.theme.warn) ++ "unknown state command syntax, list:" ++ "\n  " ++ commands.join("\n  ");
+}

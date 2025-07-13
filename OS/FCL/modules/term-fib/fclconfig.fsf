@@ -1,0 +1,2 @@
+export: sys/terminal/fib.fbl;
+noComp: true;

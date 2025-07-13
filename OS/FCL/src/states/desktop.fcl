@@ -1,0 +1,14 @@
+import windowManager as WM;
+
+// TODO: lock this down :P
+struct DesktopContext {
+    
+}
+
+void init(State state, GraphicsState graphicsState) {
+    WM:init(state, graphicsState);
+}
+
+void update(State state, GraphicsState graphicsState) {
+    WM:update(state, graphicsState);
+}

@@ -28,7 +28,7 @@ struct Frame {
     Arr<num:2> getB() { return [self.getX(),self.y1] }
     Arr<num:2> getBR() { return [self.x2,self.y1] }
 
-    str stringify() {
+    str toString() {
         return "Frame{" ++ self.x1 ~++ self.y1 + "to" + self.x2 ~++ self.y2 ++ "}"
     }
 }
@@ -36,6 +36,9 @@ struct Frame {
 Frame getDefaultFrame() {
     screenSize = io:getScreenSize();
     return new Frame(screenSize[0] * -.5, screenSize[1] * -.5, screenSize[0] * .5, screenSize[1] * .5);
+}
+Frame cloneFrame(Frame original) {
+    return new Frame(original.x1, original.y1, original.x2, original.y2);
 }
 
 struct Surface {
@@ -63,6 +66,18 @@ struct Surface {
 
         io:throw("cannot use line method on" + self.type + "surface");
     }
+
+    void path(Arr<Arr<num:2>> points, num w, bool loop = false) {
+        num len = points.length;
+        if (!loop) {
+            len -= 1;
+        }
+        for (i, len) {
+            Arr<num:2> point = points[i];
+            Arr<num:2> npoint = points[i + 1 % points.length];
+            self.line(point[0], point[1], npoint[0], npoint[1], w);
+        }
+    }
     void tri(num x1, num y1, num x2, num y2, num x3, num y3, num border) {
         if (self.type == "pen") {
             raw("pen tri arg1 arg2 arg3 arg4 arg5 arg6 arg7");
@@ -72,20 +87,24 @@ struct Surface {
         io:throw("cannot use tri method on" + self.type + "surface");
     }
     void quad(num x1, num y1, num x2, num y2, num x3, num y3, num x4, num y4, num border) {
-        if (self.type == "pen") {
-            /*
-            2     4
-            |  \  |
-            1     3
-            */
-            self.tri(x1,y1, x2,y2, x3,y3, border);
-            self.tri(x2,y2, x3,y3, x4,y4, border);
-            return;
-        }
-
-        io:throw("cannot use quad method on" + self.type + "surface");
+        /*
+        2     4
+        |  \  |
+        1     3
+        */
+        self.tri(x1,y1, x2,y2, x3,y3, border);
+        self.tri(x2,y2, x3,y3, x4,y4, border);
     }
-    void rect(num x, num y, num w, num h, num border) {
+    void rect(num x1, num y1, num x2, num y2, num border) {
+        self.quad(
+            x1, y1,
+            x1, y2,
+            x2, y1,
+            x2, y2,
+            border
+        )
+    }
+    void square(num x, num y, num w, num h, num border) {
         halfW = w / 2;
         halfH = h / 2;
         self.quad(
@@ -112,6 +131,7 @@ struct Surface {
 
         io:throw("cannot use text method on" + self.type + "surface");
     }
+    
     void loadFontFromUrl(str url) {
         if (self.type == "pen") {
             raw("pen loadfonturl arg1");

@@ -130,6 +130,8 @@ FSF.settings = {
     "shareVariables": { "type": "bool", "desc": "a compiler setting for variables outside forever loops" },
     "legacyNotEqual": { "type": "bool", "desc": "disables the use of the neql command" },
     "unsafe": { "type": "bool", "desc": "removes runtime type checks" },
+    "noComp": { "type": "bool", "desc": "doesnt compile the scripts, useful for large projects and updating modules" },
+    "allComp": { "type": "bool", "desc": "force it to compile every module" }
 }
 
 let config = null;
@@ -191,22 +193,27 @@ if (config && config["main"] && config["projectPath"]) {
     console.log("");
     
     const startm = performance.now();
-    const out = eval(compiler + `;
-    console.time("parsing (main)");
-    const script = new Script(${JSON.stringify(code)});
-    console.timeEnd("parsing (main)");
-    const context = new CompileContext();
+    let out;
+    if (fs.existsSync(exportPath))
+        out = fs.readFileSync(exportPath);
+    if (!config["noComp"] || !out) {
+        out = eval(compiler + `;
+        console.time("parsing (main)");
+        const script = new Script(${JSON.stringify(code)});
+        console.timeEnd("parsing (main)");
+        const context = new CompileContext();
 
-    context.sharesVariables = ${config["shareVariables"] ?? false};
-    context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};
-    context.unsafe = ${config["unsafe"] ?? false};
+        context.sharesVariables = ${config["shareVariables"] ?? false};
+        context.neqlSupport = ${!(config["legacyNotEqual"] ?? false)};
+        context.unsafe = ${config["unsafe"] ?? false};
 
-    console.time("compiling (main)");
-    const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")}),"apis":{...importFs(${JSON.stringify(config["projectPath"] + "/src")})}});
-    console.timeEnd("compiling (main)");
-    console.log("");
-    val
-    `);
+        console.time("compiling (main)");
+        const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/src")}),"apis":{...importFs(${JSON.stringify(config["projectPath"] + "/src")})}});
+        console.timeEnd("compiling (main)");
+        console.log("");
+        val
+        `);
+    }
     const endm = performance.now();
     
     if (config["export"]) {
@@ -236,6 +243,7 @@ if (config && config["main"] && config["projectPath"]) {
             const modules = fs.readdirSync(modulesPath);
             const moduleOuts = {};
             FSF.settings["export"].desc = "the file path that the file can appear in the os that loads it";
+            FSF.settings["noComp"] = { "type": "bool", "desc": "doesnt compile the module" };
             for (let i = 0; i < modules.length; i++) {
                 const moduleName = modules[i];
                 const modulePath = modulesPath + "/" + moduleName;
@@ -248,6 +256,10 @@ if (config && config["main"] && config["projectPath"]) {
                 if (fs.existsSync(configPath))
                     config2 = FSF.parse(fs.readFileSync(configPath, 'utf8'));
 
+                if (config2 != null && config2["noComp"] && !config["allComp"]) {
+                    continue;
+                }
+
                 const main = modulePath + "/" + (config2 != null ? config2["main"] ?? "main.fcl" : "main.fcl");
                 
                 let out = "";
@@ -259,7 +271,7 @@ if (config && config["main"] && config["projectPath"]) {
                     const context = new CompileContext();
                     context.sharesVariables = ${config["shareVariables"] ?? false};
                     console.time("compiling (${moduleName})");
-                    const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});
+                    const val = script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + /*"/apis"*/ "/src")})});
                     console.timeEnd("compiling (${moduleName})");
                     console.log("");
                     val
@@ -280,7 +292,8 @@ if (config && config["main"] && config["projectPath"]) {
             fs.writeFileSync(exportFolder + "/modules.json", JSON.stringify(moduleOuts));
         }
 
-        fs.writeFileSync(exportPath, out, 'utf8');
+        if (out != null)
+            fs.writeFileSync(exportPath, out, 'utf8');
         console.log(`compilation finished!${(modOuts ?? ["",""]).join("\n\n")}output (main) put in ${config["export"]}, in ${Math.floor(endm-startm)}ms`);
         console.timeLog("in");
     } else {
@@ -304,7 +317,7 @@ if (config && config["main"] && config["projectPath"]) {
                 
                 let out = "";
                 if (fs.existsSync(main))
-                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + "/apis")})});`);
+                    out = eval(compiler + `;const script = new Script(${JSON.stringify(fs.readFileSync(main,'utf8'))});const context = new CompileContext();context.sharesVariables = ${config["shareVariables"] ?? false};script.compile(context,null,{...getDefaultFs(),...importFs(${JSON.stringify(config["projectPath"] + /*"/apis"*/ "/src")})});`);
                 else
                     console.warn(`module ${moduleName} is empty or has no main.fcl; and hasnt been compiled.`);
 

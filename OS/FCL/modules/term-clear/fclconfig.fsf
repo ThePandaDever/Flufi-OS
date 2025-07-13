@@ -1,0 +1,2 @@
+export: sys/terminal/clear.fbl;
+noComp: true;

@@ -19,7 +19,10 @@ struct TimeState {
 }
 
 struct State {
-    str type = "terminal";
+    str type = "terminal"; // "terminal" | "desktop"
+
+    bool needsInit = false; // tells the sm (state manager) if it should init the state
+    num wait = 0; // how many frames it should wait until it updates
 
     TimeState time = new TimeState();
 

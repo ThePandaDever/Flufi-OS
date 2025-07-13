@@ -1,0 +1,2 @@
+export: sys/terminal/echo.fbl;
+noComp: true;

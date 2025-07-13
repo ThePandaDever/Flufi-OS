@@ -475,7 +475,8 @@ class Context {
                 "return"
             ];
             this.lowStatements = [
-                "typeof"
+                "typeof",
+                "half"
             ]
             this.standalone_statements = [
                 "return",
@@ -484,7 +485,8 @@ class Context {
             ];
 
             this.statementTypes = {
-                "typeof": (value) => new Type("Type")
+                "typeof": () => new Type("Type"),
+                "half": () => new Type("num")
             }
         }
 
@@ -668,6 +670,8 @@ function isTypeSafeStrict(type,compare) {
         compare = "null";
     if (compare instanceof TypedValueType)
         return isTypeSafeStrict(type, compare.baseType);
+    if (typeof type == "string" && typeof compare == "string")
+        return type.split(":").pop() === compare.split(":").pop();
     return type === compare;
 }
 
@@ -727,6 +731,7 @@ class Node {
                         let key = tokens[0];
                         if (is(tokens[0], "single-q") || is(tokens[0], "double-q") || is(tokens[0], "back-q"))
                             key = tokens[0].slice(1,-1);
+                        if (tokens.length == 1 && /^[A-Za-z0-9_]+$/.test(tokens[0])) return [tokens[0], new Node(tokens[0], context)];
                         if (tokens.length != 2)
                             throw "unknown object key-pair syntax: " + e
                         return [key,new Node(tokens[1], context)];
@@ -911,8 +916,13 @@ class Node {
             let op = "";
             let token;
             let isVar = true;
-            while (chars.includes(token = tokens.shift())) op += token;
+            let t2 = [];
+            while (chars.includes(token = tokens.shift())) {
+                if (!(op.includes("=") && token != "=")) op += token
+                else t2.unshift(token);
+            };
             if (token) tokens.unshift(token);
+            tokens.unshift(...t2);
 
             const types = {"": "default", ...context.operation_names};
 
@@ -1593,6 +1603,16 @@ class Node {
                         context.text += target != null ? (type.startsWith(".") ? `gettype ${target.id} ${key}\n` : `set str ${target.id} ${type}\n`) : "";
                         break;
                     }
+                    case "half": {
+                        if (!isTypeSafeStrict(this.value.getType(context), "num"))
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "half value must be num";
+                        const key = this.value.compileKey(context);
+                        this.value.compile(context, new Target(key));
+                        let type = this.value.getType(context).getName();
+                        const v = randomStr();
+                        context.text += target != null ? `set num ${v} 2\ndiv ${target.id} ${key} ${v}\n` : "";
+                        break;
+                    }
                     case "continue": {
                         const top = context.continueLayers[context.continueLayers.length-1];
                         if (top) {
@@ -2169,6 +2189,33 @@ class Node {
                             context.text += `arr has ${target.id} ${parentRef} ${valueRef}\n`;
                         return;
                     }
+                    if (this.key == "slice" && target) {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if ([1,2].includes(this.args.length)) {
+                            const startRef = this.args[0].compileKey(context);
+                            this.args[0].compile(context, new Target(startRef));
+                            if (this.args.length == 2) {
+                                const endRef = this.args[1].compileKey(context);
+                                this.args[1].compile(context, new Target(endRef));
+                                context.text += `slice ${target.id} ${parentRef} ${startRef} ${endRef}\n`;
+                            } else
+                                context.text += `slice ${target.id} ${parentRef} ${startRef}\n`;
+                        } else
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "unexpected amount of args in slice, array.slice(start,end?)";
+                        return;
+                    }
+                    if (this.key == "join" && target) {
+                        const parentRef = this.value.compileKey(context);
+                        this.value.compile(context, new Target(parentRef));
+                        if (this.args.length == 1) {
+                            const sepRef = this.args[0].compileKey(context);
+                            this.args[0].compile(context, new Target(sepRef));
+                            context.text += `join ${target.id} ${parentRef} ${sepRef}\n`;
+                        } else
+                            throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "unexpected amount of args in join, array.join(seperator)";
+                        return;
+                    }
                 }
                 if (this.key === "toString") {
                     const parentRef = this.value.compileKey(context);
@@ -2496,9 +2543,9 @@ class Node {
                             nullAttributes[elem["name"]] = elem;
                         }
                         if (elem["kind"] == "function")
-                            methods[elem.key.replace("constructor",".cns")] = new MethodFunc(elem.content,elem.type,elem.params);
+                            methods[elem.key.replace("constructor",".cns")] = new MethodFunc(elem.content,elem.type,elem.params,elem.key);
                         if (elem["kind"] == "auto_function")
-                            genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type);
+                            genericMethods[elem.key.replace("constructor",".cns")] = new AutoMethodFunc(elem.content,elem.params,elem.type,elem.key);
                         
                         if (elem["kind"] == "auto_function" && elem.key === "constructor")
                             throw `in:\n  ${this.formattedCode}\nerror:\n  ` + "constructor cannot be a generic function";
@@ -2645,7 +2692,8 @@ class Node {
                     "any": new TypedValue(".any")
                 }[this.name];
             case "package_method":
-                return context.scope.get(`${context.packageName != null ? context.packageName + ":" : ""}${this.package}:${this.key}`);
+                return context.scope.get(`${context.packageName != null ? context.packageName + ":" : ""}${this.package}:${this.key}`) ??
+                    context.scope.get(`${this.package}:${this.key}`);;
 
             case "assignment":
                 if (["inc", "dec"].includes(this.type))
@@ -2813,6 +2861,10 @@ class Node {
                     }
                     if (this.key == "contains")
                         return new Type("bool");
+                    if (this.key == "slice")
+                        return this.value.getType(context).getValueType(context);
+                    if (this.key == "join")
+                        return new Type("str");
                 }
                 return new Type("null");
             }
@@ -3120,7 +3172,7 @@ class Struct extends TypedValueType {
             context.scope.exitLayer();
             if (method[1] instanceof AutoMethodFunc)
                 context.scope.exitLayer();
-            methods[method[0]] = context.text + "~";
+            methods[method[0]] = context.text + "ret\n~";
             context.text = oldText;
             context.argOffset = oldOffset;
         }
@@ -3191,8 +3243,8 @@ class CompiledFunc extends Func {
 }
 const methodfuncRefs = {};
 class MethodFunc extends Func {
-    constructor(content, type, params) {
-        methodfuncRefs[content.formattedCode] ??= randomStr();
+    constructor(content, type, params, key) {
+        methodfuncRefs[content.formattedCode] ??= `mthd:${key}`;
         super();
         this.funcType = "method";
         this.content = content;
@@ -3209,8 +3261,8 @@ class AutoFunc extends DefinedFunc {
     }
 }
 class AutoMethodFunc extends MethodFunc {
-    constructor(key, params, typeName) {
-        super(key, ".any", params);
+    constructor(content, params, typeName, key) {
+        super(content, ".any", params, key);
         this.funcType = "auto_method";
         this.typeName = typeName;
     }
@@ -3248,7 +3300,6 @@ function importFs(path) {
 // NODE JS
 
 const fs = require('fs');
-const { off } = require('process');
 
 const c = fs.readFileSync('node/code.fcl', 'utf8');
 console.time("parse");

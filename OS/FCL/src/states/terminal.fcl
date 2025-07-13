@@ -17,12 +17,14 @@ struct TerminalCommand {
         self.path = path;
     }
 
-    TerminalResult execute(TerminalInstance instance, Arr<str> args, KeyMap keyMap) {
+    TerminalResult execute(TerminalInstance instance, Arr<str> args, KeyMap keyMap, State state, GraphicsState graphicsState) {
         FileHandle handle = fs:open(self.path);
         CloneData data = new CloneData();
         data.set<TerminalInstance>("arg0", instance);
         data.set<Arr<str>>("arg1", args);
         data.set<KeyMap>("arg2", keyMap);
+        data.set<State>("arg3", state);
+        data.set<GraphicsState>("arg4", graphicsState);
         Process proc = new Process(handle.readText(), data);
         instance.process = proc;
         return new TerminalResult(true);
@@ -75,13 +77,19 @@ struct TerminalInstance {
         }
     }
 
+    void clear() {
+        self.text = "";
+        self.currentCmd = "";
+        self.hasLine = false;
+    }
+
     str _destr(str value) {
         if (value[0] == "\"" && value[value.length - 1] == "\"") {
             return value.slice(1,-1);
         }
         return value;
     }
-    TerminalResult runCommand(str cmd) {
+    TerminalResult runCommand(str cmd, State state, GraphicsState graphicsState) {
         Arr<str> tokens = utils:splitChar(cmd, " ", ["intactQuotes"]);
         
         Arr<str> k = self.context.commands.keys();
@@ -93,9 +101,10 @@ struct TerminalInstance {
                 args.append(self._destr(elem).toString());
             }
             TerminalCommand command = self.context.commands[key];
-            return command.execute(self, args, self.map);
+            return command.execute(self, args, self.map, state, graphicsState);
         }
-
+        
+        print("unknown command:", tokens[0], "list:", k);
         return new TerminalResult(false, "unknown command \'" ++ tokens[0] ++ "\'");
     }
 }
@@ -104,16 +113,21 @@ void init(State state, GraphicsState graphicsState) {
     graphicsState.drawSurface.loadFontFromUrl(state.config.fontUrl);
     globals:setGlobal<TerminalContext>("terminalContext", new TerminalContext(state, {
         "echo": new TerminalCommand("sys/terminal/echo.fbl"),
+        "clear": new TerminalCommand("sys/terminal/clear.fbl"),
+        
+        "state": new TerminalCommand("sys/terminal/state.fbl"),
+
         "spinny": new TerminalCommand("sys/terminal/spinny.fbl"),
         "fib": new TerminalCommand("sys/terminal/fib.fbl"),
+        "fltr": new TerminalCommand("sys/terminal/fltr.fbl"),
     }));
 
     TerminalContext context = globals:getGlobal<TerminalContext>("terminalContext");
     globals:setGlobal<TerminalInstance>("terminalInstance", new TerminalInstance(context, state.inputState.map));
 }
 
-void runCommand(str cmd, TerminalInstance termInstance) {
-    TerminalResult result = termInstance.runCommand(cmd);
+void runCommand(str cmd, TerminalInstance termInstance, State state, GraphicsState graphicsState) {
+    TerminalResult result = termInstance.runCommand(cmd, state, graphicsState);
 
     if (!result.successful) {
         termInstance.text ++= text:embedColor(termInstance.context.state, termInstance.theme.warn);
@@ -128,7 +142,7 @@ void newLine(TerminalInstance termInstance) {
     termInstance.text ++= "> ";
 }
 
-void handleInput(State state) {
+void handleInput(State state, GraphicsState graphicsState) {
     TerminalInstance termInstance = globals:getGlobal<TerminalInstance>("terminalInstance");
     
     termInstance.update();
@@ -165,7 +179,7 @@ void handleInput(State state) {
         if (inControl) {
             if (key == "Enter" && termInstance.currentCmd.length > 0) {
                 termInstance.text ++= "\n";
-                runCommand(termInstance.currentCmd, termInstance);
+                runCommand(termInstance.currentCmd, termInstance, state, graphicsState);
                 termInstance.currentCmd = "";
                 termInstance.hasLine = false;
             }
@@ -185,9 +199,8 @@ void drawMain(State state, GraphicsState graphicsState) {
     
     /* draw background */ {
         drawSurf.setColor("#0e0d10");
-        drawSurf.rect(drawFrame.getX(), drawFrame.getY(), drawFrame.getW(), drawFrame.getH(), 0);
+        drawSurf.square(drawFrame.getX(), drawFrame.getY(), drawFrame.getW(), drawFrame.getH(), 0);
     }
-    // what
     /* textbox */ {
         drawSurf.setColor("#fff");
         Arr<num> pos = drawFrame.getTL();

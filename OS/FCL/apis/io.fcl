@@ -1,8 +1,0 @@
-void throw(str text) {
-    raw("err arg0");
-}
-
-// real world
-num getCurrentMs() {
-    return raw("const ms .target");
-}

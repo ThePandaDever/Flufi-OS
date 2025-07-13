@@ -1,4 +1,4 @@
-import terminal;
+import states/terminal;
 
 str join(Arr<str> elems, str joiner = "") {
     str out = "";
@@ -12,6 +12,5 @@ str join(Arr<str> elems, str joiner = "") {
 }
 
 void main(TerminalInstance instance, Arr<str> args) {
-    print(args);
     instance.text ++= join(args, " ");
 }

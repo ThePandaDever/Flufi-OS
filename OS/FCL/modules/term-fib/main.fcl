@@ -1,0 +1,24 @@
+import io;
+
+void doTheFib() {
+    num terms = 1000;
+    num c = 0;
+    num a = 0;
+    num b = 1;
+    c = 0;
+
+    for (i, terms) {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+}
+
+void main() {
+    num start = io:getCurrentMs();
+    for (i2, 1000) {
+        doTheFib();
+    }
+    num end = io:getCurrentMs();
+    print(end-start);
+}
